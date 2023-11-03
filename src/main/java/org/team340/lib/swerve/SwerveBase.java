@@ -21,6 +21,7 @@ import org.team340.lib.GRRDashboard;
 import org.team340.lib.blacklight.Blacklight;
 import org.team340.lib.blacklight.BlacklightConfig;
 import org.team340.lib.drivers.ADIS16470;
+import org.team340.lib.math.Math2;
 import org.team340.lib.subsystem.GRRSubsystem;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.config.SwerveModuleConfig;
@@ -35,7 +36,6 @@ import org.team340.lib.swerve.hardware.motors.vendors.SwerveSparkMax;
 import org.team340.lib.swerve.hardware.motors.vendors.SwerveTalonFX;
 import org.team340.lib.swerve.simulation.SwerveSimIMU;
 import org.team340.lib.swerve.simulation.SwerveSimModule;
-import org.team340.lib.util.Math2;
 import org.team340.lib.util.SendableFactory;
 import org.team340.lib.util.StringUtil;
 

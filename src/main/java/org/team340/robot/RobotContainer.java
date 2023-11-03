@@ -3,7 +3,7 @@ package org.team340.robot;
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 
 import org.team340.lib.GRRDashboard;
-import org.team340.lib.util.AdvancedController;
+import org.team340.lib.control.AdvancedController;
 import org.team340.lib.util.RevUtil;
 import org.team340.robot.Constants.ControllerConstants;
 import org.team340.robot.commands.Autos;

@@ -6,8 +6,8 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.wpilibj2.command.Command;
 import java.util.function.Supplier;
+import org.team340.lib.math.Math2;
 import org.team340.lib.swerve.SwerveBase;
-import org.team340.lib.util.Math2;
 import org.team340.robot.Constants.SwerveConstants;
 
 /**

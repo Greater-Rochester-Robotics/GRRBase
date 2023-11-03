@@ -4,11 +4,11 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import org.team340.lib.math.Math2;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.config.SwerveModuleConfig;
 import org.team340.lib.swerve.hardware.encoders.SwerveAbsoluteEncoder;
 import org.team340.lib.swerve.hardware.motors.SwerveMotor;
-import org.team340.lib.util.Math2;
 
 /**
  * A swerve module for {@link SwerveBase}

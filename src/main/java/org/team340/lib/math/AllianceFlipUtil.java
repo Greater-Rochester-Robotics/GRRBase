@@ -1,4 +1,4 @@
-package org.team340.lib.util;
+package org.team340.lib.math;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;

@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.TreeSet;
 import java.util.function.Supplier;
+import org.team340.lib.math.Math2;
 
 /**
  * Utilities for REVLib interfaces.

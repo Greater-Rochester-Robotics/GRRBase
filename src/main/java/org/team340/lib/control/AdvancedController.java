@@ -1,4 +1,4 @@
-package org.team340.lib.util;
+package org.team340.lib.control;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.util.sendable.Sendable;
@@ -6,6 +6,7 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import org.team340.lib.math.Math2;
 
 /**
  * A modified {@link CommandXboxController}.

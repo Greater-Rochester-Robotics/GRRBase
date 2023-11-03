@@ -6,12 +6,12 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import org.team340.lib.math.Math2;
 import org.team340.lib.swerve.SwerveConversions;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.config.SwerveModuleConfig;
 import org.team340.lib.swerve.hardware.encoders.SwerveAbsoluteEncoder;
 import org.team340.lib.swerve.hardware.motors.SwerveMotor;
-import org.team340.lib.util.Math2;
 
 /**
  * Wrapper for a Talon FX for swerve.

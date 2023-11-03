@@ -10,8 +10,8 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.team340.lib.math.Math2;
 import org.team340.lib.swerve.config.SwerveConfig;
-import org.team340.lib.util.Math2;
 
 // TODO Investigate undesirable behavior while entering and leaving stopped targets with rotational motion
 

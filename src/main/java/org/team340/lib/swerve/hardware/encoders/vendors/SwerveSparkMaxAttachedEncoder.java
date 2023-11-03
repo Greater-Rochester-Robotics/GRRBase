@@ -2,11 +2,11 @@ package org.team340.lib.swerve.hardware.encoders.vendors;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkMaxAbsoluteEncoder;
+import org.team340.lib.math.Math2;
 import org.team340.lib.swerve.SwerveBase.SwerveAbsoluteEncoderType;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.config.SwerveModuleConfig;
 import org.team340.lib.swerve.hardware.encoders.SwerveAbsoluteEncoder;
-import org.team340.lib.util.Math2;
 import org.team340.lib.util.RevUtil;
 
 /**

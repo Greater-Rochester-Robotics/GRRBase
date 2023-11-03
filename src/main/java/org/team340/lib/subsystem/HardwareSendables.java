@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import org.team340.lib.GRRDashboard;
-import org.team340.lib.util.Math2;
+import org.team340.lib.math.Math2;
 
 // TODO Faults
 
