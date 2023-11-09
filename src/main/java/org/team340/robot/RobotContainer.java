@@ -2,8 +2,10 @@ package org.team340.robot;
 
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 
+import edu.wpi.first.wpilibj.XboxController;
 import org.team340.lib.GRRDashboard;
 import org.team340.lib.control.AdvancedController;
+import org.team340.lib.control.JoystickProfiler;
 import org.team340.lib.util.RevUtil;
 import org.team340.robot.Constants.ControllerConstants;
 import org.team340.robot.commands.Autos;
@@ -81,6 +83,10 @@ public final class RobotContainer {
 
         // POV Left => Zero swerve
         driver.povLeft().onTrue(swerve.zero(0.0));
+
+        driver
+            .a()
+            .whileTrue(JoystickProfiler.command(driver.getHID(), XboxController.Axis.kLeftX.value, XboxController.Axis.kLeftY.value, 256));
 
         // Left Bumper => Snap 180
         driver.leftBumper().whileTrue(swerve.driveSnap180(RobotContainer::getDriveX, RobotContainer::getDriveY));
