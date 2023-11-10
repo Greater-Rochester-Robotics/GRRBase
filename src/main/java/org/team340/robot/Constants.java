@@ -102,7 +102,7 @@ public final class Constants {
             .setRampRate(0.03, 0.03)
             .setPowerProperties(VOLTAGE, 40.0, 30.0)
             .setMechanicalProperties(7.5, 10.0, 4.0)
-            .setSpeedConstraints(4.0, 7.0, 8.0, 25.0)
+            .setSpeedConstraints(5.0, 10.0, 8.0, 25.0)
             .setMotorTypes(SwerveMotorType.SPARK_MAX_BRUSHLESS, SwerveMotorType.SPARK_MAX_BRUSHLESS)
             .setDiscretizationLookahead(0.040)
             .setStandardDeviations(0.1, 0.1, 0.1)
