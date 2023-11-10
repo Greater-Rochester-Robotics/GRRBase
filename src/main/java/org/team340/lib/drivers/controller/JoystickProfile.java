@@ -1,15 +1,14 @@
-package org.team340.lib.control;
-
-import java.io.File;
-import java.io.FileReader;
-
-import org.json.simple.JSONArray;
-import org.json.simple.parser.JSONParser;
+package org.team340.lib.drivers.controller;
 
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj.Filesystem;
+import java.io.File;
+import java.io.FileReader;
+import org.json.simple.JSONArray;
+import org.json.simple.parser.JSONParser;
 
 public class JoystickProfile {
+
     private InterpolatingDoubleTreeMap profile;
 
     private JoystickProfile(InterpolatingDoubleTreeMap profile) {
@@ -18,16 +17,12 @@ public class JoystickProfile {
 
     public double getX(double rawX, double rawY) {
         double theta = Math.atan2(rawY, rawX);
-        double r0 = Math.hypot(rawX, rawY);
-        double r1 = profile.get(theta);
-        return r0 * r1 * Math.cos(theta);
+        return Math.hypot(rawX, rawY) * profile.get(theta) * Math.cos(theta);
     }
 
     public double getY(double rawX, double rawY) {
         double theta = Math.atan2(rawY, rawX);
-        double r0 = Math.hypot(rawX, rawY);
-        double r1 = profile.get(theta);
-        return r0 * r1 * Math.sin(theta);
+        return Math.hypot(rawX, rawY) * profile.get(theta) * Math.sin(theta);
     }
 
     public static JoystickProfile fromFile(String filePath) {
@@ -43,7 +38,7 @@ public class JoystickProfile {
                 JSONArray point = (JSONArray) points.get(i);
                 profile.put((double) point.get(1), (double) point.get(0));
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             profile.clear();
             profile.put(0.0, 1.0);

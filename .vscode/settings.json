@@ -69,6 +69,8 @@
     "Powerup",
     "Pubuid",
     "Protobuf",
+    "Ratelimiter",
+    "Ratelimits",
     "Regula",
     "REVPH",
     "REVRobotics",

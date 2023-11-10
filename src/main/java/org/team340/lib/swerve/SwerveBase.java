@@ -3,7 +3,10 @@ package org.team340.lib.swerve;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.SparkMaxAbsoluteEncoder;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -18,11 +21,11 @@ import edu.wpi.first.wpilibj.SPI;
 import java.util.ArrayList;
 import java.util.List;
 import org.team340.lib.GRRDashboard;
+import org.team340.lib.GRRSubsystem;
 import org.team340.lib.blacklight.Blacklight;
 import org.team340.lib.blacklight.BlacklightConfig;
-import org.team340.lib.drivers.ADIS16470;
+import org.team340.lib.drivers.imu.ADIS16470;
 import org.team340.lib.math.Math2;
-import org.team340.lib.subsystem.GRRSubsystem;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.config.SwerveModuleConfig;
 import org.team340.lib.swerve.hardware.encoders.SwerveAbsoluteEncoder;
@@ -89,49 +92,15 @@ public abstract class SwerveBase extends GRRSubsystem {
         SPARK_MAX_ATTACHED,
     }
 
-    /**
-     * The general config.
-     */
     protected final SwerveConfig config;
-    /**
-     * Converted config measurements.
-     */
-    protected final SwerveConversions conversions;
-    /**
-     * The IMU in use.
-     */
     protected final SwerveIMU imu;
-    /**
-     * Swerve modules.
-     */
     protected final SwerveModule[] modules;
-    /**
-     * An array representing the positions of modules as translations from the robot's center.
-     */
     protected final Translation2d[] moduleTranslations;
-    /**
-     * The kinematics instance in use.
-     */
+    protected final SwerveConversions conversions;
     protected final SwerveDriveKinematics kinematics;
-    /**
-     * The chassis speeds factory.
-     */
-    protected final SwerveSpeedsFactory speedsFactory;
-    /**
-     * The target controller.
-     */
-    protected final SwerveTargetController targetController;
-    /**
-     * The swerve's representation on a field.
-     */
+    protected final SwerveRatelimiter ratelimiter;
     protected final SwerveField2d field;
-    /**
-     * The pose estimator in use.
-     */
     protected final SwerveDrivePoseEstimator poseEstimator;
-    /**
-     * Blacklights used by the swerve subsystem.
-     */
     protected final List<Blacklight> blacklights = new ArrayList<>();
 
     /**
@@ -156,9 +125,8 @@ public abstract class SwerveBase extends GRRSubsystem {
 
         conversions = new SwerveConversions(config);
         kinematics = new SwerveDriveKinematics(moduleTranslations);
-        speedsFactory = new SwerveSpeedsFactory(this);
-        targetController = new SwerveTargetController(this);
-        field = new SwerveField2d(this);
+        ratelimiter = new SwerveRatelimiter(config, kinematics, getModuleStates());
+        field = new SwerveField2d(config, moduleTranslations);
 
         double[] std = config.getStandardDeviations();
         poseEstimator =
@@ -317,8 +285,9 @@ public abstract class SwerveBase extends GRRSubsystem {
      */
     protected void updateOdometry() {
         for (Blacklight blacklight : blacklights) blacklight.update(poseEstimator);
-        poseEstimator.update(getYaw(), getModulePositions());
-        field.update();
+        SwerveModulePosition[] modulePositions = getModulePositions();
+        Pose2d newPose = poseEstimator.update(getYaw(), modulePositions);
+        field.update(newPose, modulePositions);
     }
 
     /**
@@ -330,7 +299,7 @@ public abstract class SwerveBase extends GRRSubsystem {
             moduleStates[i] = new SwerveModuleState(0.0, moduleTranslations[i].getAngle());
         }
 
-        targetController.setLastTarget(Math2.CHASSIS_SPEEDS_0, moduleStates);
+        ratelimiter.setLastState(Math2.CHASSIS_SPEEDS_0, moduleStates);
         driveStates(moduleStates);
     }
 
@@ -342,8 +311,108 @@ public abstract class SwerveBase extends GRRSubsystem {
     }
 
     /**
+     * Drives the robot using percents of its calculated max velocity.
+     * @param x The desired {@code x} speed from {@code -1.0} to {@code 1.0}.
+     * @param y The desired {@code y} speed from {@code -1.0} to {@code 1.0}.
+     * @param rot The desired rotational speed from {@code -1.0} to {@code 1.0}.
+     * @param fieldRelative If the robot should drive field relative.
+     */
+    protected void drive(double x, double y, double rot, boolean fieldRelative) {
+        driveVelocity(x * config.getMaxV(), y * config.getMaxV(), rot * config.getMaxRv(), fieldRelative);
+    }
+
+    /**
+     * Drives the robot using velocity.
+     * @param xV The desired {@code x} velocity in meters/second.
+     * @param yV The desired {@code y} velocity in meters/second.
+     * @param rotV The desired rotational velocity in radians/second.
+     * @param fieldRelative If the robot should drive field relative.
+     */
+    protected void driveVelocity(double xV, double yV, double rotV, boolean fieldRelative) {
+        ChassisSpeeds chassisSpeeds = fieldRelative
+            ? ChassisSpeeds.fromFieldRelativeSpeeds(xV, yV, rotV, getYaw())
+            : new ChassisSpeeds(xV, yV, rotV);
+
+        driveSpeeds(chassisSpeeds);
+    }
+
+    /**
+     * Drives the robot using percents of its calculated max velocity while locked pointing at a position on the field.
+     * @param x The desired {@code x} speed from {@code -1.0} to {@code 1.0}.
+     * @param y The desired {@code y} speed from {@code -1.0} to {@code 1.0}.
+     * @param point The desired field relative position to point at (axis values in meters).
+     * @param controller A profiled PID controller to use for translating to and maintaining the angle to the desired point.
+     */
+    protected void driveAroundPoint(double x, double y, Translation2d point, ProfiledPIDController controller) {
+        driveAroundPointVelocity(x * config.getMaxV(), y * config.getMaxV(), point, controller);
+    }
+
+    /**
+     * Drives the robot using velocity while locked pointing at a position on the field.
+     * @param xV The desired {@code x} velocity in meters/second.
+     * @param yV The desired {@code y} velocity in meters/second.
+     * @param point The desired field relative position to point at (axis values in meters).
+     * @param controller A profiled PID controller to use for translating to and maintaining the angle to the desired point.
+     */
+    protected void driveAroundPointVelocity(double xV, double yV, Translation2d point, ProfiledPIDController controller) {
+        Translation2d robotPoint = getPosition().getTranslation();
+        double angle = MathUtil.angleModulus(point.minus(robotPoint).getAngle().getRadians());
+        driveAngleVelocity(xV, yV, angle, controller);
+    }
+
+    /**
+     * Drives the robot using percents of its calculated max velocity while locked at a field relative angle.
+     * @param x The desired {@code x} speed from {@code -1.0} to {@code 1.0}.
+     * @param y The desired {@code y} speed from {@code -1.0} to {@code 1.0}.
+     * @param angle The desired field relative angle to point at in radians.
+     * @param controller A profiled PID controller to use for translating to and maintaining the angle.
+     */
+    protected void driveAngle(double x, double y, double angle, ProfiledPIDController controller) {
+        driveAngleVelocity(x * config.getMaxV(), y * config.getMaxV(), angle, controller);
+    }
+
+    /**
+     * Drives the robot using velocity while locked at a field relative angle.
+     * @param xV The desired {@code x} velocity in meters/second.
+     * @param yV The desired {@code y} velocity in meters/second.
+     * @param angle The desired field relative angle to point at in radians.
+     * @param controller A profiled PID controller to use for translating to and maintaining the angle.
+     */
+    protected void driveAngleVelocity(double xV, double yV, double angle, ProfiledPIDController controller) {
+        Rotation2d yaw = getYaw();
+        ChassisSpeeds chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+            xV,
+            yV,
+            controller.calculate(MathUtil.angleModulus(yaw.getRadians()), angle),
+            yaw
+        );
+
+        driveSpeeds(chassisSpeeds);
+    }
+
+    /**
+     * Drives the robot to a field relative pose.
+     * @param pose The pose to drive to.
+     * @param xController A PID controller to use for translating to and maintaining pose's {@code x} position.
+     * @param yController The PID controller to use for translating to and maintaining pose's {@code y} position.
+     * @param rotController The profiled PID controller to use for translating to and maintaining the pose's angle.
+     */
+    protected void driveToPose(Pose2d pose, PIDController xController, PIDController yController, ProfiledPIDController rotController) {
+        Rotation2d yaw = getYaw();
+        Pose2d position = getPosition();
+        ChassisSpeeds chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+            xController.calculate(position.getX(), pose.getX()),
+            yController.calculate(position.getY(), pose.getY()),
+            rotController.calculate(MathUtil.angleModulus(yaw.getRadians()), pose.getRotation().getRadians()),
+            yaw
+        );
+
+        driveSpeeds(chassisSpeeds);
+    }
+
+    /**
      * Drives using chassis speeds.
-     * Speeds are discretized, then the target controller calculates module states.
+     * Speeds are discretized, then the ratelimiter calculates module states.
      * @param chassisSpeeds The chassis speeds to drive with.
      */
     protected void driveSpeeds(ChassisSpeeds chassisSpeeds) {
@@ -354,9 +423,9 @@ public abstract class SwerveBase extends GRRSubsystem {
      * Drives using chassis speeds.
      * @param chassisSpeeds The chassis speeds to drive with.
      * @param discretize If chassis speeds should be discretized.
-     * @param withTargetController If the target controller should be used to calculate module states.
+     * @param withRatelimiter If the ratelimiter should be used to calculate module states.
      */
-    protected void driveSpeeds(ChassisSpeeds chassisSpeeds, boolean discretize, boolean withTargetController) {
+    protected void driveSpeeds(ChassisSpeeds chassisSpeeds, boolean discretize, boolean withRatelimiter) {
         if (discretize) {
             double dtheta = chassisSpeeds.omegaRadiansPerSecond * config.getDiscretizationLookahead();
             double sin = -dtheta / 2.0;
@@ -371,12 +440,12 @@ public abstract class SwerveBase extends GRRSubsystem {
                 new ChassisSpeeds(((dx * cos) - (dy * sin)) / dt, ((dx * sin) + (dy * cos)) / dt, chassisSpeeds.omegaRadiansPerSecond);
         }
 
-        if (withTargetController) {
-            driveStates(targetController.calculate(chassisSpeeds).moduleStates());
+        if (withRatelimiter) {
+            driveStates(ratelimiter.calculate(chassisSpeeds).moduleStates());
         } else {
             SwerveModuleState[] states = kinematics.toSwerveModuleStates(chassisSpeeds);
             SwerveDriveKinematics.desaturateWheelSpeeds(states, config.getMaxV());
-            targetController.setLastTarget(chassisSpeeds, states);
+            ratelimiter.setLastState(chassisSpeeds, states);
             driveStates(states);
         }
     }

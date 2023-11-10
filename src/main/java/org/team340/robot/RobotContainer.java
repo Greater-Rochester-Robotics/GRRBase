@@ -4,8 +4,8 @@ import static edu.wpi.first.wpilibj2.command.Commands.*;
 
 import edu.wpi.first.wpilibj.XboxController;
 import org.team340.lib.GRRDashboard;
-import org.team340.lib.control.AdvancedController;
-import org.team340.lib.control.JoystickProfiler;
+import org.team340.lib.drivers.controller.AdvancedController;
+import org.team340.lib.drivers.controller.JoystickProfiler;
 import org.team340.lib.util.RevUtil;
 import org.team340.robot.Constants.ControllerConstants;
 import org.team340.robot.commands.Autos;

@@ -50,8 +50,7 @@ public class Swerve extends SwerveBase {
      * @param fieldRelative If the robot should drive field relative.
      */
     public Command drive(Supplier<Double> x, Supplier<Double> y, Supplier<Double> rot, boolean fieldRelative) {
-        return commandBuilder("swerve.drive()")
-            .onExecute(() -> driveSpeeds(speedsFactory.percent(x.get(), y.get(), rot.get(), fieldRelative)));
+        return commandBuilder("swerve.drive()").onExecute(() -> drive(x.get(), y.get(), rot.get(), fieldRelative));
     }
 
     /**
@@ -63,7 +62,7 @@ public class Swerve extends SwerveBase {
     public Command driveAngle(Supplier<Double> x, Supplier<Double> y, double angle) {
         return commandBuilder("swerve.driveAngle(" + Math2.toFixed(angle) + ")")
             .onInitialize(() -> rotController.reset(getPosition().getRotation().getRadians(), getVelocity(true).omegaRadiansPerSecond))
-            .onExecute(() -> driveSpeeds(speedsFactory.angle(x.get(), y.get(), angle, rotController)));
+            .onExecute(() -> driveAngle(x.get(), y.get(), angle, rotController));
     }
 
     /**

@@ -1,4 +1,4 @@
-package org.team340.lib.subsystem;
+package org.team340.lib;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.FaultID;
@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
-import org.team340.lib.GRRDashboard;
 import org.team340.lib.math.Math2;
 
 // TODO Faults
@@ -490,7 +489,7 @@ public final class HardwareSendables {
          * @param label The label to use. Shown in the dashboard.
          * @param adis16470 The ADIS16470.
          */
-        public ADIS16470(String label, org.team340.lib.drivers.ADIS16470 adis16470) {
+        public ADIS16470(String label, org.team340.lib.drivers.imu.ADIS16470 adis16470) {
             super(
                 "SPI-" + adis16470.getPort(),
                 label,

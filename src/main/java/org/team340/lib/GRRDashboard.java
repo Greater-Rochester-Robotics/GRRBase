@@ -27,10 +27,8 @@ import java.util.function.Supplier;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.team340.lib.control.AdvancedController;
+import org.team340.lib.drivers.controller.AdvancedController;
 import org.team340.lib.math.Math2;
-import org.team340.lib.subsystem.GRRSubsystem;
-import org.team340.lib.subsystem.HardwareSendables;
 
 /**
  * Utility class for interfacing with the dashboard.

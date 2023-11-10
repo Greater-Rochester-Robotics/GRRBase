@@ -1,4 +1,4 @@
-package org.team340.lib.subsystem;
+package org.team340.lib;
 
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
@@ -19,11 +19,10 @@ import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import org.team340.lib.GRRDashboard;
 import org.team340.lib.commands.CommandBuilder;
-import org.team340.lib.drivers.ADIS16470;
-import org.team340.lib.drivers.ADIS16470.CalibrationTime;
-import org.team340.lib.drivers.ADIS16470.IMUAxis;
+import org.team340.lib.drivers.imu.ADIS16470;
+import org.team340.lib.drivers.imu.ADIS16470.CalibrationTime;
+import org.team340.lib.drivers.imu.ADIS16470.IMUAxis;
 
 /**
  * An extension to WPILib's subsystem.

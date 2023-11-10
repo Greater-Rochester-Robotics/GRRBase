@@ -1,6 +1,6 @@
 package org.team340.lib.swerve.hardware.imu.vendors;
 
-import org.team340.lib.drivers.ADIS16470;
+import org.team340.lib.drivers.imu.ADIS16470;
 import org.team340.lib.swerve.hardware.imu.SwerveIMU;
 
 /**

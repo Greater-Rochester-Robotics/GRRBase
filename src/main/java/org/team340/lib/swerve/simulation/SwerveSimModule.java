@@ -52,8 +52,8 @@ public class SwerveSimModule extends SwerveModule {
         lastTime = now;
 
         velocity = state.speedMetersPerSecond * (flip ? -1.0 : 1.0);
-        distance += (velocity + (flip ? Math.PI : 0.0)) * dt;
-        heading = state.angle.getRadians();
+        distance += velocity * dt;
+        heading = state.angle.getRadians() + (flip ? Math.PI : 0.0);
 
         return flip;
     }

@@ -1,4 +1,4 @@
-package org.team340.lib.control;
+package org.team340.lib.drivers.controller;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.util.sendable.Sendable;

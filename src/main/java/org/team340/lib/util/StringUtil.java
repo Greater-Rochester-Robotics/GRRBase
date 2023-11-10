@@ -1,5 +1,8 @@
 package org.team340.lib.util;
 
+/**
+ * Utilities for manipulating strings.
+ */
 public final class StringUtil {
 
     private StringUtil() {

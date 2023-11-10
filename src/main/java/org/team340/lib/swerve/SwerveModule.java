@@ -15,28 +15,11 @@ import org.team340.lib.swerve.hardware.motors.SwerveMotor;
  */
 public class SwerveModule {
 
-    /**
-     * The module's config.
-     */
     private final SwerveModuleConfig moduleConfig;
-
-    /**
-     * The move motor used by the module.
-     */
     private final SwerveMotor moveMotor;
-    /**
-     * The turn motor used by the module.
-     */
     private final SwerveMotor turnMotor;
-    /**
-     * The absolute encoder used by the module.
-     */
     private final SwerveAbsoluteEncoder absoluteEncoder;
-
-    /**
-     * Feed forward calculator for the move motor.
-     */
-    private final SimpleMotorFeedforward moveFF;
+    private final SimpleMotorFeedforward moveFFController;
 
     /**
      * Create the swerve module.
@@ -58,7 +41,7 @@ public class SwerveModule {
         this.absoluteEncoder = absoluteEncoder;
 
         double[] moveFFConstants = config.getMoveFF();
-        moveFF = new SimpleMotorFeedforward(moveFFConstants[0], moveFFConstants[1], moveFFConstants[2]);
+        moveFFController = new SimpleMotorFeedforward(moveFFConstants[0], moveFFConstants[1], moveFFConstants[2]);
     }
 
     /**
@@ -118,7 +101,7 @@ public class SwerveModule {
             flip = true;
         }
 
-        moveMotor.setReference(moveSpeed, moveFF.calculate(moveSpeed));
+        moveMotor.setReference(moveSpeed, moveFFController.calculate(moveSpeed));
         turnMotor.setReference(turnMotor.getRelativePosition() + angleDiff, 0.0);
 
         return flip;
