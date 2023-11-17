@@ -17,6 +17,8 @@ public class AdvancedController extends CommandXboxController implements Sendabl
     private final double joystickThreshold;
     private final double triggerDeadband;
     private final double triggerThreshold;
+    private final JoystickProfile leftProfile;
+    private final JoystickProfile rightProfile;
 
     /**
      * Create the controller. Uses a deadband of {@code 0.1} and a threshold of {@code 0.5} for the joysticks and triggers.
@@ -51,11 +53,37 @@ public class AdvancedController extends CommandXboxController implements Sendabl
         double triggerDeadband,
         double triggerThreshold
     ) {
+        this(port, joystickDeadband, joystickThreshold, triggerDeadband, triggerThreshold, null, null);
+    }
+
+    /**
+     * Create the controller.
+     * @param port The controller's port.
+     * @param joystickDeadband A deadband to apply to the joysticks.
+     * @param joystickThreshold A threshold for joystick event instances.
+     * @param triggerDeadband A deadband to apply to the triggers.
+     * @param triggerThreshold A threshold for trigger event instances.
+     * @param profileLeftFilePath The path for the left joystick profile.
+     * @param profileRightFilePath The path for the right joystick profile.
+     */
+    public AdvancedController(
+        int port,
+        double joystickDeadband,
+        double joystickThreshold,
+        double triggerDeadband,
+        double triggerThreshold,
+        String profileRightFilePath,
+        String profileLeftFilePath
+    ) {
         super(port);
         this.joystickDeadband = joystickDeadband;
         this.joystickThreshold = joystickThreshold;
         this.triggerDeadband = triggerDeadband;
         this.triggerThreshold = triggerThreshold;
+        this.leftProfile =
+            profileLeftFilePath == null || profileLeftFilePath.isEmpty() ? null : JoystickProfile.fromFile(profileLeftFilePath);
+        this.rightProfile =
+            profileRightFilePath == null || profileRightFilePath.isEmpty() ? null : JoystickProfile.fromFile(profileRightFilePath);
     }
 
     /**
@@ -218,7 +246,9 @@ public class AdvancedController extends CommandXboxController implements Sendabl
      */
     @Override
     public double getLeftX() {
-        return MathUtil.applyDeadband(super.getLeftX(), joystickDeadband);
+        double left = super.getLeftX();
+        double multiplier = leftProfile == null ? 1 : leftProfile.getX(left, super.getLeftY());
+        return MathUtil.applyDeadband(left * multiplier, joystickDeadband);
     }
 
     /**
@@ -254,7 +284,9 @@ public class AdvancedController extends CommandXboxController implements Sendabl
      */
     @Override
     public double getLeftY() {
-        return MathUtil.applyDeadband(super.getLeftY(), joystickDeadband);
+        double left = super.getLeftY();
+        double multiplier = leftProfile == null ? 1 : leftProfile.getY(super.getLeftX(), left);
+        return MathUtil.applyDeadband(left * multiplier, joystickDeadband);
     }
 
     /**
@@ -290,7 +322,9 @@ public class AdvancedController extends CommandXboxController implements Sendabl
      */
     @Override
     public double getRightX() {
-        return MathUtil.applyDeadband(super.getRightX(), joystickDeadband);
+        double right = super.getRightX();
+        double multiplier = rightProfile == null ? 1 : rightProfile.getX(right, super.getRightY());
+        return MathUtil.applyDeadband(right * multiplier, joystickDeadband);
     }
 
     /**
@@ -326,7 +360,9 @@ public class AdvancedController extends CommandXboxController implements Sendabl
      */
     @Override
     public double getRightY() {
-        return MathUtil.applyDeadband(super.getRightY(), joystickDeadband);
+        double right = super.getRightY();
+        double multiplier = rightProfile == null ? 1 : rightProfile.getY(super.getRightX(), right);
+        return MathUtil.applyDeadband(right * multiplier, joystickDeadband);
     }
 
     /**

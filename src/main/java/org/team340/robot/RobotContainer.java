@@ -94,6 +94,10 @@ public final class RobotContainer {
         // Right Bumper => Lock wheels
         driver.rightBumper().whileTrue(swerve.lock());
 
+        // driver
+        //     .b()
+        //     .whileTrue(JoystickProfiler.command(driver.getHID(), XboxController.Axis.kLeftX.value, XboxController.Axis.kLeftY.value, 256));
+
         /**
          * Co-driver bindings.
          */

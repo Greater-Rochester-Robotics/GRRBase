@@ -87,7 +87,10 @@ public class JoystickProfiler {
     public static Command command(GenericHID controller, int xAxis, int yAxis, int samplePoints) {
         JoystickProfiler profiler = new JoystickProfiler(controller, xAxis, yAxis);
         return new CommandBuilder()
-            .onInitialize(profiler::clearData)
+            .onInitialize(() -> {
+                profiler.clearData();
+                System.out.println("it worked or something!");
+            })
             .onExecute(profiler::pollData)
             .onEnd(() -> writeToConsole(profiler.generateProfile(samplePoints)));
     }
