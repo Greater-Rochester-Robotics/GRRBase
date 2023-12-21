@@ -2,11 +2,13 @@ package org.team340.robot;
 
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 
-import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.XboxController.Axis;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import org.team340.lib.GRRDashboard;
-import org.team340.lib.drivers.controller.AdvancedController;
+import org.team340.lib.drivers.controller.Controller2;
 import org.team340.lib.drivers.controller.JoystickProfiler;
-import org.team340.lib.util.RevUtil;
+import org.team340.lib.util.Math2;
+import org.team340.lib.util.config.rev.RevConfigUtils;
 import org.team340.robot.Constants.ControllerConstants;
 import org.team340.robot.commands.Autos;
 import org.team340.robot.commands.SystemsCheck;
@@ -21,8 +23,8 @@ public final class RobotContainer {
         throw new UnsupportedOperationException("This is a utility class!");
     }
 
-    private static AdvancedController driver;
-    private static AdvancedController coDriver;
+    private static Controller2 driver;
+    private static Controller2 coDriver;
 
     public static Swerve swerve;
 
@@ -31,26 +33,12 @@ public final class RobotContainer {
      */
     public static void init() {
         // Initialize controllers.
-        driver =
-            new AdvancedController(
-                ControllerConstants.DRIVER,
-                ControllerConstants.JOYSTICK_DEADBAND,
-                ControllerConstants.JOYSTICK_THRESHOLD,
-                ControllerConstants.TRIGGER_DEADBAND,
-                ControllerConstants.TRIGGER_THRESHOLD
-            );
-        coDriver =
-            new AdvancedController(
-                ControllerConstants.CO_DRIVER,
-                ControllerConstants.JOYSTICK_DEADBAND,
-                ControllerConstants.JOYSTICK_THRESHOLD,
-                ControllerConstants.TRIGGER_DEADBAND,
-                ControllerConstants.TRIGGER_THRESHOLD
-            );
+        driver = new Controller2(ControllerConstants.DRIVER);
+        coDriver = new Controller2(ControllerConstants.CO_DRIVER);
 
         // Add controllers to the dashboard.
-        GRRDashboard.addController("Driver", driver);
-        GRRDashboard.addController("CoDriver", coDriver);
+        driver.addToDashboard();
+        coDriver.addToDashboard();
 
         // Initialize subsystems.
         swerve = new Swerve();
@@ -62,18 +50,18 @@ public final class RobotContainer {
         GRRDashboard.setSystemsCheck(SystemsCheck.command());
 
         // Print successful REV hardware initialization.
-        RevUtil.printSuccess();
+        RevConfigUtils.printSuccess();
 
         // Configure bindings and autos.
-        configureBindings();
-        configureAutos();
+        configBindings();
+        configAutos();
     }
 
     /**
      * This method should be used to declare triggers (created with an
      * arbitrary predicate or from controllers) and their bindings.
      */
-    private static void configureBindings() {
+    private static void configBindings() {
         // Set default commands.
         swerve.setDefaultCommand(swerve.drive(RobotContainer::getDriveX, RobotContainer::getDriveY, RobotContainer::getDriveRotate, true));
 
@@ -82,11 +70,7 @@ public final class RobotContainer {
          */
 
         // POV Left => Zero swerve
-        driver.povLeft().onTrue(swerve.zero(0.0));
-
-        driver
-            .a()
-            .whileTrue(JoystickProfiler.command(driver.getHID(), XboxController.Axis.kLeftX.value, XboxController.Axis.kLeftY.value, 256));
+        driver.povLeft().onTrue(swerve.zeroIMU(Math2.ROTATION2D_0));
 
         // Left Bumper => Snap 180
         driver.leftBumper().whileTrue(swerve.driveSnap180(RobotContainer::getDriveX, RobotContainer::getDriveY));
@@ -94,26 +78,44 @@ public final class RobotContainer {
         // Right Bumper => Lock wheels
         driver.rightBumper().whileTrue(swerve.lock());
 
-        // driver
-        //     .b()
-        //     .whileTrue(JoystickProfiler.command(driver.getHID(), XboxController.Axis.kLeftX.value, XboxController.Axis.kLeftY.value, 256));
-
         /**
          * Co-driver bindings.
          */
 
         // A => Do nothing
         coDriver.a().onTrue(none());
+
+        /**
+         * Joystick profiling.
+         */
+        driver
+            .start()
+            .and(driver.leftBumper())
+            .and(RobotModeTriggers.disabled())
+            .whileTrue(JoystickProfiler.run(driver.getHID(), Axis.kLeftX.value, Axis.kLeftY.value, 100));
+        driver
+            .start()
+            .and(driver.rightBumper())
+            .and(RobotModeTriggers.disabled())
+            .whileTrue(JoystickProfiler.run(driver.getHID(), Axis.kRightX.value, Axis.kRightY.value, 100));
+        coDriver
+            .start()
+            .and(coDriver.leftBumper())
+            .and(RobotModeTriggers.disabled())
+            .whileTrue(JoystickProfiler.run(coDriver.getHID(), Axis.kLeftX.value, Axis.kLeftY.value, 100));
+        coDriver
+            .start()
+            .and(coDriver.rightBumper())
+            .and(RobotModeTriggers.disabled())
+            .whileTrue(JoystickProfiler.run(coDriver.getHID(), Axis.kRightX.value, Axis.kRightY.value, 100));
     }
 
     /**
      * Autonomous commands should be declared here and
      * added to {@link GRRDashboard}.
      */
-    private static void configureAutos() {
+    private static void configAutos() {
         GRRDashboard.addAutoCommand("Example", Autos.example());
-        // If an auto uses a PathPlanner path file, make sure to include it.
-        // GRRDashboard.addAutoCommand("Example", Autos.example(), "pathFileName");
     }
 
     /**

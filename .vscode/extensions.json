@@ -18,6 +18,7 @@
         "rust-lang.rust-analyzer",
         "svelte.svelte-vscode",
         "vscjava.vscode-java-test",
-        "wpilibsuite.vscode-wpilib"
+        "wpilibsuite.vscode-wpilib",
+        "asciidoctor.asciidoctor-vscode"
     ]
 }

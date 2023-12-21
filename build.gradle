@@ -1,8 +1,7 @@
 plugins {
     id "java"
-    id "edu.wpi.first.GradleRIO" version "2024.1.1-beta-3"
-    id "com.diffplug.spotless" version "6.22.0"
-    id "com.github.node-gradle.node" version "7.0.1"
+    id "edu.wpi.first.GradleRIO" version "2024.1.1-beta-4"
+    id "com.diffplug.spotless" version "6.23.3"
 }
 
 java {
@@ -74,19 +73,6 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
 }
 
-// Setup node for spotless
-node {
-    download = true
-    version = '20.9.0'
-    npmVersion = '10.2.1'
-    workDir = file("${buildDir}/nodejs")
-    npmWorkDir = file("${buildDir}/npm")
-}
-
-// Node executable paths
-def nodeExec = System.getProperty('os.name').toLowerCase().contains('windows') ? '/node.exe' : '/bin/node'
-def npmExec = System.getProperty('os.name').toLowerCase().contains('windows') ? '/npm.cmd' : '/bin/npm'
-
 // Code formatting via spotless
 spotless {
     java {
@@ -100,8 +86,6 @@ spotless {
         removeUnusedImports()
         trimTrailingWhitespace()
         prettier(['prettier': '2.8.8', 'prettier-plugin-java': '2.2.0'])
-            .nodeExecutable("${tasks.named('nodeSetup').get().nodeDir.get()}${nodeExec}")
-            .npmExecutable("${tasks.named('npmSetup').get().npmDir.get()}${npmExec}")
             .config(['parser': 'java', tabWidth: 4, useTabs: false, printWidth: 140 ])
     }
 }
@@ -134,9 +118,4 @@ wpi.java.configureTestTasks(test)
 tasks.withType(JavaCompile) {
     options.compilerArgs.add '-XDstringConcat=inline'
     dependsOn 'spotlessApply'
-}
-
-// Configure spotless to use node
-tasks.named('spotlessJava').configure {
-    it.dependsOn('nodeSetup', 'npmSetup')
 }

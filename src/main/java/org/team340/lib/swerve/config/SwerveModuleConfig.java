@@ -43,7 +43,7 @@ public class SwerveModuleConfig {
 
     /**
      * Use a CANcoder.
-     * A simple method for finding {@code offset} is starting with a value of {@code 0}, turn the modules manually to face forward, then directly copy the values found in network tables.
+     * A simple method for finding {@code offset} is starting with a value of {@code 0.0}, turn the modules manually to face forward, then directly copy the values found in network tables.
      * @param deviceId The device's ID on the CAN bus.
      * @param offset The encoder's offset in radians.
      * @param inverted If the encoder is inverted.
@@ -54,7 +54,7 @@ public class SwerveModuleConfig {
 
     /**
      * Use a CANcoder.
-     * A simple method for finding {@code offset} is starting with a value of {@code 0}, turn the modules manually to face forward, then directly copy the values found in network tables.
+     * A simple method for finding {@code offset} is starting with a value of {@code 0.0}, turn the modules manually to face forward, then directly copy the values found in network tables.
      * @param deviceId The device's ID on the CAN bus.
      * @param canBus The name of the CAN bus being used.
      * @param offset The encoder's offset in radians.
@@ -71,12 +71,12 @@ public class SwerveModuleConfig {
 
     /**
      * Use a Spark Max Attached Absolute Encoder.
-     * A simple method for finding {@code offset} is starting with a value of {@code 0}, turn the modules manually to face forward, then directly copy the values found in network tables.
+     * A simple method for finding {@code offset} is starting with a value of {@code 0.0}, turn the modules manually to face forward, then directly copy the values found in network tables.
      * @param offset The encoder's offset in radians.
      * @param inverted If the encoder is inverted.
      */
     public SwerveModuleConfig useSparkMaxAttachedEncoder(double offset, boolean inverted) {
-        absoluteEncoderType = SwerveAbsoluteEncoderType.SPARK_MAX_ATTACHED;
+        absoluteEncoderType = SwerveAbsoluteEncoderType.SPARK_MAX_ENCODER;
         absoluteEncoderOffset = offset;
         absoluteEncoderInverted = inverted;
         return this;

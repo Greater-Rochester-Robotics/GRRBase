@@ -1,4 +1,4 @@
-package org.team340.lib.swerve;
+package org.team340.lib.swerve.util;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -10,11 +10,12 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import org.team340.lib.math.Math2;
 import org.team340.lib.swerve.config.SwerveConfig;
+import org.team340.lib.util.Math2;
 
 /**
  * A controller that applies constraints onto the speeds applied to swerve modules to account for physical limitations of the robot.
+ * Adapted from {@link https://github.com/Team254/FRC-2022-Public/blob/main/src/main/java/com/team254/lib/swerve/SwerveSetpointGenerator.java}.
  */
 public class SwerveRatelimiter {
 

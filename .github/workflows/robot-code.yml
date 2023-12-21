@@ -15,6 +15,12 @@ jobs:
 
       - name: Add repository to git safe directories
         run: git config --global --add safe.directory $GITHUB_WORKSPACE
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org/
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -35,6 +41,12 @@ jobs:
 
       - name: Add repository to git safe directories
         run: git config --global --add safe.directory $GITHUB_WORKSPACE
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org/
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew

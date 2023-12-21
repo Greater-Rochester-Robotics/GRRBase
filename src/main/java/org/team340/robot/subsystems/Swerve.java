@@ -4,10 +4,11 @@ import static edu.wpi.first.wpilibj2.command.Commands.*;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import java.util.function.Supplier;
-import org.team340.lib.math.Math2;
 import org.team340.lib.swerve.SwerveBase;
+import org.team340.lib.util.Math2;
 import org.team340.robot.Constants.SwerveConstants;
 
 /**
@@ -16,10 +17,10 @@ import org.team340.robot.Constants.SwerveConstants;
 public class Swerve extends SwerveBase {
 
     private final ProfiledPIDController rotController = new ProfiledPIDController(
-        SwerveConstants.POSE_ROT_P,
-        SwerveConstants.POSE_ROT_I,
-        SwerveConstants.POSE_ROT_D,
-        SwerveConstants.POSE_ROT_CONSTRAINTS
+        SwerveConstants.ROT_PID.p(),
+        SwerveConstants.ROT_PID.i(),
+        SwerveConstants.ROT_PID.d(),
+        SwerveConstants.ROT_CONSTRAINTS
     );
 
     /**
@@ -27,6 +28,7 @@ public class Swerve extends SwerveBase {
      */
     public Swerve() {
         super("Swerve Drive", SwerveConstants.CONFIG);
+        rotController.setIZone(SwerveConstants.ROT_PID.iZone());
         rotController.enableContinuousInput(-Math.PI, Math.PI);
     }
 
@@ -38,8 +40,8 @@ public class Swerve extends SwerveBase {
     /**
      * Zeroes the IMU to a specified yaw.
      */
-    public Command zero(double yaw) {
-        return runOnce(() -> zeroIMU(yaw)).withName("swerve.zero(" + Math2.toFixed(yaw) + ")");
+    public Command zeroIMU(Rotation2d yaw) {
+        return runOnce(() -> imu.setZero(yaw)).withName("swerve.zero(" + yaw.toString() + ")");
     }
 
     /**
@@ -72,7 +74,11 @@ public class Swerve extends SwerveBase {
      * @param y Y speed.
      */
     public Command driveSnap180(Supplier<Double> x, Supplier<Double> y) {
-        return either(driveAngle(x, y, 0.0), driveAngle(x, y, Math.PI), () -> Math.abs(MathUtil.angleModulus(imu.getYaw())) < Math2.HALF_PI)
+        return either(
+            driveAngle(x, y, 0.0),
+            driveAngle(x, y, Math.PI),
+            () -> Math.abs(MathUtil.angleModulus(imu.getYaw().getRadians())) < Math2.HALF_PI
+        )
             .withName("swerve.driveSnap180()");
     }
 

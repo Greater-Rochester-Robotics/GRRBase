@@ -1,5 +1,6 @@
 package org.team340.lib;
 
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -101,6 +102,17 @@ public abstract class GRRSubsystem extends SubsystemBase {
         CANSparkMax sparkMax = new CANSparkMax(deviceId, type);
         new HardwareSendables.SparkMax(label, sparkMax).addToDashboard(this);
         return sparkMax;
+    }
+
+    /**
+     * Creates a Talon SRX.
+     * @param label The label to use. Shown in the dashboard.
+     * @param deviceId The ID of the Talon FX on the CAN bus.
+     */
+    protected TalonSRX createTalonSRX(String label, int deviceId) {
+        TalonSRX talonSRX = new TalonSRX(deviceId);
+        new HardwareSendables.TalonSRX(label, talonSRX).addToDashboard(this);
+        return talonSRX;
     }
 
     /**

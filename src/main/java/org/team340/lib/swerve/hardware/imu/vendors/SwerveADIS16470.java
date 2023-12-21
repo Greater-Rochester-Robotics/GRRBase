@@ -1,44 +1,42 @@
 package org.team340.lib.swerve.hardware.imu.vendors;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import org.team340.lib.drivers.imu.ADIS16470;
 import org.team340.lib.swerve.hardware.imu.SwerveIMU;
 
 /**
  * ADIS 16470 swerve wrapper.
  */
-public class SwerveADIS16470 implements SwerveIMU {
+public class SwerveADIS16470 extends SwerveIMU {
 
-    /**
-     * The IMU.
-     */
-    private final ADIS16470 imu;
+    private final ADIS16470 adis16470;
 
     /**
      * Create the ADIS 16470 wrapper.
-     * @param imu The ADIS 16470 to wrap.
+     * @param adis16470 The ADIS 16470 to wrap.
      */
-    public SwerveADIS16470(ADIS16470 imu) {
-        this.imu = imu;
+    public SwerveADIS16470(ADIS16470 adis16470) {
+        this.adis16470 = adis16470;
     }
 
     @Override
-    public double getYaw() {
-        return Math.toRadians(imu.getAngle(imu.getYawAxis()) % 360.0);
+    protected Rotation2d getRealYaw() {
+        return Rotation2d.fromDegrees(adis16470.getAngle(adis16470.getYawAxis()));
     }
 
     @Override
-    public double getPitch() {
-        return Math.toRadians(imu.getAngle(imu.getPitchAxis()) % 360.0);
+    protected Rotation2d getRealPitch() {
+        return Rotation2d.fromDegrees(adis16470.getAngle(adis16470.getPitchAxis()));
     }
 
     @Override
-    public double getRoll() {
-        return Math.toRadians(imu.getAngle(imu.getRollAxis()) % 360.0);
+    protected Rotation2d getRealRoll() {
+        return Rotation2d.fromDegrees(adis16470.getAngle(adis16470.getRollAxis()));
     }
 
     @Override
-    public void setZero(double yaw) {
-        imu.resetAllAngles();
-        imu.setGyroAngle(imu.getYawAxis(), yaw);
+    protected void setRealZero(Rotation2d yaw) {
+        adis16470.resetAllAngles();
+        adis16470.setGyroAngle(adis16470.getYawAxis(), yaw.getDegrees());
     }
 }

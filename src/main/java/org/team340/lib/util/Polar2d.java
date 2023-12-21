@@ -1,4 +1,4 @@
-package org.team340.lib.math;
+package org.team340.lib.util;
 
 import edu.wpi.first.math.interpolation.Interpolatable;
 

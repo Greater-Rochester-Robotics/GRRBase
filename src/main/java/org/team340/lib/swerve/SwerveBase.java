@@ -25,20 +25,21 @@ import org.team340.lib.GRRSubsystem;
 import org.team340.lib.blacklight.Blacklight;
 import org.team340.lib.blacklight.BlacklightConfig;
 import org.team340.lib.drivers.imu.ADIS16470;
-import org.team340.lib.math.Math2;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.config.SwerveModuleConfig;
-import org.team340.lib.swerve.hardware.encoders.SwerveAbsoluteEncoder;
+import org.team340.lib.swerve.hardware.encoders.SwerveEncoder;
 import org.team340.lib.swerve.hardware.encoders.vendors.SwerveCANcoder;
-import org.team340.lib.swerve.hardware.encoders.vendors.SwerveSparkMaxAttachedEncoder;
+import org.team340.lib.swerve.hardware.encoders.vendors.SwerveSparkMaxEncoder;
 import org.team340.lib.swerve.hardware.imu.SwerveIMU;
 import org.team340.lib.swerve.hardware.imu.vendors.SwerveADIS16470;
 import org.team340.lib.swerve.hardware.imu.vendors.SwervePigeon2;
 import org.team340.lib.swerve.hardware.motors.SwerveMotor;
 import org.team340.lib.swerve.hardware.motors.vendors.SwerveSparkMax;
 import org.team340.lib.swerve.hardware.motors.vendors.SwerveTalonFX;
-import org.team340.lib.swerve.simulation.SwerveSimIMU;
-import org.team340.lib.swerve.simulation.SwerveSimModule;
+import org.team340.lib.swerve.util.SwerveConversions;
+import org.team340.lib.swerve.util.SwerveField2d;
+import org.team340.lib.swerve.util.SwerveRatelimiter;
+import org.team340.lib.util.Math2;
 import org.team340.lib.util.SendableFactory;
 import org.team340.lib.util.StringUtil;
 
@@ -89,7 +90,7 @@ public abstract class SwerveBase extends GRRSubsystem {
      */
     public static enum SwerveAbsoluteEncoderType {
         CANCODER,
-        SPARK_MAX_ATTACHED,
+        SPARK_MAX_ENCODER,
     }
 
     protected final SwerveConfig config;
@@ -132,7 +133,7 @@ public abstract class SwerveBase extends GRRSubsystem {
         poseEstimator =
             new SwerveDrivePoseEstimator(
                 kinematics,
-                getYaw(),
+                imu.getYaw(),
                 getModulePositions(),
                 new Pose2d(),
                 VecBuilder.fill(std[0], std[1], std[2]),
@@ -146,7 +147,7 @@ public abstract class SwerveBase extends GRRSubsystem {
             blacklights.add(blacklight);
         }
 
-        zeroIMU(0.0);
+        imu.setZero(Math2.ROTATION2D_0);
 
         System.out.println(
             "\nGRRSwerve Conversions:" +
@@ -188,12 +189,12 @@ public abstract class SwerveBase extends GRRSubsystem {
                     moduleBuilder.addDoubleProperty(
                         "velocity",
                         () -> Math2.toFixed(module.getVelocity()),
-                        v -> module.setDesiredState(new SwerveModuleState(v, Rotation2d.fromRadians(module.getAngle())))
+                        v -> module.setDesiredState(new SwerveModuleState(v, Rotation2d.fromRadians(module.getAbsoluteAngle())))
                     );
                     moduleBuilder.addDoubleProperty("distance", () -> Math2.toFixed(module.getDistance()), null);
                     moduleBuilder.addDoubleProperty(
                         "angle",
-                        () -> Math2.toFixed(module.getAngle()),
+                        () -> Math2.toFixed(module.getAbsoluteAngle()),
                         v -> module.setDesiredState(new SwerveModuleState(0.0, Rotation2d.fromRadians(v)))
                     );
                 })
@@ -204,41 +205,11 @@ public abstract class SwerveBase extends GRRSubsystem {
     }
 
     /**
-     * Gets the IMU's yaw.
-     */
-    protected Rotation2d getYaw() {
-        return Rotation2d.fromRadians(imu.getYaw());
-    }
-
-    /**
-     * Gets the IMU's pitch.
-     */
-    protected Rotation2d getPitch() {
-        return Rotation2d.fromRadians(imu.getPitch());
-    }
-
-    /**
-     * Gets the IMU's roll.
-     */
-    protected Rotation2d getRoll() {
-        return Rotation2d.fromRadians(imu.getRoll());
-    }
-
-    /**
-     * Zeroes the IMU to the specified yaw and resets odometry to the same position facing the specified yaw.
-     * @param yaw The yaw to zero to in radians.
-     */
-    protected void zeroIMU(double yaw) {
-        imu.setZero(yaw);
-        resetOdometry(new Pose2d(getPosition().getTranslation(), Rotation2d.fromRadians(yaw)));
-    }
-
-    /**
      * Gets the states of all swerve modules.
      */
     protected SwerveModuleState[] getModuleStates() {
         SwerveModuleState[] moduleStates = new SwerveModuleState[modules.length];
-        for (int i = 0; i < moduleStates.length; i++) moduleStates[i] = modules[i].getState();
+        for (int i = 0; i < moduleStates.length; i++) moduleStates[i] = modules[i].getModuleState();
         return moduleStates;
     }
 
@@ -247,7 +218,7 @@ public abstract class SwerveBase extends GRRSubsystem {
      */
     protected SwerveModulePosition[] getModulePositions() {
         SwerveModulePosition[] modulePositions = new SwerveModulePosition[modules.length];
-        for (int i = 0; i < modulePositions.length; i++) modulePositions[i] = modules[i].getPosition();
+        for (int i = 0; i < modulePositions.length; i++) modulePositions[i] = modules[i].getModulePosition();
         return modulePositions;
     }
 
@@ -257,7 +228,7 @@ public abstract class SwerveBase extends GRRSubsystem {
      */
     protected ChassisSpeeds getVelocity(boolean fieldRelative) {
         if (fieldRelative) {
-            return ChassisSpeeds.fromFieldRelativeSpeeds(kinematics.toChassisSpeeds(getModuleStates()), getYaw().unaryMinus());
+            return ChassisSpeeds.fromFieldRelativeSpeeds(kinematics.toChassisSpeeds(getModuleStates()), imu.getYaw().unaryMinus());
         } else {
             return kinematics.toChassisSpeeds(getModuleStates());
         }
@@ -286,7 +257,7 @@ public abstract class SwerveBase extends GRRSubsystem {
     protected void updateOdometry() {
         for (Blacklight blacklight : blacklights) blacklight.update(poseEstimator);
         SwerveModulePosition[] modulePositions = getModulePositions();
-        Pose2d newPose = poseEstimator.update(getYaw(), modulePositions);
+        Pose2d newPose = poseEstimator.update(imu.getYaw(), modulePositions);
         field.update(newPose, modulePositions);
     }
 
@@ -330,7 +301,7 @@ public abstract class SwerveBase extends GRRSubsystem {
      */
     protected void driveVelocity(double xV, double yV, double rotV, boolean fieldRelative) {
         ChassisSpeeds chassisSpeeds = fieldRelative
-            ? ChassisSpeeds.fromFieldRelativeSpeeds(xV, yV, rotV, getYaw())
+            ? ChassisSpeeds.fromFieldRelativeSpeeds(xV, yV, rotV, imu.getYaw())
             : new ChassisSpeeds(xV, yV, rotV);
 
         driveSpeeds(chassisSpeeds);
@@ -379,7 +350,7 @@ public abstract class SwerveBase extends GRRSubsystem {
      * @param controller A profiled PID controller to use for translating to and maintaining the angle.
      */
     protected void driveAngleVelocity(double xV, double yV, double angle, ProfiledPIDController controller) {
-        Rotation2d yaw = getYaw();
+        Rotation2d yaw = imu.getYaw();
         ChassisSpeeds chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
             xV,
             yV,
@@ -398,7 +369,7 @@ public abstract class SwerveBase extends GRRSubsystem {
      * @param rotController The profiled PID controller to use for translating to and maintaining the pose's angle.
      */
     protected void driveToPose(Pose2d pose, PIDController xController, PIDController yController, ProfiledPIDController rotController) {
-        Rotation2d yaw = getYaw();
+        Rotation2d yaw = imu.getYaw();
         Pose2d position = getPosition();
         ChassisSpeeds chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
             xController.calculate(position.getX(), pose.getX()),
@@ -456,7 +427,7 @@ public abstract class SwerveBase extends GRRSubsystem {
      */
     protected void driveStates(SwerveModuleState[] states) {
         if (RobotBase.isSimulation()) {
-            ((SwerveSimIMU) imu).updateAngle(kinematics.toChassisSpeeds(states));
+            imu.updateSim(kinematics.toChassisSpeeds(states));
         }
 
         for (int i = 0; i < states.length; i++) {
@@ -471,8 +442,6 @@ public abstract class SwerveBase extends GRRSubsystem {
      * Creates an IMU.
      */
     private SwerveIMU createIMU() {
-        if (RobotBase.isSimulation()) return new SwerveSimIMU();
-
         Object[] imuArgs = config.getImuArgs();
 
         switch (config.getImuType()) {
@@ -499,12 +468,12 @@ public abstract class SwerveBase extends GRRSubsystem {
      * @param moduleConfig The module's config.
      */
     private SwerveModule createModule(SwerveModuleConfig moduleConfig) {
-        SwerveAbsoluteEncoder absoluteEncoder = null;
+        SwerveEncoder encoder = null;
         CANSparkMax turnSparkMax = null;
 
         switch (moduleConfig.getAbsoluteEncoderType()) {
             case CANCODER:
-                absoluteEncoder =
+                encoder =
                     new SwerveCANcoder(
                         createCANcoder(
                             moduleConfig.getLabel() + " Absolute Encoder",
@@ -515,7 +484,7 @@ public abstract class SwerveBase extends GRRSubsystem {
                         moduleConfig
                     );
                 break;
-            case SPARK_MAX_ATTACHED:
+            case SPARK_MAX_ENCODER:
                 turnSparkMax =
                     createSparkMax(
                         moduleConfig.getLabel() + "Turn Motor",
@@ -523,15 +492,13 @@ public abstract class SwerveBase extends GRRSubsystem {
                         config.getMoveMotorType().equals(SwerveMotorType.SPARK_MAX_BRUSHLESS) ? MotorType.kBrushless : MotorType.kBrushed
                     );
 
-                absoluteEncoder =
-                    new SwerveSparkMaxAttachedEncoder(
+                encoder =
+                    new SwerveSparkMaxEncoder(
                         createSparkMaxAbsoluteEncoder(
                             moduleConfig.getLabel() + " Absolute Encoder",
                             turnSparkMax,
                             SparkMaxAbsoluteEncoder.Type.kDutyCycle
-                        ),
-                        config,
-                        moduleConfig
+                        )
                     );
                 break;
             default:
@@ -540,23 +507,19 @@ public abstract class SwerveBase extends GRRSubsystem {
 
         SwerveMotor moveMotor = createMotor(true, null, moduleConfig);
         SwerveMotor turnMotor = turnSparkMax != null
-            ? new SwerveSparkMax(turnSparkMax, absoluteEncoder, config, moduleConfig)
-            : createMotor(false, absoluteEncoder, moduleConfig);
+            ? new SwerveSparkMax(false, turnSparkMax, encoder, config, moduleConfig)
+            : createMotor(false, encoder, moduleConfig);
 
-        if (RobotBase.isSimulation()) {
-            return new SwerveSimModule(moveMotor, turnMotor, absoluteEncoder, config, moduleConfig);
-        } else {
-            return new SwerveModule(moveMotor, turnMotor, absoluteEncoder, config, moduleConfig);
-        }
+        return new SwerveModule(moveMotor, turnMotor, encoder, config, moduleConfig);
     }
 
     /**
      * Creates a swerve motor.
      * @param isMoveMotor If the motor is a move motor.
-     * @param absoluteEncoder If the motor is a turn motor, the absolute encoder. Otherwise {@code null}.
+     * @param encoder If the motor is a turn motor, the absolute encoder. Otherwise {@code null}.
      * @param moduleConfig The module's config.
      */
-    private SwerveMotor createMotor(boolean isMoveMotor, SwerveAbsoluteEncoder absoluteEncoder, SwerveModuleConfig moduleConfig) {
+    private SwerveMotor createMotor(boolean isMoveMotor, SwerveEncoder encoder, SwerveModuleConfig moduleConfig) {
         String label = moduleConfig.getLabel() + " " + (isMoveMotor ? "Move" : "Turn") + " Motor";
         int deviceId = isMoveMotor ? moduleConfig.getMoveMotorDeviceId() : moduleConfig.getTurnMotorDeviceId();
         String canBus = isMoveMotor ? moduleConfig.getMoveMotorCanBus() : moduleConfig.getTurnMotorCanBus();
@@ -565,17 +528,18 @@ public abstract class SwerveBase extends GRRSubsystem {
             case SPARK_MAX_BRUSHED:
             case SPARK_MAX_BRUSHLESS:
                 return new SwerveSparkMax(
+                    isMoveMotor,
                     createSparkMax(
                         label,
                         deviceId,
                         config.getMoveMotorType().equals(SwerveMotorType.SPARK_MAX_BRUSHLESS) ? MotorType.kBrushless : MotorType.kBrushed
                     ),
-                    absoluteEncoder,
+                    encoder,
                     config,
                     moduleConfig
                 );
             case TALONFX:
-                return new SwerveTalonFX(createTalonFX(label, deviceId, canBus), absoluteEncoder, config, moduleConfig);
+                return new SwerveTalonFX(isMoveMotor, createTalonFX(label, deviceId, canBus), config, moduleConfig);
             default:
                 throw new UnsupportedOperationException("Invalid move motor type");
         }

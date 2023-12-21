@@ -1,24 +1,22 @@
 package org.team340.lib.swerve.hardware.encoders.vendors;
 
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
-import org.team340.lib.math.Math2;
 import org.team340.lib.swerve.SwerveBase.SwerveAbsoluteEncoderType;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.config.SwerveModuleConfig;
-import org.team340.lib.swerve.hardware.encoders.SwerveAbsoluteEncoder;
+import org.team340.lib.swerve.hardware.encoders.SwerveEncoder;
+import org.team340.lib.util.Math2;
 
 /**
  * CTRE CANcoder swerve wrapper.
  */
-public class SwerveCANcoder implements SwerveAbsoluteEncoder {
+public class SwerveCANcoder extends SwerveEncoder {
 
-    /**
-     * The CANcoder.
-     */
-    private final CANcoder canCoder;
+    private final StatusSignal<Double> absolutePositionSignal;
 
     /**
      * Create the CANcoder wrapper.
@@ -27,43 +25,26 @@ public class SwerveCANcoder implements SwerveAbsoluteEncoder {
      * @param moduleConfig The encoder's module's config.
      */
     public SwerveCANcoder(CANcoder canCoder, SwerveConfig config, SwerveModuleConfig moduleConfig) {
-        this.canCoder = canCoder;
+        super(SwerveAbsoluteEncoderType.CANCODER);
+        absolutePositionSignal = canCoder.getAbsolutePosition();
 
         double hz = 1.0 / config.getPeriod();
-        canCoder.getVelocity().setUpdateFrequency(hz);
-        canCoder.getPosition().setUpdateFrequency(hz);
-        canCoder.getAbsolutePosition().setUpdateFrequency(hz);
+        absolutePositionSignal.setUpdateFrequency(hz);
 
         CANcoderConfiguration canCoderConfig = new CANcoderConfiguration();
-        canCoderConfig.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue.Unsigned_0To1;
+
+        canCoderConfig.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue.Signed_PlusMinusHalf;
         canCoderConfig.MagnetSensor.MagnetOffset = moduleConfig.getAbsoluteEncoderOffset() / Math2.TWO_PI;
         canCoderConfig.MagnetSensor.SensorDirection =
             moduleConfig.getAbsoluteEncoderInverted()
                 ? SensorDirectionValue.Clockwise_Positive
                 : SensorDirectionValue.CounterClockwise_Positive;
+
         canCoder.getConfigurator().apply(canCoderConfig);
     }
 
-    /**
-     * Gets the encoder's unclamped position.
-     * Used by {@link SwerveTalonFX} (Talon FX + CANcoder has unique behavior where the CANcoder is used for on-device turn PID instead of the integrated encoder).
-     */
-    public double getRelativePosition() {
-        return canCoder.getPosition().getValue() * Math2.TWO_PI;
-    }
-
     @Override
-    public double getAbsolutePosition() {
-        return canCoder.getAbsolutePosition().getValue() * Math2.TWO_PI;
-    }
-
-    @Override
-    public SwerveAbsoluteEncoderType getType() {
-        return SwerveAbsoluteEncoderType.CANCODER;
-    }
-
-    @Override
-    public Object getRaw() {
-        return canCoder;
+    protected double getRealPosition() {
+        return absolutePositionSignal.refresh().getValue() * Math2.TWO_PI;
     }
 }

@@ -1,4 +1,4 @@
-package org.team340.lib.swerve;
+package org.team340.lib.swerve.util;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -9,8 +9,8 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import java.util.ArrayList;
 import java.util.List;
-import org.team340.lib.math.Math2;
 import org.team340.lib.swerve.config.SwerveConfig;
+import org.team340.lib.util.Math2;
 
 /**
  * An extension of WPILib's {@link Field2d} with a helper method easily update the visualization.

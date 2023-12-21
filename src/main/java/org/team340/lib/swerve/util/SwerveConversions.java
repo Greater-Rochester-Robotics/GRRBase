@@ -1,8 +1,8 @@
-package org.team340.lib.swerve;
+package org.team340.lib.swerve.util;
 
 import edu.wpi.first.math.util.Units;
-import org.team340.lib.math.Math2;
 import org.team340.lib.swerve.config.SwerveConfig;
+import org.team340.lib.util.Math2;
 
 /**
  * Conversions for config defined measurements.

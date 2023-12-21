@@ -6,84 +6,34 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import org.team340.lib.math.Math2;
+import org.team340.lib.GRRDashboard;
+import org.team340.lib.util.Math2;
 
 /**
  * A modified {@link CommandXboxController}.
  */
-public class AdvancedController extends CommandXboxController implements Sendable {
+public class Controller2 extends CommandXboxController implements Sendable {
 
-    private final double joystickDeadband;
-    private final double joystickThreshold;
-    private final double triggerDeadband;
-    private final double triggerThreshold;
+    private final Controller2Config config;
     private final JoystickProfile leftProfile;
     private final JoystickProfile rightProfile;
 
     /**
-     * Create the controller. Uses a deadband of {@code 0.1} and a threshold of {@code 0.5} for the joysticks and triggers.
-     * @param port The controller's port.
-     */
-    public AdvancedController(int port) {
-        this(port, 0.1, 0.5, 0.1, 0.5);
-    }
-
-    /**
-     * Create the controller. Uses a threshold of {@code 0.5} for the joysticks and triggers.
-     * @param port The controller's port.
-     * @param joystickDeadband A deadband to apply to the joysticks.
-     * @param triggerDeadband A deadband to apply to the triggers.
-     */
-    public AdvancedController(int port, double joystickDeadband, double triggerDeadband) {
-        this(port, joystickDeadband, 0.5, triggerDeadband, 0.5);
-    }
-
-    /**
      * Create the controller.
-     * @param port The controller's port.
-     * @param joystickDeadband A deadband to apply to the joysticks.
-     * @param joystickThreshold A threshold for joystick event instances.
-     * @param triggerDeadband A deadband to apply to the triggers.
-     * @param triggerThreshold A threshold for trigger event instances.
+     * @param config The controller's config.
      */
-    public AdvancedController(
-        int port,
-        double joystickDeadband,
-        double joystickThreshold,
-        double triggerDeadband,
-        double triggerThreshold
-    ) {
-        this(port, joystickDeadband, joystickThreshold, triggerDeadband, triggerThreshold, null, null);
+    public Controller2(Controller2Config config) {
+        super(config.getPort());
+        this.config = config;
+        this.leftProfile = config.getLeftProfile().isEmpty() ? null : JoystickProfile.fromFile(config.getLeftProfile());
+        this.rightProfile = config.getRightProfile().isEmpty() ? null : JoystickProfile.fromFile(config.getRightProfile());
     }
 
     /**
-     * Create the controller.
-     * @param port The controller's port.
-     * @param joystickDeadband A deadband to apply to the joysticks.
-     * @param joystickThreshold A threshold for joystick event instances.
-     * @param triggerDeadband A deadband to apply to the triggers.
-     * @param triggerThreshold A threshold for trigger event instances.
-     * @param profileLeftFilePath The path for the left joystick profile.
-     * @param profileRightFilePath The path for the right joystick profile.
+     * Gets the controller's configured label.
      */
-    public AdvancedController(
-        int port,
-        double joystickDeadband,
-        double joystickThreshold,
-        double triggerDeadband,
-        double triggerThreshold,
-        String profileRightFilePath,
-        String profileLeftFilePath
-    ) {
-        super(port);
-        this.joystickDeadband = joystickDeadband;
-        this.joystickThreshold = joystickThreshold;
-        this.triggerDeadband = triggerDeadband;
-        this.triggerThreshold = triggerThreshold;
-        this.leftProfile =
-            profileLeftFilePath == null || profileLeftFilePath.isEmpty() ? null : JoystickProfile.fromFile(profileLeftFilePath);
-        this.rightProfile =
-            profileRightFilePath == null || profileRightFilePath.isEmpty() ? null : JoystickProfile.fromFile(profileRightFilePath);
+    public String getLabel() {
+        return config.getLabel();
     }
 
     /**
@@ -91,7 +41,7 @@ public class AdvancedController extends CommandXboxController implements Sendabl
      * @return A {@link Trigger} instance.
      */
     public Trigger leftJoystickUp() {
-        return leftJoystickUp(joystickThreshold);
+        return leftJoystickUp(config.getJoystickThreshold());
     }
 
     /**
@@ -108,7 +58,7 @@ public class AdvancedController extends CommandXboxController implements Sendabl
      * @return A {@link Trigger} instance.
      */
     public Trigger leftJoystickDown() {
-        return leftJoystickDown(joystickThreshold);
+        return leftJoystickDown(config.getJoystickThreshold());
     }
 
     /**
@@ -125,7 +75,7 @@ public class AdvancedController extends CommandXboxController implements Sendabl
      * @return A {@link Trigger} instance.
      */
     public Trigger leftJoystickLeft() {
-        return leftJoystickLeft(joystickThreshold);
+        return leftJoystickLeft(config.getJoystickThreshold());
     }
 
     /**
@@ -142,7 +92,7 @@ public class AdvancedController extends CommandXboxController implements Sendabl
      * @return A {@link Trigger} instance.
      */
     public Trigger leftJoystickRight() {
-        return leftJoystickRight(joystickThreshold);
+        return leftJoystickRight(config.getJoystickThreshold());
     }
 
     /**
@@ -159,7 +109,7 @@ public class AdvancedController extends CommandXboxController implements Sendabl
      * @return A {@link Trigger} instance.
      */
     public Trigger rightJoystickUp() {
-        return rightJoystickUp(joystickThreshold);
+        return rightJoystickUp(config.getJoystickThreshold());
     }
 
     /**
@@ -176,7 +126,7 @@ public class AdvancedController extends CommandXboxController implements Sendabl
      * @return A {@link Trigger} instance.
      */
     public Trigger rightJoystickDown() {
-        return rightJoystickDown(joystickThreshold);
+        return rightJoystickDown(config.getJoystickThreshold());
     }
 
     /**
@@ -193,7 +143,7 @@ public class AdvancedController extends CommandXboxController implements Sendabl
      * @return A {@link Trigger} instance.
      */
     public Trigger rightJoystickLeft() {
-        return rightJoystickLeft(joystickThreshold);
+        return rightJoystickLeft(config.getJoystickThreshold());
     }
 
     /**
@@ -210,7 +160,7 @@ public class AdvancedController extends CommandXboxController implements Sendabl
      * @return A {@link Trigger} instance.
      */
     public Trigger rightJoystickRight() {
-        return rightJoystickRight(joystickThreshold);
+        return rightJoystickRight(config.getJoystickThreshold());
     }
 
     /**
@@ -228,7 +178,7 @@ public class AdvancedController extends CommandXboxController implements Sendabl
      */
     @Override
     public Trigger leftTrigger() {
-        return super.leftTrigger(triggerThreshold);
+        return super.leftTrigger(config.getTriggerThreshold());
     }
 
     /**
@@ -237,7 +187,7 @@ public class AdvancedController extends CommandXboxController implements Sendabl
      */
     @Override
     public Trigger rightTrigger() {
-        return super.rightTrigger(triggerThreshold);
+        return super.rightTrigger(config.getTriggerThreshold());
     }
 
     /**`
@@ -246,9 +196,8 @@ public class AdvancedController extends CommandXboxController implements Sendabl
      */
     @Override
     public double getLeftX() {
-        double left = super.getLeftX();
-        double multiplier = leftProfile == null ? 1 : leftProfile.getX(left, super.getLeftY());
-        return MathUtil.applyDeadband(left * multiplier, joystickDeadband);
+        double raw = super.getLeftX();
+        return MathUtil.applyDeadband(leftProfile == null ? raw : leftProfile.getX(raw, super.getLeftY()), config.getJoystickDeadband());
     }
 
     /**
@@ -284,9 +233,8 @@ public class AdvancedController extends CommandXboxController implements Sendabl
      */
     @Override
     public double getLeftY() {
-        double left = super.getLeftY();
-        double multiplier = leftProfile == null ? 1 : leftProfile.getY(super.getLeftX(), left);
-        return MathUtil.applyDeadband(left * multiplier, joystickDeadband);
+        double raw = super.getLeftY();
+        return MathUtil.applyDeadband(leftProfile == null ? raw : leftProfile.getY(super.getLeftX(), raw), config.getJoystickDeadband());
     }
 
     /**
@@ -322,9 +270,8 @@ public class AdvancedController extends CommandXboxController implements Sendabl
      */
     @Override
     public double getRightX() {
-        double right = super.getRightX();
-        double multiplier = rightProfile == null ? 1 : rightProfile.getX(right, super.getRightY());
-        return MathUtil.applyDeadband(right * multiplier, joystickDeadband);
+        double raw = super.getRightX();
+        return MathUtil.applyDeadband(rightProfile == null ? raw : rightProfile.getX(raw, super.getRightY()), config.getJoystickDeadband());
     }
 
     /**
@@ -360,9 +307,8 @@ public class AdvancedController extends CommandXboxController implements Sendabl
      */
     @Override
     public double getRightY() {
-        double right = super.getRightY();
-        double multiplier = rightProfile == null ? 1 : rightProfile.getY(super.getRightX(), right);
-        return MathUtil.applyDeadband(right * multiplier, joystickDeadband);
+        double raw = super.getRightY();
+        return MathUtil.applyDeadband(rightProfile == null ? raw : rightProfile.getY(super.getRightX(), raw), config.getJoystickDeadband());
     }
 
     /**
@@ -398,7 +344,7 @@ public class AdvancedController extends CommandXboxController implements Sendabl
      */
     @Override
     public double getLeftTriggerAxis() {
-        return Math.max(MathUtil.applyDeadband(super.getLeftTriggerAxis(), triggerDeadband), 0.0);
+        return Math.max(MathUtil.applyDeadband(super.getLeftTriggerAxis(), config.getTriggerDeadband()), 0.0);
     }
 
     /**
@@ -428,7 +374,7 @@ public class AdvancedController extends CommandXboxController implements Sendabl
      */
     @Override
     public double getRightTriggerAxis() {
-        return Math.max(MathUtil.applyDeadband(super.getRightTriggerAxis(), triggerDeadband), 0.0);
+        return Math.max(MathUtil.applyDeadband(super.getRightTriggerAxis(), config.getTriggerDeadband()), 0.0);
     }
 
     /**
@@ -483,6 +429,13 @@ public class AdvancedController extends CommandXboxController implements Sendabl
         return Math.copySign(Math.pow(Math.abs(val), exp), val) * multiplier;
     }
 
+    /**
+     * Adds the controller to the dashboard.
+     */
+    public void addToDashboard() {
+        GRRDashboard.addController(this);
+    }
+
     @Override
     public void initSendable(SendableBuilder builder) {
         XboxController hid = getHID();
@@ -500,17 +453,19 @@ public class AdvancedController extends CommandXboxController implements Sendabl
         builder.addIntegerProperty("pov", hid::getPOV, null);
 
         builder.addBooleanProperty("ls", hid::getLeftStickButton, null);
-        builder.addDoubleProperty("lx", () -> Math2.toFixed(hid.getLeftX()), null);
-        builder.addDoubleProperty("ly", () -> Math2.toFixed(hid.getLeftY()), null);
+        builder.addDoubleProperty("lx", () -> Math2.toFixed(getLeftX()), null);
+        builder.addDoubleProperty("ly", () -> Math2.toFixed(getLeftY()), null);
+        builder.addDoubleProperty("ln", () -> Math2.toFixed(Math.hypot(getLeftX(), getLeftY())), null);
+        builder.addDoubleProperty("lns", () -> Math2.toFixed(Math.hypot(super.getLeftX(), super.getLeftY())), null);
 
         builder.addBooleanProperty("rs", hid::getRightStickButton, null);
-        builder.addDoubleProperty("rx", () -> Math2.toFixed(hid.getRightX()), null);
-        builder.addDoubleProperty("ry", () -> Math2.toFixed(hid.getRightY()), null);
+        builder.addDoubleProperty("rx", () -> Math2.toFixed(getRightX()), null);
+        builder.addDoubleProperty("ry", () -> Math2.toFixed(getRightY()), null);
 
         builder.addBooleanProperty("lb", hid::getLeftBumper, null);
         builder.addBooleanProperty("rb", hid::getRightBumper, null);
 
-        builder.addDoubleProperty("lt", () -> Math2.toFixed(hid.getLeftTriggerAxis()), null);
-        builder.addDoubleProperty("rt", () -> Math2.toFixed(hid.getRightTriggerAxis()), null);
+        builder.addDoubleProperty("lt", () -> Math2.toFixed(getLeftTriggerAxis()), null);
+        builder.addDoubleProperty("rt", () -> Math2.toFixed(getRightTriggerAxis()), null);
     }
 }

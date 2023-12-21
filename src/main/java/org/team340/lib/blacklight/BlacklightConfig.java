@@ -222,7 +222,7 @@ public class BlacklightConfig {
      * Sets the size of the field.
      * @param fieldLength The field's length in meters. Typically {@code 16.5417}.
      * @param fieldWidth The field's width in meters. Typically {@code 8.0136}.
-     * @param z If the field has vertical elements the robot can drive onto, this should be set to the highest point in meters. Otherwise, use {@code 0}.
+     * @param z If the field has vertical elements the robot can drive onto, this should be set to the highest point in meters. Otherwise, use {@code 0.0}.
      */
     public BlacklightConfig setFieldSize(double fieldLength, double fieldWidth, double z) {
         fieldSize = new double[] { fieldLength, fieldWidth, z };

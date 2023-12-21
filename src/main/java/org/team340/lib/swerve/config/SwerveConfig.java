@@ -10,9 +10,10 @@ import org.team340.lib.drivers.imu.ADIS16470;
 import org.team340.lib.swerve.SwerveBase.SwerveAbsoluteEncoderType;
 import org.team340.lib.swerve.SwerveBase.SwerveIMUType;
 import org.team340.lib.swerve.SwerveBase.SwerveMotorType;
+import org.team340.lib.util.config.FeedForwardConfig;
+import org.team340.lib.util.config.PIDConfig;
 
 // TODO Documentation (startup and tuning)
-// TODO PIDConfig support
 
 /**
  * Config builder for {@link SwerveBase}.
@@ -21,28 +22,28 @@ public class SwerveConfig {
 
     private SwerveIMUType imuType;
     private Object[] imuArgs;
-    private double period = -1;
-    private double[] movePID;
-    private double[] moveFF;
-    private double[] turnPID;
-    private double moveRampRate = -1;
-    private double turnRampRate = -1;
-    private double optimalVoltage = -1;
-    private double moveCurrentLimit = -1;
-    private double turnCurrentLimit = -1;
-    private double moveGearRatio = -1;
-    private double turnGearRatio = -1;
-    private double wheelDiameterInches = -1;
-    private double maxV = -1;
-    private double maxRv = -1;
-    private double maxA = -1;
-    private double maxModuleRv = -1;
+    private double period = -1.0;
+    private PIDConfig movePID;
+    private FeedForwardConfig moveFF;
+    private PIDConfig turnPID;
+    private double moveRampRate = -1.0;
+    private double turnRampRate = -1.0;
+    private double optimalVoltage = -1.0;
+    private double moveCurrentLimit = -1.0;
+    private double turnCurrentLimit = -1.0;
+    private double moveGearRatio = -1.0;
+    private double turnGearRatio = -1.0;
+    private double wheelDiameterInches = -1.0;
+    private double maxV = -1.0;
+    private double maxRv = -1.0;
+    private double maxA = -1.0;
+    private double maxModuleRv = -1.0;
     private SwerveMotorType moveMotorType;
     private SwerveMotorType turnMotorType;
-    private double discretizationLookahead = -1;
+    private double discretizationLookahead = -1.0;
     private double[] standardDeviations;
-    private double fieldLength = -1;
-    private double fieldWidth = -1;
+    private double fieldLength = -1.0;
+    private double fieldWidth = -1.0;
     private List<SwerveModuleConfig> modules = new ArrayList<>();
     private List<BlacklightConfig> blacklights = new ArrayList<>();
 
@@ -118,66 +119,68 @@ public class SwerveConfig {
 
     /**
      * Sets PID constants for move motors.
-     * A good starting point is a {@code kP} value of {@code 0.001}, and {@code kI} and {@code kD} values of {@code 0}.
-     * @param kP Proportional gain constant.
-     * @param kI Integral gain constant.
-     * @param kD Derivative gain constant.
+     * A good starting point is a {@code p} value of {@code 0.001}, and {@code i} and {@code d} values of {@code 0.0}.
+     * @param p Proportional gain constant.
+     * @param i Integral gain constant.
+     * @param d Derivative gain constant.
+     * @param iZone Integral range.
      */
-    public SwerveConfig setMovePID(double kP, double kI, double kD) {
-        movePID = new double[] { kP, kI, kD };
+    public SwerveConfig setMovePID(double p, double i, double d, double iZone) {
+        movePID = new PIDConfig(p, i, d, iZone);
         return this;
     }
 
     /**
-     * Gets the configured PID constants for move motors, as an array of {@code [kP, kI, kD]}.
+     * Gets the configured PID constants for move motors.
      */
-    public double[] getMovePID() {
+    public PIDConfig getMovePID() {
         return movePID;
     }
 
     /**
      * Sets feed forward constants for move motors. Note that turn motors don't use feed forward, as it typically causes the motor to burn out.
-     * A good starting point is a {@code kV} value of {@code <Optimal Voltage> / <Max Velocity>}, and {@code kS} and {@code kV} values of {@code 0}.
+     * A good starting point is a {@code v} value of {@code <Optimal Voltage> / <Max Velocity>}, and {@code s} and {@code v} values of {@code 0.0}.
      * These values can be obtained via characterization using sysID.
-     * @param kS The static gain.
-     * @param kV The velocity gain.
-     * @param kA The acceleration gain.
+     * @param s The static gain.
+     * @param v The velocity gain.
+     * @param a The acceleration gain.
      */
-    public SwerveConfig setMoveFF(double kS, double kV, double kA) {
-        moveFF = new double[] { kS, kV, kA };
+    public SwerveConfig setMoveFF(double s, double v, double a) {
+        moveFF = new FeedForwardConfig(s, v, a);
         return this;
     }
 
     /**
-     * Gets the configured feed forward constants for move motors, as an array of {@code [kS, kV, kA]}.
+     * Gets the configured feed forward constants for move motors.
      */
-    public double[] getMoveFF() {
+    public FeedForwardConfig getMoveFF() {
         return moveFF;
     }
 
     /**
      * Sets PID constants for turn motors.
-     * A good starting point is a {@code kP} value of {@code 0.5}, a {@code kI} value of {@code 0}, and a {@code kD} value of {@code 15.0}.
-     * @param kP Proportional gain constant.
-     * @param kI Integral gain constant.
-     * @param kD Derivative gain constant.
+     * A good starting point is a {@code p} value of {@code 0.5}, a {@code i} value of {@code 0.0}, and a {@code d} value of {@code 15.0}.
+     * @param p Proportional gain constant.
+     * @param i Integral gain constant.
+     * @param d Derivative gain constant.
+     * @param iZone Integral range.
      */
-    public SwerveConfig setTurnPID(double kP, double kI, double kD) {
-        this.turnPID = new double[] { kP, kI, kD };
+    public SwerveConfig setTurnPID(double p, double i, double d, double iZone) {
+        this.turnPID = new PIDConfig(p, i, d, iZone);
         return this;
     }
 
     /**
-     * Gets the configured PID constants for turn motors, as an array of {@code [kP, kI, kD]}.
+     * Gets the configured PID constants for turn motors.
      */
-    public double[] getTurnPID() {
+    public PIDConfig getTurnPID() {
         return turnPID;
     }
 
     /**
      * Sets the motor ramp rate.
-     * @param moveRampRate Time in seconds to go from {@code 0} to full throttle on the move motors.
-     * @param turnRampRate Time in seconds to go from {@code 0} to full throttle on the turn motors.
+     * @param moveRampRate Time in seconds to go from {@code 0.0} to full throttle on the move motors.
+     * @param turnRampRate Time in seconds to go from {@code 0.0} to full throttle on the turn motors.
      */
     public SwerveConfig setRampRate(double moveRampRate, double turnRampRate) {
         this.moveRampRate = moveRampRate;
@@ -509,7 +512,7 @@ public class SwerveConfig {
 
             if (
                 (!turnMotorType.equals(SwerveMotorType.SPARK_MAX_BRUSHED) && !turnMotorType.equals(SwerveMotorType.SPARK_MAX_BRUSHLESS)) &&
-                module.getAbsoluteEncoderType().equals(SwerveAbsoluteEncoderType.SPARK_MAX_ATTACHED)
+                module.getAbsoluteEncoderType().equals(SwerveAbsoluteEncoderType.SPARK_MAX_ENCODER)
             ) throw new UnsupportedOperationException("Cannot use Spark Max attached encoder on non-Spark Max motor");
 
             if (

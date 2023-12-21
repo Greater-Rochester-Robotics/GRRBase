@@ -1,4 +1,4 @@
-package org.team340.lib.util;
+package org.team340.lib.util.config;
 
 /**
  * Simple config for storing PID constants.

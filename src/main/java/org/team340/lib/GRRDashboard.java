@@ -7,7 +7,6 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -16,19 +15,14 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableBuilderImpl;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import java.io.File;
-import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.team340.lib.drivers.controller.AdvancedController;
-import org.team340.lib.math.Math2;
+import org.team340.lib.drivers.controller.Controller2;
+import org.team340.lib.util.Math2;
 
 /**
  * Utility class for interfacing with the dashboard.
@@ -68,25 +62,6 @@ public final class GRRDashboard {
     private static boolean initialized = false;
 
     /**
-     * Initializes the dashboard, with telemetry polling and updating performed on the main thread, at the default rate of 40ms.
-     * Power usage updates are also performed on the main thread, and at the default rate of 20ms.
-     * @param robot The robot base.
-     */
-    public static void initSync(TimedRobot robot) {
-        initSync(robot, 0.040);
-    }
-
-    /**
-     * Initializes the dashboard, with telemetry polling and updating performed on the main thread.
-     * Power usage updates are also performed on the main thread, and at the default rate of 20ms.
-     * @param robot The robot base.
-     * @param telemetryPeriod The period in seconds to update telemetry at.
-     */
-    public static void initSync(TimedRobot robot, double telemetryPeriod) {
-        initSync(robot, telemetryPeriod, 0.020);
-    }
-
-    /**
      * Initializes the dashboard, with telemetry polling and updating performed on the main thread.
      * Power usage updates are also performed on the main thread.
      * @param robot The robot base.
@@ -96,25 +71,6 @@ public final class GRRDashboard {
     public static void initSync(TimedRobot robot, double telemetryPeriod, double powerUsagePeriod) {
         init(robot, telemetryPeriod, powerUsagePeriod);
         robot.addPeriodic(GRRDashboard::updateValues, telemetryPeriod);
-    }
-
-    /**
-     * Initializes the dashboard, with telemetry polling and updating performed on a separate thread, at the default rate of 40ms.
-     * Power usage updates are still performed on the main thread, and at the default rate of 20ms.
-     * @param robot The robot base.
-     */
-    public static void initAsync(TimedRobot robot) {
-        initAsync(robot, 0.040);
-    }
-
-    /**
-     * Initializes the dashboard, with telemetry polling and updating performed on a separate thread.
-     * Power usage updates are still performed on the main thread, and at the default rate of 20ms.
-     * @param robot The robot base.
-     * @param telemetryPeriod The period in seconds to update telemetry at.
-     */
-    public static void initAsync(TimedRobot robot, double telemetryPeriod) {
-        initAsync(robot, telemetryPeriod, 0.020);
     }
 
     /**
@@ -140,7 +96,7 @@ public final class GRRDashboard {
 
         publish("Robot", new RobotSendable());
 
-        autoChooser.setDefaultOption(serializeAuto("Do Nothing", ""), Commands.none().withName("Do Nothing"));
+        autoChooser.setDefaultOption(serializeAuto("Do Nothing"), Commands.none().withName("Do Nothing"));
         publish("Autos", autoChooser);
 
         publish("SystemsCheck", Commands.none().withName("SystemsCheck"));
@@ -150,20 +106,42 @@ public final class GRRDashboard {
     }
 
     /**
+     * Publishes a sendable to network tables.
+     * @param key The key to publish under.
+     * @param sendable The sendable.
+     */
+    public static void publish(String key, Sendable sendable) {
+        if (sendable == null) return;
+        try {
+            localTableMutex.lock();
+            Sendable existing = localTable.get(key);
+            if (existing == null || !existing.equals(sendable)) {
+                localTable.put(key, sendable);
+                NetworkTable table = nt.getSubTable(key);
+                SendableBuilderImpl builder = new SendableBuilderImpl();
+                builder.setTable(table);
+                SendableRegistry.publish(sendable, builder);
+                builder.startListeners();
+            }
+        } finally {
+            localTableMutex.unlock();
+        }
+    }
+
+    /**
+     * Gets the currently selected auto command.
+     */
+    public static Command getAutoCommand() {
+        Command selected = autoChooser.getSelected();
+        return selected != null ? selected : Commands.none().withName("Do Nothing");
+    }
+
+    /**
      * Sets the systems check command.
      * @param command The systems check command.
      */
     public static void setSystemsCheck(Command command) {
         publish("SystemsCheck", command.withName("SystemsCheck"));
-    }
-
-    /**
-     * Adds a controller.
-     * @param label The label for the controller.
-     * @param controller The controller.
-     */
-    public static void addController(String label, AdvancedController controller) {
-        publish("Controllers/" + label, controller);
     }
 
     /**
@@ -188,18 +166,19 @@ public final class GRRDashboard {
      * Adds an auto command to the dashboard.
      * @param label The label for the command.
      * @param command The command to add to the dashboard.
-     * @param pathFile The name of path file generated by PathPlanner used by the command (do not include {@code .path}).
+     * @param trajFile The name of trajectory file generated by Choreo used by the command.
      */
-    public static void addAutoCommand(String label, Command command, String pathFile) {
-        autoChooser.addOption(serializeAuto(label, pathFile), command.withName(label));
+    public static void addAutoCommand(String label, Command command, String trajFile) {
+        autoChooser.addOption(serializeAuto(label), command.withName(label));
     }
 
     /**
-     * Gets the currently selected auto command.
+     * Adds a controller.
+     * @param label The label for the controller.
+     * @param controller The controller.
      */
-    public static Command getAutoCommand() {
-        Command selected = autoChooser.getSelected();
-        return selected != null ? selected : Commands.none().withName("Do Nothing");
+    public static void addController(Controller2 controller) {
+        publish("Controllers/" + controller.getLabel(), controller);
     }
 
     /**
@@ -208,28 +187,6 @@ public final class GRRDashboard {
      */
     public static void addSubsystem(GRRSubsystem subsystem) {
         addSubsystemSendable("Details", subsystem, subsystem);
-    }
-
-    /**
-     * Adds hardware to the dashboard.
-     * Done automatically when using hardware factories in {@link GRRSubsystem}.
-     * @param subsystem The subsystem the hardware is associated with.
-     * @param hardware A sendable to represent the hardware.
-     */
-    public static void addHardware(GRRSubsystem subsystem, HardwareSendables.Hardware hardware) {
-        addSubsystemSendable("Hardware/" + hardware.getKey(), subsystem, hardware);
-    }
-
-    /**
-     * Adds hardware to the dashboard.
-     * Done automatically when using hardware factories in {@link GRRSubsystem}.
-     * @param subsystem The subsystem the hardware is associated with.
-     * @param hardware A sendable to represent the hardware.
-     */
-    public static void addHardware(GRRSubsystem subsystem, HardwareSendables.PoweredHardware hardware) {
-        addSubsystemSendable("Hardware/" + hardware.getKey(), subsystem, hardware);
-        powerUsageGetters.add(hardware::getPowerUsage);
-        powerUsageUpdaters.add(hardware::updatePowerUsage);
     }
 
     /**
@@ -243,32 +200,31 @@ public final class GRRDashboard {
     }
 
     /**
-     * Publishes a sendable.
-     * @param key The key to publish under.
-     * @param sendable The sendable.
+     * Adds hardware to the dashboard.
+     * Done automatically when using hardware factories in {@link GRRSubsystem}.
+     * @param subsystem The subsystem the hardware is associated with.
+     * @param hardware A sendable to represent the hardware.
      */
-    public static synchronized void publish(String key, Sendable sendable) {
-        if (sendable == null) return;
-        try {
-            localTableMutex.lock();
-            Sendable existing = localTable.get(key);
-            if (existing == null || !existing.equals(sendable)) {
-                localTable.put(key, sendable);
-                NetworkTable table = nt.getSubTable(key);
-                SendableBuilderImpl builder = new SendableBuilderImpl();
-                builder.setTable(table);
-                SendableRegistry.publish(sendable, builder);
-                builder.startListeners();
-            }
-        } finally {
-            localTableMutex.unlock();
-        }
+    static void addHardware(GRRSubsystem subsystem, HardwareSendables.Hardware hardware) {
+        addSubsystemSendable("Hardware/" + hardware.getKey(), subsystem, hardware);
+    }
+
+    /**
+     * Adds hardware to the dashboard.
+     * Done automatically when using hardware factories in {@link GRRSubsystem}.
+     * @param subsystem The subsystem the hardware is associated with.
+     * @param hardware A sendable to represent the hardware.
+     */
+    static void addHardware(GRRSubsystem subsystem, HardwareSendables.PoweredHardware hardware) {
+        addSubsystemSendable("Hardware/" + hardware.getKey(), subsystem, hardware);
+        powerUsageGetters.add(hardware::getPowerUsage);
+        powerUsageUpdaters.add(hardware::updatePowerUsage);
     }
 
     /**
      * Updates sendable data.
      */
-    private static synchronized void updateValues() {
+    private static void updateValues() {
         watchdog.reset();
 
         try {
@@ -307,49 +263,43 @@ public final class GRRDashboard {
     /**
      * Serializes an auto into JSON.
      * @param label The label for the command.
-     * @param pathFile The name of path file generated by PathPlanner used by the command (do not include {@code .path}).
      */
-    private static String serializeAuto(String label, String pathFile) {
-        List<Map<String, JSONObject>> parsedSplines = new ArrayList<>();
+    private static String serializeAuto(String label) {
+        // TODO
 
-        if (!pathFile.isEmpty()) {
-            try {
-                JSONArray rawWaypoints = (JSONArray) (
-                    (JSONObject) new JSONParser()
-                        .parse(new FileReader(new File(Filesystem.getDeployDirectory(), "pathplanner/" + pathFile + ".path")))
-                ).get("waypoints");
+        // List<Map<String, JSONObject>> parsedSplines = new ArrayList<>();
 
-                if (rawWaypoints != null) {
-                    for (int i = 0; i < rawWaypoints.size(); i++) {
-                        JSONObject rawWaypoint = (JSONObject) rawWaypoints.get(i);
-                        JSONObject nextRawWaypoint = i < rawWaypoints.size() - 1 ? (JSONObject) rawWaypoints.get(i + 1) : null;
-                        if (rawWaypoint == null) continue;
+        // if (!pathFile.isEmpty()) {
+        //     try {
+        //         JSONArray rawWaypoints = (JSONArray) (
+        //             (JSONObject) new JSONParser()
+        //                 .parse(new FileReader(new File(Filesystem.getDeployDirectory(), "choreo/" + trajFile)))
+        //         ).get("waypoints");
 
-                        parsedSplines.add(
-                            new HashMap<>() {
-                                {
-                                    put("p0", (JSONObject) rawWaypoint.get("anchorPoint"));
-                                    put("p1", (JSONObject) rawWaypoint.get("nextControl"));
-                                    put("p2", nextRawWaypoint != null ? (JSONObject) nextRawWaypoint.get("prevControl") : null);
-                                    put("p3", nextRawWaypoint != null ? (JSONObject) nextRawWaypoint.get("anchorPoint") : null);
-                                }
-                            }
-                        );
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+        //         if (rawWaypoints != null) {
+        //             for (int i = 0; i < rawWaypoints.size(); i++) {
+        //                 JSONObject rawWaypoint = (JSONObject) rawWaypoints.get(i);
+        //                 JSONObject nextRawWaypoint = i < rawWaypoints.size() - 1 ? (JSONObject) rawWaypoints.get(i + 1) : null;
+        //                 if (rawWaypoint == null) continue;
 
-        return JSONObject.toJSONString(
-            new HashMap<>() {
-                {
-                    put("label", label);
-                    put("splines", parsedSplines);
-                }
-            }
-        );
+        //                 parsedSplines.add(
+        //                     new HashMap<>() {
+        //                         {
+        //                             put("p0", (JSONObject) rawWaypoint.get("anchorPoint"));
+        //                             put("p1", (JSONObject) rawWaypoint.get("nextControl"));
+        //                             put("p2", nextRawWaypoint != null ? (JSONObject) nextRawWaypoint.get("prevControl") : null);
+        //                             put("p3", nextRawWaypoint != null ? (JSONObject) nextRawWaypoint.get("anchorPoint") : null);
+        //                         }
+        //                     }
+        //                 );
+        //             }
+        //         }
+        //     } catch (Exception e) {
+        //         e.printStackTrace();
+        //     }
+        // }
+
+        return "{ \"label\": " + label + ", \"splines\": [] }";
     }
 
     /**

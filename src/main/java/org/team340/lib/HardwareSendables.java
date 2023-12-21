@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
-import org.team340.lib.math.Math2;
+import org.team340.lib.util.Math2;
 
 // TODO Faults
 
@@ -19,7 +19,7 @@ import org.team340.lib.math.Math2;
  * {@link Sendable} wrappers for hardware.
  * Also provides methods for tracking faults and power usage.
  */
-public final class HardwareSendables {
+final class HardwareSendables {
 
     private HardwareSendables() {
         throw new UnsupportedOperationException("This is a utility class!");
@@ -30,9 +30,9 @@ public final class HardwareSendables {
      */
     public abstract static class Hardware implements Sendable {
 
-        protected final String key;
-        protected final String label;
-        protected final String api;
+        private final String key;
+        private final String label;
+        private final String api;
 
         /**
          * @param key The key to use in network tables. It is recommended to have this key be related to the bus and device ID the hardware is accessed through. For example, {@code "CAN-10"}.
@@ -80,14 +80,14 @@ public final class HardwareSendables {
      */
     public abstract static class PoweredHardware extends Hardware {
 
-        protected final Supplier<Double> power;
-        protected final Supplier<Double> voltage;
-        protected final Supplier<Double> current;
-        protected final ReentrantLock usageMutex = new ReentrantLock();
-        protected final Timer usageTimer = new Timer();
-        protected double usage = 0.0;
-        protected double lastPower = 0.0;
-        protected boolean updatedPower = false;
+        private final Supplier<Double> power;
+        private final Supplier<Double> voltage;
+        private final Supplier<Double> current;
+        private final ReentrantLock usageMutex = new ReentrantLock();
+        private final Timer usageTimer = new Timer();
+        private double usage = 0.0;
+        private double lastPower = 0.0;
+        private boolean updatedPower = false;
 
         /**
          * @param key The key to use in network tables. It is recommended to have this key be related to the bus and device ID the hardware is accessed through. For example, {@code "CAN-10"}.
@@ -186,10 +186,10 @@ public final class HardwareSendables {
      */
     public abstract static class Motor extends PoweredHardware {
 
-        protected final Supplier<Double> output;
-        protected final Supplier<Double> temperature;
-        protected final Supplier<Double> velocity;
-        protected final Supplier<Double> position;
+        private final Supplier<Double> output;
+        private final Supplier<Double> temperature;
+        private final Supplier<Double> velocity;
+        private final Supplier<Double> position;
 
         /**
          * @param key The key to use in network tables. It is recommended to have this key be related to the bus and device ID the hardware is accessed through. For example, {@code "CAN-10"}.
@@ -197,7 +197,7 @@ public final class HardwareSendables {
          * @param api The API used for interfacing with the hardware in code.
          * @param voltage A supplier for the device's voltage.
          * @param current A supplier for the device's current.
-         * @param output A supplier for the motor's applied output. Should be a value from {@code -1} to {@code 1}.
+         * @param output A supplier for the motor's applied output. Should be a value from {@code -1.0} to {@code 1.0}.
          * @param temperature A supplier for the temperature in celsius of the motor or the motor's controller (whichever is accessible, preferably the motor).
          * @param velocity A supplier for the motor's velocity.
          * @param position A supplier for the motor's position.
@@ -235,8 +235,8 @@ public final class HardwareSendables {
      */
     public abstract static class Encoder extends Hardware {
 
-        protected final Supplier<Double> velocity;
-        protected final Supplier<Double> position;
+        private final Supplier<Double> velocity;
+        private final Supplier<Double> position;
 
         /**
          * @param key The key to use in network tables. It is recommended to have this key be related to the bus and device ID the hardware is accessed through. For example, {@code "CAN-10"}.
@@ -264,9 +264,9 @@ public final class HardwareSendables {
      */
     public abstract static class IMU extends Hardware {
 
-        protected final Supplier<Double> yaw;
-        protected final Supplier<Double> pitch;
-        protected final Supplier<Double> roll;
+        private final Supplier<Double> yaw;
+        private final Supplier<Double> pitch;
+        private final Supplier<Double> roll;
 
         /**
          * @param key The key to use in network tables. It is recommended to have this key be related to the bus and device ID the hardware is accessed through. For example, {@code "CAN-10"}.
@@ -334,6 +334,31 @@ public final class HardwareSendables {
             }
 
             return faultStrings.toArray(new String[faultStrings.size()]);
+        }
+    }
+
+    /**
+     * A Talon SRX {@link Sendable}.
+     */
+    public static final class TalonSRX extends Motor {
+
+        /**
+         * Create the Talon SRX sendable.
+         * @param label The label to use. Shown in the dashboard.
+         * @param talonSRX The Talon SRX.
+         */
+        public TalonSRX(String label, com.ctre.phoenix.motorcontrol.can.TalonSRX talonSRX) {
+            super(
+                "CAN-" + talonSRX.getDeviceID(),
+                label,
+                talonSRX,
+                () -> talonSRX.getBusVoltage(),
+                () -> talonSRX.getStatorCurrent(),
+                () -> talonSRX.getMotorOutputPercent() / 100.0,
+                () -> talonSRX.getTemperature(),
+                () -> talonSRX.getSelectedSensorVelocity(),
+                () -> talonSRX.getSelectedSensorPosition()
+            );
         }
     }
 
