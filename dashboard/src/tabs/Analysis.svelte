@@ -2,7 +2,7 @@
     import LineGraph from "../components/analysis/LineGraph.svelte";
     import NetworkTablesList from "../components/analysis/NetworkTablesList.svelte";
 
-    import type { NTReference } from "../lib/NTSvelte";
+    import type { NTReference } from "../lib/NTSvelteOld";
     import { NTTopicMapHierarchy } from "../ntStores";
 
     let grabbed: NTReference | null = null;

@@ -4,7 +4,7 @@
     import zoomPlugin, { zoom } from "chartjs-plugin-zoom";
     import { nt } from "../../ntStores";
     import { onDestroy, onMount } from "svelte";
-    import type { NTReference } from "../../lib/NTSvelte";
+    import type { NTReference } from "../../lib/NTSvelteOld";
 
     export let index: number;
     export let references: NTReference[];

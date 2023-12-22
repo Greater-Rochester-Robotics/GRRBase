@@ -1,6 +1,6 @@
 import { derived } from "svelte/store";
 import { DEFAULT_URI } from "./constants";
-import { NTSvelte } from "./lib/NTSvelte";
+import { NTSvelte } from "./lib/NTSvelteOld";
 
 export const nt = new NTSvelte(`GRRDashboard`, DEFAULT_URI, 40);
 

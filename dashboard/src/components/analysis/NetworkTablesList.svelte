@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { Unsubscriber } from "svelte/store";
-    import type { NTHierarchy, NTReference, NTType } from "../../lib/NTSvelte";
+    import type { NTHierarchy, NTReference, NTType } from "../../lib/NTSvelteOld";
     import { nt } from "../../ntStores";
     import { createEventDispatcher, onDestroy } from "svelte";
 
