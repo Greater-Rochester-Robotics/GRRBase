@@ -1,6 +1,7 @@
 package org.team340.lib.util.config.rev;
 
 import com.revrobotics.AbsoluteEncoder;
+import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkMax;
 import org.team340.lib.util.Math2;
 
@@ -24,6 +25,22 @@ public class AbsoluteEncoderConfig extends RevConfigBase<AbsoluteEncoder> {
             "Burn Flash"
         );
         super.applySteps(absoluteEncoder, "Spark Max (ID " + sparkMax.getDeviceId() + ") Absolute Encoder");
+    }
+
+    /**
+     * Applies the config to a Spark Flex attached encoder..
+     * @param sparkFlex The Spark Flex the encoder is attached to.
+     * @param absoluteEncoder The absolute encoder.
+     */
+    public void apply(CANSparkFlex sparkFlex, AbsoluteEncoder absoluteEncoder) {
+        addStep(
+            ae -> {
+                RevConfigUtils.burnFlashSleep();
+                return sparkFlex.burnFlash();
+            },
+            "Burn Flash"
+        );
+        super.applySteps(absoluteEncoder, "Spark Flex (ID " + sparkFlex.getDeviceId() + ") Absolute Encoder");
     }
 
     /**

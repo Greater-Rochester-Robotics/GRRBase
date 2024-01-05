@@ -511,9 +511,14 @@ public class SwerveConfig {
             module.verify();
 
             if (
-                (!turnMotorType.equals(SwerveMotorType.SPARK_MAX_BRUSHED) && !turnMotorType.equals(SwerveMotorType.SPARK_MAX_BRUSHLESS)) &&
-                module.getAbsoluteEncoderType().equals(SwerveAbsoluteEncoderType.SPARK_MAX_ENCODER)
-            ) throw new UnsupportedOperationException("Cannot use Spark Max attached encoder on non-Spark Max motor");
+                (
+                    !turnMotorType.equals(SwerveMotorType.SPARK_MAX_BRUSHED) &&
+                    !turnMotorType.equals(SwerveMotorType.SPARK_MAX_BRUSHLESS) &&
+                    !turnMotorType.equals(SwerveMotorType.SPARK_FLEX_BRUSHED) &&
+                    !turnMotorType.equals(SwerveMotorType.SPARK_FLEX_BRUSHLESS)
+                ) &&
+                module.getAbsoluteEncoderType().equals(SwerveAbsoluteEncoderType.SPARK_ENCODER)
+            ) throw new UnsupportedOperationException("Cannot use Spark attached encoder on non-Spark motor");
 
             if (
                 !module.getMoveMotorCanBus().isEmpty() && !moveMotorType.equals(SwerveMotorType.TALONFX)

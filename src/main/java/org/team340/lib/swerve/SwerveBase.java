@@ -1,8 +1,9 @@
 package org.team340.lib.swerve;
 
+import com.revrobotics.CANSparkFlex;
+import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-import com.revrobotics.SparkMaxAbsoluteEncoder;
+import com.revrobotics.SparkAbsoluteEncoder;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
@@ -29,11 +30,12 @@ import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.config.SwerveModuleConfig;
 import org.team340.lib.swerve.hardware.encoders.SwerveEncoder;
 import org.team340.lib.swerve.hardware.encoders.vendors.SwerveCANcoder;
-import org.team340.lib.swerve.hardware.encoders.vendors.SwerveSparkMaxEncoder;
+import org.team340.lib.swerve.hardware.encoders.vendors.SwerveSparkEncoder;
 import org.team340.lib.swerve.hardware.imu.SwerveIMU;
 import org.team340.lib.swerve.hardware.imu.vendors.SwerveADIS16470;
 import org.team340.lib.swerve.hardware.imu.vendors.SwervePigeon2;
 import org.team340.lib.swerve.hardware.motors.SwerveMotor;
+import org.team340.lib.swerve.hardware.motors.vendors.SwerveSparkFlex;
 import org.team340.lib.swerve.hardware.motors.vendors.SwerveSparkMax;
 import org.team340.lib.swerve.hardware.motors.vendors.SwerveTalonFX;
 import org.team340.lib.swerve.util.SwerveConversions;
@@ -51,13 +53,15 @@ import org.team340.lib.util.StringUtil;
  * <ul>
  *   <li>Brushed Spark Max</li>
  *   <li>Brushless Spark Max</li>
+ *   <li>Brushed Spark Flex</li>
+ *   <li>Brushless Spark Flex</li>
  *   <li>Talon FX</li>
  * </ul>
  *
  * Supported encoders:
  * <ul>
  *   <li>CANcoder</li>
- *   <li>Spark Max Attached Encoders (Through Bore, MagEncoder with adapter board, CANandcoder, etc)</li>
+ *   <li>Spark Attached Encoders (Through Bore, MagEncoder with adapter board, CANandcoder, etc)</li>
  * </ul>
  *
  * Supported IMUs:
@@ -82,6 +86,8 @@ public abstract class SwerveBase extends GRRSubsystem {
     public static enum SwerveMotorType {
         SPARK_MAX_BRUSHED,
         SPARK_MAX_BRUSHLESS,
+        SPARK_FLEX_BRUSHED,
+        SPARK_FLEX_BRUSHLESS,
         TALONFX,
     }
 
@@ -90,7 +96,7 @@ public abstract class SwerveBase extends GRRSubsystem {
      */
     public static enum SwerveAbsoluteEncoderType {
         CANCODER,
-        SPARK_MAX_ENCODER,
+        SPARK_ENCODER,
     }
 
     protected final SwerveConfig config;
@@ -470,6 +476,7 @@ public abstract class SwerveBase extends GRRSubsystem {
     private SwerveModule createModule(SwerveModuleConfig moduleConfig) {
         SwerveEncoder encoder = null;
         CANSparkMax turnSparkMax = null;
+        CANSparkFlex turnSparkFlex = null;
 
         switch (moduleConfig.getAbsoluteEncoderType()) {
             case CANCODER:
@@ -484,22 +491,47 @@ public abstract class SwerveBase extends GRRSubsystem {
                         moduleConfig
                     );
                 break;
-            case SPARK_MAX_ENCODER:
-                turnSparkMax =
-                    createSparkMax(
-                        moduleConfig.getLabel() + "Turn Motor",
-                        moduleConfig.getTurnMotorDeviceId(),
-                        config.getMoveMotorType().equals(SwerveMotorType.SPARK_MAX_BRUSHLESS) ? MotorType.kBrushless : MotorType.kBrushed
-                    );
+            case SPARK_ENCODER:
+                if (
+                    config.getMoveMotorType().equals(SwerveMotorType.SPARK_MAX_BRUSHED) ||
+                    config.getMoveMotorType().equals(SwerveMotorType.SPARK_MAX_BRUSHLESS)
+                ) {
+                    turnSparkMax =
+                        createSparkMax(
+                            moduleConfig.getLabel() + "Turn Motor",
+                            moduleConfig.getTurnMotorDeviceId(),
+                            config.getMoveMotorType().equals(SwerveMotorType.SPARK_MAX_BRUSHLESS)
+                                ? MotorType.kBrushless
+                                : MotorType.kBrushed
+                        );
 
-                encoder =
-                    new SwerveSparkMaxEncoder(
-                        createSparkMaxAbsoluteEncoder(
-                            moduleConfig.getLabel() + " Absolute Encoder",
-                            turnSparkMax,
-                            SparkMaxAbsoluteEncoder.Type.kDutyCycle
-                        )
-                    );
+                    encoder =
+                        new SwerveSparkEncoder(
+                            createSparkMaxAbsoluteEncoder(
+                                moduleConfig.getLabel() + " Absolute Encoder",
+                                turnSparkMax,
+                                SparkAbsoluteEncoder.Type.kDutyCycle
+                            )
+                        );
+                } else {
+                    turnSparkFlex =
+                        createSparkFlex(
+                            moduleConfig.getLabel() + "Turn Motor",
+                            moduleConfig.getTurnMotorDeviceId(),
+                            config.getMoveMotorType().equals(SwerveMotorType.SPARK_FLEX_BRUSHLESS)
+                                ? MotorType.kBrushless
+                                : MotorType.kBrushed
+                        );
+
+                    encoder =
+                        new SwerveSparkEncoder(
+                            createSparkFlexAbsoluteEncoder(
+                                moduleConfig.getLabel() + " Absolute Encoder",
+                                turnSparkFlex,
+                                SparkAbsoluteEncoder.Type.kDutyCycle
+                            )
+                        );
+                }
                 break;
             default:
                 throw new UnsupportedOperationException("Invalid encoder type");
@@ -508,7 +540,11 @@ public abstract class SwerveBase extends GRRSubsystem {
         SwerveMotor moveMotor = createMotor(true, null, moduleConfig);
         SwerveMotor turnMotor = turnSparkMax != null
             ? new SwerveSparkMax(false, turnSparkMax, encoder, config, moduleConfig)
-            : createMotor(false, encoder, moduleConfig);
+            : (
+                turnSparkFlex != null
+                    ? new SwerveSparkFlex(false, turnSparkFlex, encoder, config, moduleConfig)
+                    : createMotor(false, encoder, moduleConfig)
+            );
 
         return new SwerveModule(moveMotor, turnMotor, encoder, config, moduleConfig);
     }

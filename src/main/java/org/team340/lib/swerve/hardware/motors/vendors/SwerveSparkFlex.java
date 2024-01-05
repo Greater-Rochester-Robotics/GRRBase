@@ -1,7 +1,7 @@
 package org.team340.lib.swerve.hardware.motors.vendors;
 
 import com.revrobotics.CANSparkBase.IdleMode;
-import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkFlex;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkAbsoluteEncoder.Type;
 import com.revrobotics.SparkPIDController;
@@ -16,14 +16,14 @@ import org.team340.lib.util.Math2;
 import org.team340.lib.util.config.PIDConfig;
 import org.team340.lib.util.config.rev.AbsoluteEncoderConfig;
 import org.team340.lib.util.config.rev.RelativeEncoderConfig;
-import org.team340.lib.util.config.rev.SparkMaxConfig;
-import org.team340.lib.util.config.rev.SparkMaxConfig.Frame;
+import org.team340.lib.util.config.rev.SparkFlexConfig;
+import org.team340.lib.util.config.rev.SparkFlexConfig.Frame;
 import org.team340.lib.util.config.rev.SparkPIDControllerConfig;
 
 /**
- * Wrapper for a REV Spark Max for swerve.
+ * Wrapper for a REV Spark Flex for swerve.
  */
-public class SwerveSparkMax extends SwerveMotor {
+public class SwerveSparkFlex extends SwerveMotor {
 
     private static final int PID_SLOT = 0;
 
@@ -31,23 +31,23 @@ public class SwerveSparkMax extends SwerveMotor {
     private final SparkPIDController pidController;
 
     /**
-     * Create the Spark Max wrapper.
+     * Create the Spark Flex wrapper.
      * @param isMoveMotor If the motor is a move motor.
-     * @param sparkMax The Spark Max to wrap.
+     * @param sparkFlex The Spark Flex to wrap.
      * @param encoder The absolute encoder being used. {@code null} if the motor is a move motor.
      * @param config The general swerve config.
      * @param moduleConfig The motor's module's config.
      */
-    public SwerveSparkMax(
+    public SwerveSparkFlex(
         boolean isMoveMotor,
-        CANSparkMax sparkMax,
+        CANSparkFlex sparkFlex,
         SwerveEncoder encoder,
         SwerveConfig config,
         SwerveModuleConfig moduleConfig
     ) {
         super(isMoveMotor);
-        relativeEncoder = sparkMax.getEncoder();
-        pidController = sparkMax.getPIDController();
+        relativeEncoder = sparkFlex.getEncoder();
+        pidController = sparkFlex.getPIDController();
 
         SwerveConversions conversions = new SwerveConversions(config);
 
@@ -56,7 +56,7 @@ public class SwerveSparkMax extends SwerveMotor {
         double conversionFactor = 1.0 / (isMoveMotor() ? conversions.moveRotationsPerMeter() : conversions.turnRotationsPerRadian());
         PIDConfig pidConfig = isMoveMotor() ? config.getMovePID() : config.getTurnPID();
 
-        new SparkMaxConfig()
+        new SparkFlexConfig()
             .clearFaults()
             .restoreFactoryDefaults()
             .enableVoltageCompensation(config.getOptimalVoltage())
@@ -73,18 +73,18 @@ public class SwerveSparkMax extends SwerveMotor {
             .setPeriodicFramePeriod(Frame.S3, 10000)
             .setPeriodicFramePeriod(Frame.S4, usingAttachedEncoder ? periodMs : 10000)
             .setPeriodicFramePeriod(Frame.S5, usingAttachedEncoder ? periodMs : 10000)
-            .apply(sparkMax);
+            .apply(sparkFlex);
 
         new SparkPIDControllerConfig()
             .setFeedbackDevice(relativeEncoder)
             .setPID(pidConfig.p(), pidConfig.i(), pidConfig.d(), PID_SLOT)
             .setIZone(pidConfig.iZone(), PID_SLOT)
-            .apply(sparkMax, pidController);
+            .apply(sparkFlex, pidController);
 
         new RelativeEncoderConfig()
             .setPositionConversionFactor(conversionFactor)
             .setVelocityConversionFactor(conversionFactor / 60.0)
-            .apply(sparkMax, relativeEncoder);
+            .apply(sparkFlex, relativeEncoder);
 
         if (usingAttachedEncoder) {
             new AbsoluteEncoderConfig()
@@ -92,10 +92,10 @@ public class SwerveSparkMax extends SwerveMotor {
                 .setVelocityConversionFactor(Math2.TWO_PI / 60.0)
                 .setInverted(moduleConfig.getAbsoluteEncoderInverted())
                 .setZeroOffset(moduleConfig.getAbsoluteEncoderOffset())
-                .apply(sparkMax, sparkMax.getAbsoluteEncoder(Type.kDutyCycle));
+                .apply(sparkFlex, sparkFlex.getAbsoluteEncoder(Type.kDutyCycle));
         }
 
-        sparkMax.set(0.0);
+        sparkFlex.set(0.0);
         relativeEncoder.setPosition(0.0);
     }
 
@@ -113,7 +113,7 @@ public class SwerveSparkMax extends SwerveMotor {
     protected void setRealReference(double target, double ff) {
         pidController.setReference(
             target,
-            isMoveMotor() ? CANSparkMax.ControlType.kVelocity : CANSparkMax.ControlType.kPosition,
+            isMoveMotor() ? CANSparkFlex.ControlType.kVelocity : CANSparkFlex.ControlType.kPosition,
             PID_SLOT,
             ff,
             ArbFFUnits.kVoltage

@@ -1,7 +1,8 @@
 package org.team340.lib;
 
+import com.revrobotics.CANSparkBase.FaultID;
+import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMax.FaultID;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
@@ -338,6 +339,51 @@ final class HardwareSendables {
     }
 
     /**
+     * A Spark Flex {@link Sendable}.
+     */
+    public static final class SparkFlex extends Motor {
+
+        private final CANSparkFlex sparkFlex;
+
+        /**
+         * Create the Spark Flex sendable.
+         * @param label The label to use. Shown in the dashboard.
+         * @param sparkFlex The Spark Flex.
+         */
+        public SparkFlex(String label, CANSparkFlex sparkFlex) {
+            this(label, sparkFlex, sparkFlex.getEncoder());
+        }
+
+        private SparkFlex(String label, CANSparkFlex sparkFlex, RelativeEncoder relativeEncoder) {
+            super(
+                "CAN-" + sparkFlex.getDeviceId(),
+                label,
+                sparkFlex,
+                () -> sparkFlex.getBusVoltage(),
+                () -> sparkFlex.getOutputCurrent(),
+                () -> sparkFlex.getAppliedOutput(),
+                () -> sparkFlex.getMotorTemperature(),
+                () -> relativeEncoder.getVelocity(),
+                () -> relativeEncoder.getPosition()
+            );
+            this.sparkFlex = sparkFlex;
+        }
+
+        @Override
+        public String[] getFaults() {
+            int faults = sparkFlex.getStickyFaults() | sparkFlex.getFaults();
+            List<String> faultStrings = new ArrayList<>();
+            for (int i = 0; i < 16; i++) {
+                if (((faults >> i) & 1) == 1) {
+                    faultStrings.add(FaultID.fromId(i).name());
+                }
+            }
+
+            return faultStrings.toArray(new String[faultStrings.size()]);
+        }
+    }
+
+    /**
      * A Talon SRX {@link Sendable}.
      */
     public static final class TalonSRX extends Motor {
@@ -388,9 +434,9 @@ final class HardwareSendables {
     }
 
     /**
-     * A Spark Max Absolute Encoder {@link Sendable}.
+     * A Spark Absolute Encoder {@link Sendable}.
      */
-    public static final class SparkMaxAbsoluteEncoder extends Encoder {
+    public static final class SparkAbsoluteEncoder extends Encoder {
 
         /**
          * Create the Spark Max Absolute Encoder sendable.
@@ -398,19 +444,29 @@ final class HardwareSendables {
          * @param sparkMax The Spark Max the encoder is attached to.
          * @param absoluteEncoder The absolute encoder.
          */
-        public SparkMaxAbsoluteEncoder(String label, CANSparkMax sparkMax, com.revrobotics.SparkMaxAbsoluteEncoder absoluteEncoder) {
+        public SparkAbsoluteEncoder(String label, CANSparkMax sparkMax, com.revrobotics.SparkAbsoluteEncoder absoluteEncoder) {
             this(label, sparkMax.getDeviceId(), absoluteEncoder);
         }
 
         /**
-         * Create the Spark Max Absolute Encoder sendable.
+         * Create the Spark Flex Absolute Encoder sendable.
          * @param label The label to use. Shown in the dashboard.
-         * @param sparkMaxDeviceId The device ID of the Spark Max the encoder is attached to.
+         * @param sparkFlex The Spark Flex the encoder is attached to.
          * @param absoluteEncoder The absolute encoder.
          */
-        public SparkMaxAbsoluteEncoder(String label, int sparkMaxDeviceId, com.revrobotics.SparkMaxAbsoluteEncoder absoluteEncoder) {
+        public SparkAbsoluteEncoder(String label, CANSparkFlex sparkFlex, com.revrobotics.SparkAbsoluteEncoder absoluteEncoder) {
+            this(label, sparkFlex.getDeviceId(), absoluteEncoder);
+        }
+
+        /**
+         * Create the Spark Absolute Encoder sendable.
+         * @param label The label to use. Shown in the dashboard.
+         * @param sparkDeviceId The device ID of the Spark the encoder is attached to.
+         * @param absoluteEncoder The absolute encoder.
+         */
+        public SparkAbsoluteEncoder(String label, int sparkDeviceId, com.revrobotics.SparkAbsoluteEncoder absoluteEncoder) {
             super(
-                "CAN-" + sparkMaxDeviceId + "-AbsoluteEncoder",
+                "CAN-" + sparkDeviceId + "-AbsoluteEncoder",
                 label,
                 absoluteEncoder,
                 () -> absoluteEncoder.getVelocity(),

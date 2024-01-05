@@ -1,5 +1,6 @@
 package org.team340.lib.util.config.rev;
 
+import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import org.team340.lib.util.Math2;
@@ -24,6 +25,22 @@ public class RelativeEncoderConfig extends RevConfigBase<RelativeEncoder> {
             "Burn Flash"
         );
         super.applySteps(relativeEncoder, "Spark Max (ID " + sparkMax.getDeviceId() + ") Relative Encoder");
+    }
+
+    /**
+     * Applies the config to a Spark Flex attached encoder.
+     * @param sparkFlex The Spark Flex the encoder is attached to.
+     * @param relativeEncoder The relative encoder.
+     */
+    public void apply(CANSparkFlex sparkFlex, RelativeEncoder relativeEncoder) {
+        addStep(
+            ae -> {
+                RevConfigUtils.burnFlashSleep();
+                return sparkFlex.burnFlash();
+            },
+            "Burn Flash"
+        );
+        super.applySteps(relativeEncoder, "Spark Flex (ID " + sparkFlex.getDeviceId() + ") Relative Encoder");
     }
 
     /**

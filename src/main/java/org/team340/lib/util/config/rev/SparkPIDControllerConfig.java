@@ -1,22 +1,23 @@
 package org.team340.lib.util.config.rev;
 
+import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.MotorFeedbackSensor;
-import com.revrobotics.SparkMaxPIDController;
+import com.revrobotics.SparkPIDController;
 import org.team340.lib.util.Math2;
 
 /**
- * Config builder for {@link SparkMaxPIDController}.
- * Use {@link SparkMaxPIDController#apply(CANSparkMax sparkMax, SparkMaxPIDController pidController) apply()} to apply the config.
+ * Config builder for {@link SparkPIDController}.
+ * Use {@link SparkPIDController#apply(CANSparkMax sparkMax, SparkPIDController pidController) apply()} to apply the config.
  */
-public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDController> {
+public class SparkPIDControllerConfig extends RevConfigBase<SparkPIDController> {
 
     /**
      * Applies the config.
      * @param sparkMax The Spark Max to apply the config to.
      * @param pidController The PID controller.
      */
-    public void apply(CANSparkMax sparkMax, SparkMaxPIDController pidController) {
+    public void apply(CANSparkMax sparkMax, SparkPIDController pidController) {
         addStep(
             pc -> {
                 RevConfigUtils.burnFlashSleep();
@@ -28,10 +29,26 @@ public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDContro
     }
 
     /**
+     * Applies the config.
+     * @param sparkFlex The Spark Flex to apply the config to.
+     * @param pidController The PID controller.
+     */
+    public void apply(CANSparkFlex sparkFlex, SparkPIDController pidController) {
+        addStep(
+            pc -> {
+                RevConfigUtils.burnFlashSleep();
+                return sparkFlex.burnFlash();
+            },
+            "Burn Flash"
+        );
+        super.applySteps(pidController, "Spark Flex (ID " + sparkFlex.getDeviceId() + ") PID Controller");
+    }
+
+    /**
      * Sets the derivative gain constant of the PIDF controller on the Spark Max.
      * @param gain The derivative gain value, must be positive.
      */
-    public SparkMaxPIDControllerConfig setD(double gain) {
+    public SparkPIDControllerConfig setD(double gain) {
         addStep(
             pidController -> pidController.setD(gain),
             pidController -> Math2.epsilonEquals(pidController.getD(), gain, RevConfigUtils.EPSILON),
@@ -45,7 +62,7 @@ public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDContro
      * @param gain The derivative gain value, must be positive.
      * @param slotId The gain schedule slot, the value is a number between {@code 0.0} and {@code 3}.
      */
-    public SparkMaxPIDControllerConfig setD(double gain, int slotId) {
+    public SparkPIDControllerConfig setD(double gain, int slotId) {
         addStep(
             pidController -> pidController.setD(gain, slotId),
             pidController -> Math2.epsilonEquals(pidController.getD(slotId), gain, RevConfigUtils.EPSILON),
@@ -58,7 +75,7 @@ public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDContro
      * Sets the the derivative filter constant of the PIDF controller on the Spark Max.
      * @param gain The derivative filter value, must be a positive number between {@code 0.0} and {@code 1.0}.
      */
-    public SparkMaxPIDControllerConfig setDFilter(double gain) {
+    public SparkPIDControllerConfig setDFilter(double gain) {
         addStep(
             pidController -> pidController.setDFilter(gain),
             pidController -> Math2.epsilonEquals(pidController.getDFilter(0), gain, RevConfigUtils.EPSILON),
@@ -72,7 +89,7 @@ public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDContro
      * @param gain The derivative filter value, must be a positive number between {@code 0.0} and {@code 1.0}.
      * @param slotId The gain schedule slot, the value is a number between {@code 0.0} and {@code 3}.
      */
-    public SparkMaxPIDControllerConfig setDFilter(double gain, int slotId) {
+    public SparkPIDControllerConfig setDFilter(double gain, int slotId) {
         addStep(
             pidController -> pidController.setDFilter(gain, slotId),
             pidController -> Math2.epsilonEquals(pidController.getDFilter(slotId), gain, RevConfigUtils.EPSILON),
@@ -90,7 +107,7 @@ public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDContro
      * set by calling {@code setFeedbackSensorRange()} on the sensor object.
      * @param sensor The sensor to use as a feedback device.
      */
-    public SparkMaxPIDControllerConfig setFeedbackDevice(MotorFeedbackSensor sensor) {
+    public SparkPIDControllerConfig setFeedbackDevice(MotorFeedbackSensor sensor) {
         addStep(pidController -> pidController.setFeedbackDevice(sensor), "Feedback Device");
         return this;
     }
@@ -99,7 +116,7 @@ public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDContro
      * Sets the feed-forward gain constant of the PIDF controller on the Spark Max.
      * @param gain The  feed-forward gain value, must be positive.
      */
-    public SparkMaxPIDControllerConfig setFF(double gain) {
+    public SparkPIDControllerConfig setFF(double gain) {
         addStep(
             pidController -> pidController.setFF(gain),
             pidController -> Math2.epsilonEquals(pidController.getFF(), gain, RevConfigUtils.EPSILON),
@@ -113,7 +130,7 @@ public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDContro
      * @param gain The  feed-forward gain value, must be positive.
      * @param slotId The gain schedule slot, the value is a number between {@code 0.0} and {@code 3}.
      */
-    public SparkMaxPIDControllerConfig setFF(double gain, int slotId) {
+    public SparkPIDControllerConfig setFF(double gain, int slotId) {
         addStep(
             pidController -> pidController.setFF(gain, slotId),
             pidController -> Math2.epsilonEquals(pidController.getFF(slotId), gain, RevConfigUtils.EPSILON),
@@ -126,7 +143,7 @@ public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDContro
      * Sets the integral gain constant of the PIDF controller on the Spark Max.
      * @param gain The integral gain value, must be positive.
      */
-    public SparkMaxPIDControllerConfig setI(double gain) {
+    public SparkPIDControllerConfig setI(double gain) {
         addStep(
             pidController -> pidController.setI(gain),
             pidController -> Math2.epsilonEquals(pidController.getI(), gain, RevConfigUtils.EPSILON),
@@ -140,7 +157,7 @@ public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDContro
      * @param gain The integral gain value, must be positive.
      * @param slotId The gain schedule slot, the value is a number between {@code 0.0} and {@code 3}.
      */
-    public SparkMaxPIDControllerConfig setI(double gain, int slotId) {
+    public SparkPIDControllerConfig setI(double gain, int slotId) {
         addStep(
             pidController -> pidController.setI(gain, slotId),
             pidController -> Math2.epsilonEquals(pidController.getI(slotId), gain, RevConfigUtils.EPSILON),
@@ -154,7 +171,7 @@ public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDContro
      * range the error must be within for the integral constant to take effect.
      * @param iZone The I zone value, must be positive. Set to {@code 0.0} to disable.
      */
-    public SparkMaxPIDControllerConfig setIZone(double iZone) {
+    public SparkPIDControllerConfig setIZone(double iZone) {
         addStep(
             pidController -> pidController.setIZone(iZone),
             pidController -> Math2.epsilonEquals(pidController.getIZone(), iZone, RevConfigUtils.EPSILON),
@@ -169,7 +186,7 @@ public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDContro
      * @param iZone The I zone value, must be positive. Set to {@code 0.0} to disable.
      * @param slotId The gain schedule slot, the value is a number between {@code 0.0} and {@code 3}.
      */
-    public SparkMaxPIDControllerConfig setIZone(double iZone, int slotId) {
+    public SparkPIDControllerConfig setIZone(double iZone, int slotId) {
         addStep(
             pidController -> pidController.setIZone(iZone, slotId),
             pidController -> Math2.epsilonEquals(pidController.getIZone(slotId), iZone, RevConfigUtils.EPSILON),
@@ -183,7 +200,7 @@ public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDContro
      * @param min Reverse power minimum to allow the controller to output.
      * @param max Forward power maximum to allow the controller to output.
      */
-    public SparkMaxPIDControllerConfig setOutputRange(double min, double max) {
+    public SparkPIDControllerConfig setOutputRange(double min, double max) {
         addStep(
             pidController -> pidController.setOutputRange(min, max),
             pidController ->
@@ -200,7 +217,7 @@ public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDContro
      * @param max Forward power maximum to allow the controller to output.
      * @param slotId The gain schedule slot, the value is a number between {@code 0.0} and {@code 3}.
      */
-    public SparkMaxPIDControllerConfig setOutputRange(double min, double max, int slotId) {
+    public SparkPIDControllerConfig setOutputRange(double min, double max, int slotId) {
         addStep(
             pidController -> pidController.setOutputRange(min, max, slotId),
             pidController ->
@@ -215,7 +232,7 @@ public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDContro
      * Sets the proportional gain constant of the PIDF controller on the Spark Max.
      * @param gain The proportional gain value, must be positive.
      */
-    public SparkMaxPIDControllerConfig setP(double gain) {
+    public SparkPIDControllerConfig setP(double gain) {
         addStep(
             pidController -> pidController.setP(gain),
             pidController -> Math2.epsilonEquals(pidController.getP(), gain, RevConfigUtils.EPSILON),
@@ -229,7 +246,7 @@ public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDContro
      * @param gain The proportional gain value, must be positive.
      * @param slotId The gain schedule slot, the value is a number between {@code 0.0} and {@code 3}.
      */
-    public SparkMaxPIDControllerConfig setP(double gain, int slotId) {
+    public SparkPIDControllerConfig setP(double gain, int slotId) {
         addStep(
             pidController -> pidController.setP(gain, slotId),
             pidController -> Math2.epsilonEquals(pidController.getP(slotId), gain, RevConfigUtils.EPSILON),
@@ -242,7 +259,7 @@ public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDContro
      * Enables or disables PID Wrapping for position closed loop control.
      * @param enable Whether position PID wrapping should be enabled.
      */
-    public SparkMaxPIDControllerConfig setPositionPIDWrappingEnabled(boolean enable) {
+    public SparkPIDControllerConfig setPositionPIDWrappingEnabled(boolean enable) {
         addStep(
             pidController -> pidController.setPositionPIDWrappingEnabled(enable),
             pidController -> pidController.getPositionPIDWrappingEnabled() == enable,
@@ -255,7 +272,7 @@ public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDContro
      * Sets the maximum input value for PID Wrapping with position closed loop control.
      * @param max The value of max input for the position.
      */
-    public SparkMaxPIDControllerConfig setPositionPIDWrappingMaxInput(double max) {
+    public SparkPIDControllerConfig setPositionPIDWrappingMaxInput(double max) {
         addStep(
             pidController -> pidController.setPositionPIDWrappingMaxInput(max),
             pidController -> Math2.epsilonEquals(pidController.getPositionPIDWrappingMaxInput(), max, RevConfigUtils.EPSILON),
@@ -268,7 +285,7 @@ public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDContro
      * Sets the minimum input value for PID Wrapping with position closed loop control.
      * @param min The value of min input for the position.
      */
-    public SparkMaxPIDControllerConfig setPositionPIDWrappingMinInput(double min) {
+    public SparkPIDControllerConfig setPositionPIDWrappingMinInput(double min) {
         addStep(
             pidController -> pidController.setPositionPIDWrappingMinInput(min),
             pidController -> Math2.epsilonEquals(pidController.getPositionPIDWrappingMinInput(), min, RevConfigUtils.EPSILON),
@@ -282,7 +299,7 @@ public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDContro
      * @param min The value of min input for the position.
      * @param max The value of max input for the position.
      */
-    public SparkMaxPIDControllerConfig setPositionPIDWrappingInputLimits(double min, double max) {
+    public SparkPIDControllerConfig setPositionPIDWrappingInputLimits(double min, double max) {
         setPositionPIDWrappingMinInput(min);
         setPositionPIDWrappingMaxInput(max);
         return this;
@@ -294,7 +311,7 @@ public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDContro
      * @param iGain The integral gain value, must be positive.
      * @param dGain The derivative gain value, must be positive.
      */
-    public SparkMaxPIDControllerConfig setPID(double pGain, double iGain, double dGain) {
+    public SparkPIDControllerConfig setPID(double pGain, double iGain, double dGain) {
         setP(pGain);
         setI(iGain);
         setD(dGain);
@@ -308,7 +325,7 @@ public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDContro
      * @param dGain The derivative gain value, must be positive.
      * @param slotId The gain schedule slot, the value is a number between {@code 0.0} and {@code 3}.
      */
-    public SparkMaxPIDControllerConfig setPID(double pGain, double iGain, double dGain, int slotId) {
+    public SparkPIDControllerConfig setPID(double pGain, double iGain, double dGain, int slotId) {
         setP(pGain, slotId);
         setI(iGain, slotId);
         setD(dGain, slotId);
@@ -322,7 +339,7 @@ public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDContro
      * @param dGain The derivative gain value, must be positive.
      * @param ffGain The feed-forward gain value, must be positive.
      */
-    public SparkMaxPIDControllerConfig setPIDF(double pGain, double iGain, double dGain, double ffGain) {
+    public SparkPIDControllerConfig setPIDF(double pGain, double iGain, double dGain, double ffGain) {
         setP(pGain);
         setI(iGain);
         setD(dGain);
@@ -338,7 +355,7 @@ public class SparkMaxPIDControllerConfig extends RevConfigBase<SparkMaxPIDContro
      * @param ffGain The feed-forward gain value, must be positive.
      * @param slotId The gain schedule slot, the value is a number between {@code 0.0} and {@code 3}.
      */
-    public SparkMaxPIDControllerConfig setPIDF(double pGain, double iGain, double dGain, double ffGain, int slotId) {
+    public SparkPIDControllerConfig setPIDF(double pGain, double iGain, double dGain, double ffGain, int slotId) {
         setP(pGain, slotId);
         setI(iGain, slotId);
         setD(dGain, slotId);

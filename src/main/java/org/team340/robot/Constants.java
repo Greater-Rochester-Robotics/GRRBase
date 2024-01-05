@@ -79,14 +79,14 @@ public final class Constants {
 
         private static final SwerveModuleConfig FRONT_LEFT = new SwerveModuleConfig()
             .setLabel("Front Left")
-            .useSparkMaxAttachedEncoder(0.0, false)
+            .useSparkAttachedEncoder(0.0, false)
             .setPosition(0.3000, 0.3000)
             .setMoveMotor(RobotMap.FRONT_LEFT_MOVE, true, true)
             .setTurnMotor(RobotMap.FRONT_LEFT_TURN, false, true);
 
         private static final SwerveModuleConfig BACK_LEFT = new SwerveModuleConfig()
             .setLabel("Back Left")
-            .useSparkMaxAttachedEncoder(0.0, false)
+            .useSparkAttachedEncoder(0.0, false)
             .setPosition(0.3000, 0.3000)
             .setPosition(-0.3000, 0.3000)
             .setMoveMotor(RobotMap.BACK_LEFT_MOVE, true, true)
@@ -94,14 +94,14 @@ public final class Constants {
 
         private static final SwerveModuleConfig BACK_RIGHT = new SwerveModuleConfig()
             .setLabel("Back Right")
-            .useSparkMaxAttachedEncoder(0.0, false)
+            .useSparkAttachedEncoder(0.0, false)
             .setPosition(-0.3000, -0.3000)
             .setMoveMotor(RobotMap.BACK_RIGHT_MOVE, true, true)
             .setTurnMotor(RobotMap.BACK_RIGHT_TURN, false, true);
 
         private static final SwerveModuleConfig FRONT_RIGHT = new SwerveModuleConfig()
             .setLabel("Front Right")
-            .useSparkMaxAttachedEncoder(0.0, false)
+            .useSparkAttachedEncoder(0.0, false)
             .setPosition(0.3000, -0.3000)
             .setMoveMotor(RobotMap.FRONT_RIGHT_MOVE, true, true)
             .setTurnMotor(RobotMap.FRONT_RIGHT_TURN, false, true);
@@ -116,7 +116,7 @@ public final class Constants {
             .setPowerProperties(VOLTAGE, 40.0, 30.0)
             .setMechanicalProperties(7.5, 10.0, 4.0)
             .setSpeedConstraints(5.0, 10.0, 15.0, 30.0)
-            .setMotorTypes(SwerveMotorType.SPARK_MAX_BRUSHLESS, SwerveMotorType.SPARK_MAX_BRUSHLESS)
+            .setMotorTypes(SwerveMotorType.SPARK_FLEX_BRUSHLESS, SwerveMotorType.SPARK_FLEX_BRUSHLESS)
             .setDiscretizationLookahead(0.040)
             .setStandardDeviations(0.1, 0.1, 0.1)
             .setFieldSize(FIELD_LENGTH, FIELD_WIDTH)

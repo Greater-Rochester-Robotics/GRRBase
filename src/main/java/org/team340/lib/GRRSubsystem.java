@@ -4,9 +4,10 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.revrobotics.CANSparkFlex;
+import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-import com.revrobotics.SparkMaxAbsoluteEncoder;
+import com.revrobotics.SparkAbsoluteEncoder;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -105,6 +106,18 @@ public abstract class GRRSubsystem extends SubsystemBase {
     }
 
     /**
+     * Creates a Spark Flex.
+     * @param label The label to use. Shown in the dashboard.
+     * @param deviceId The ID of the Spark Flex on the CAN bus.
+     * @param type The motor type connected to the controller.
+     */
+    protected CANSparkFlex createSparkFlex(String label, int deviceId, MotorType type) {
+        CANSparkFlex sparkFlex = new CANSparkFlex(deviceId, type);
+        new HardwareSendables.SparkFlex(label, sparkFlex).addToDashboard(this);
+        return sparkFlex;
+    }
+
+    /**
      * Creates a Talon SRX.
      * @param label The label to use. Shown in the dashboard.
      * @param deviceId The ID of the Talon FX on the CAN bus.
@@ -144,9 +157,21 @@ public abstract class GRRSubsystem extends SubsystemBase {
      * @param sparkMax The Spark Max the absolute encoder is attached to.
      * @param type The encoder type.
      */
-    protected SparkMaxAbsoluteEncoder createSparkMaxAbsoluteEncoder(String label, CANSparkMax sparkMax, SparkMaxAbsoluteEncoder.Type type) {
-        SparkMaxAbsoluteEncoder absoluteEncoder = sparkMax.getAbsoluteEncoder(type);
-        new HardwareSendables.SparkMaxAbsoluteEncoder(label, sparkMax, absoluteEncoder).addToDashboard(this);
+    protected SparkAbsoluteEncoder createSparkMaxAbsoluteEncoder(String label, CANSparkMax sparkMax, SparkAbsoluteEncoder.Type type) {
+        SparkAbsoluteEncoder absoluteEncoder = sparkMax.getAbsoluteEncoder(type);
+        new HardwareSendables.SparkAbsoluteEncoder(label, sparkMax, absoluteEncoder).addToDashboard(this);
+        return absoluteEncoder;
+    }
+
+    /**
+     * Creates a Spark Flex attached Absolute Encoder.
+     * @param label The label to use. Shown in the dashboard.
+     * @param sparkFlex The Spark Flex the absolute encoder is attached to.
+     * @param type The encoder type.
+     */
+    protected SparkAbsoluteEncoder createSparkFlexAbsoluteEncoder(String label, CANSparkFlex sparkFlex, SparkAbsoluteEncoder.Type type) {
+        SparkAbsoluteEncoder absoluteEncoder = sparkFlex.getAbsoluteEncoder(type);
+        new HardwareSendables.SparkAbsoluteEncoder(label, sparkFlex, absoluteEncoder).addToDashboard(this);
         return absoluteEncoder;
     }
 

@@ -70,13 +70,13 @@ public class SwerveModuleConfig {
     }
 
     /**
-     * Use a Spark Max Attached Absolute Encoder.
+     * Use a Spark Attached Absolute Encoder.
      * A simple method for finding {@code offset} is starting with a value of {@code 0.0}, turn the modules manually to face forward, then directly copy the values found in network tables.
      * @param offset The encoder's offset in radians.
      * @param inverted If the encoder is inverted.
      */
-    public SwerveModuleConfig useSparkMaxAttachedEncoder(double offset, boolean inverted) {
-        absoluteEncoderType = SwerveAbsoluteEncoderType.SPARK_MAX_ENCODER;
+    public SwerveModuleConfig useSparkAttachedEncoder(double offset, boolean inverted) {
+        absoluteEncoderType = SwerveAbsoluteEncoderType.SPARK_ENCODER;
         absoluteEncoderOffset = offset;
         absoluteEncoderInverted = inverted;
         return this;
