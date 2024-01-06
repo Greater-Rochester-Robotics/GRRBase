@@ -9,7 +9,7 @@ import org.team340.lib.swerve.hardware.imu.SwerveIMU;
 /**
  * CTRE Pigeon 2 swerve wrapper.
  */
-public class SwervePigeon2 extends SwerveIMU {
+public class SwervePigeon2 implements SwerveIMU {
 
     private final Pigeon2 pigeon2;
     private final StatusSignal<Double> yawSignal;
@@ -35,22 +35,22 @@ public class SwervePigeon2 extends SwerveIMU {
     }
 
     @Override
-    protected Rotation2d getRealYaw() {
+    public Rotation2d getYaw() {
         return Rotation2d.fromRadians(yawSignal.refresh().getValue());
     }
 
     @Override
-    protected Rotation2d getRealPitch() {
+    public Rotation2d getPitch() {
         return Rotation2d.fromRadians(pitchSignal.refresh().getValue());
     }
 
     @Override
-    protected Rotation2d getRealRoll() {
+    public Rotation2d getRoll() {
         return Rotation2d.fromRadians(rollSignal.refresh().getValue());
     }
 
     @Override
-    protected void setRealZero(Rotation2d yaw) {
+    public void setZero(Rotation2d yaw) {
         pigeon2.reset();
         pigeon2.setYaw(yaw.getDegrees());
     }

@@ -7,7 +7,7 @@ import java.util.MissingResourceException;
 import java.util.function.Consumer;
 import org.team340.lib.blacklight.BlacklightConfig;
 import org.team340.lib.drivers.imu.ADIS16470;
-import org.team340.lib.swerve.SwerveBase.SwerveAbsoluteEncoderType;
+import org.team340.lib.swerve.SwerveBase.SwerveEncoderType;
 import org.team340.lib.swerve.SwerveBase.SwerveIMUType;
 import org.team340.lib.swerve.SwerveBase.SwerveMotorType;
 import org.team340.lib.util.config.FeedForwardConfig;
@@ -517,7 +517,7 @@ public class SwerveConfig {
                     !turnMotorType.equals(SwerveMotorType.SPARK_FLEX_BRUSHED) &&
                     !turnMotorType.equals(SwerveMotorType.SPARK_FLEX_BRUSHLESS)
                 ) &&
-                module.getAbsoluteEncoderType().equals(SwerveAbsoluteEncoderType.SPARK_ENCODER)
+                module.getEncoderType().equals(SwerveEncoderType.SPARK_ENCODER)
             ) throw new UnsupportedOperationException("Cannot use Spark attached encoder on non-Spark motor");
 
             if (

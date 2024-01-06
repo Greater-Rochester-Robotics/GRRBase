@@ -2,7 +2,7 @@ package org.team340.lib.swerve.config;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import java.util.MissingResourceException;
-import org.team340.lib.swerve.SwerveBase.SwerveAbsoluteEncoderType;
+import org.team340.lib.swerve.SwerveBase.SwerveEncoderType;
 
 /**
  * Config builder for {@link SwerveBase} modules.
@@ -10,11 +10,11 @@ import org.team340.lib.swerve.SwerveBase.SwerveAbsoluteEncoderType;
 public class SwerveModuleConfig {
 
     private String label;
-    private SwerveAbsoluteEncoderType absoluteEncoderType;
-    private int absoluteEncoderDeviceId = -1;
-    private String absoluteEncoderCanBus;
-    private double absoluteEncoderOffset = 0;
-    private boolean absoluteEncoderInverted = false;
+    private SwerveEncoderType encoderType;
+    private int encoderDeviceId = -1;
+    private String encoderCanBus;
+    private double encoderOffset = 0;
+    private boolean encoderInverted = false;
     private Translation2d position;
     private int moveMotorDeviceId = -1;
     private String moveMotorCanBus = "";
@@ -61,11 +61,11 @@ public class SwerveModuleConfig {
      * @param inverted If the encoder is inverted.
      */
     public SwerveModuleConfig useCANcoder(int deviceId, String canBus, double offset, boolean inverted) {
-        absoluteEncoderType = SwerveAbsoluteEncoderType.CANCODER;
-        absoluteEncoderDeviceId = deviceId;
-        absoluteEncoderCanBus = canBus;
-        absoluteEncoderOffset = offset;
-        absoluteEncoderInverted = inverted;
+        encoderType = SwerveEncoderType.CANCODER;
+        encoderDeviceId = deviceId;
+        encoderCanBus = canBus;
+        encoderOffset = offset;
+        encoderInverted = inverted;
         return this;
     }
 
@@ -76,45 +76,45 @@ public class SwerveModuleConfig {
      * @param inverted If the encoder is inverted.
      */
     public SwerveModuleConfig useSparkAttachedEncoder(double offset, boolean inverted) {
-        absoluteEncoderType = SwerveAbsoluteEncoderType.SPARK_ENCODER;
-        absoluteEncoderOffset = offset;
-        absoluteEncoderInverted = inverted;
+        encoderType = SwerveEncoderType.SPARK_ENCODER;
+        encoderOffset = offset;
+        encoderInverted = inverted;
         return this;
     }
 
     /**
      * Gets the selected absolute encoder's type.
      */
-    public SwerveAbsoluteEncoderType getAbsoluteEncoderType() {
-        return absoluteEncoderType;
+    public SwerveEncoderType getEncoderType() {
+        return encoderType;
     }
 
     /**
      * Gets the configured absolute encoder's device ID on the CAN bus if applicable.
      */
-    public int getAbsoluteEncoderDeviceId() {
-        return absoluteEncoderDeviceId;
+    public int getEncoderDeviceId() {
+        return encoderDeviceId;
     }
 
     /**
      * Gets the name of the CAN bus being used by the absolute encoder if applicable.
      */
-    public String getAbsoluteEncoderCanBus() {
-        return absoluteEncoderCanBus;
+    public String getEncoderCanBus() {
+        return encoderCanBus;
     }
 
     /**
      * Gets the configured absolute encoder's offset in radians.
      */
-    public double getAbsoluteEncoderOffset() {
-        return absoluteEncoderOffset;
+    public double getEncoderOffset() {
+        return encoderOffset;
     }
 
     /**
      * Gets the configured inverted state of the absolute encoder.
      */
-    public boolean getAbsoluteEncoderInverted() {
-        return absoluteEncoderInverted;
+    public boolean getEncoderInverted() {
+        return encoderInverted;
     }
 
     /**
@@ -252,10 +252,10 @@ public class SwerveModuleConfig {
      */
     public void verify() {
         if (label == null) throwMissing("Label");
-        if (absoluteEncoderType == null) throwMissing("Absolute Encoder Type");
-        if (absoluteEncoderType.equals(SwerveAbsoluteEncoderType.CANCODER)) {
-            if (absoluteEncoderDeviceId == -1) throwMissing("CANcoder Device ID");
-            if (absoluteEncoderCanBus == null) throwMissing("CANcoder CAN Bus");
+        if (encoderType == null) throwMissing("Encoder Type");
+        if (encoderType.equals(SwerveEncoderType.CANCODER)) {
+            if (encoderDeviceId == -1) throwMissing("CANcoder Device ID");
+            if (encoderCanBus == null) throwMissing("CANcoder CAN Bus");
         }
         if (position == null) throwMissing("Position");
         if (moveMotorDeviceId == -1) throwMissing("Move Motor Device ID");

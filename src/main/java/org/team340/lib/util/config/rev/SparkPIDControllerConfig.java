@@ -8,7 +8,6 @@ import org.team340.lib.util.Math2;
 
 /**
  * Config builder for {@link SparkPIDController}.
- * Use {@link SparkPIDController#apply(CANSparkMax sparkMax, SparkPIDController pidController) apply()} to apply the config.
  */
 public class SparkPIDControllerConfig extends RevConfigBase<SparkPIDController> {
 

@@ -8,7 +8,6 @@ import org.team340.lib.util.Math2;
 
 /**
  * Config builder for {@link CANSparkFlex}.
- * Use {@link SparkFlexConfig#apply(CANSparkFlex sparkFlex) apply()} to apply the config.
  */
 public class SparkFlexConfig extends RevConfigBase<CANSparkFlex> {
 

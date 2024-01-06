@@ -7,7 +7,7 @@ import org.team340.lib.swerve.hardware.imu.SwerveIMU;
 /**
  * ADIS 16470 swerve wrapper.
  */
-public class SwerveADIS16470 extends SwerveIMU {
+public class SwerveADIS16470 implements SwerveIMU {
 
     private final ADIS16470 adis16470;
 
@@ -20,22 +20,22 @@ public class SwerveADIS16470 extends SwerveIMU {
     }
 
     @Override
-    protected Rotation2d getRealYaw() {
+    public Rotation2d getYaw() {
         return Rotation2d.fromDegrees(adis16470.getAngle(adis16470.getYawAxis()));
     }
 
     @Override
-    protected Rotation2d getRealPitch() {
+    public Rotation2d getPitch() {
         return Rotation2d.fromDegrees(adis16470.getAngle(adis16470.getPitchAxis()));
     }
 
     @Override
-    protected Rotation2d getRealRoll() {
+    public Rotation2d getRoll() {
         return Rotation2d.fromDegrees(adis16470.getAngle(adis16470.getRollAxis()));
     }
 
     @Override
-    protected void setRealZero(Rotation2d yaw) {
+    public void setZero(Rotation2d yaw) {
         adis16470.resetAllAngles();
         adis16470.setGyroAngle(adis16470.getYawAxis(), yaw.getDegrees());
     }

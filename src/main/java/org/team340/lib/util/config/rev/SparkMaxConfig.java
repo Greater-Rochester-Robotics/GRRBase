@@ -8,7 +8,6 @@ import org.team340.lib.util.Math2;
 
 /**
  * Config builder for {@link CANSparkMax}.
- * Use {@link SparkMaxConfig#apply(CANSparkMax sparkMax) apply()} to apply the config.
  */
 public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
 

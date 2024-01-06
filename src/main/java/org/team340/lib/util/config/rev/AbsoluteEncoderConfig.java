@@ -7,7 +7,6 @@ import org.team340.lib.util.Math2;
 
 /**
  * Config builder for {@link AbsoluteEncoder}.
- * Use {@link AbsoluteEncoderConfig#apply(CANSparkMax sparkMax, AbsoluteEncoder absoluteEncoder) apply()} to apply the config.
  */
 public class AbsoluteEncoderConfig extends RevConfigBase<AbsoluteEncoder> {
 

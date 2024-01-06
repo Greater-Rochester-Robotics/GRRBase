@@ -7,7 +7,6 @@ import org.team340.lib.util.Math2;
 
 /**
  * Config builder for {@link RelativeEncoder}.
- * Use {@link RelativeEncoderConfig#apply(CANSparkMax sparkMax, RelativeEncoder relativeEncoder) apply()} to apply the config.
  */
 public class RelativeEncoderConfig extends RevConfigBase<RelativeEncoder> {
 

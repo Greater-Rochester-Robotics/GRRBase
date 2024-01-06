@@ -5,7 +5,6 @@ import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
-import org.team340.lib.swerve.SwerveBase.SwerveAbsoluteEncoderType;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.config.SwerveModuleConfig;
 import org.team340.lib.swerve.hardware.encoders.SwerveEncoder;
@@ -14,7 +13,7 @@ import org.team340.lib.util.Math2;
 /**
  * CTRE CANcoder swerve wrapper.
  */
-public class SwerveCANcoder extends SwerveEncoder {
+public class SwerveCANcoder implements SwerveEncoder {
 
     private final StatusSignal<Double> absolutePositionSignal;
 
@@ -25,7 +24,6 @@ public class SwerveCANcoder extends SwerveEncoder {
      * @param moduleConfig The encoder's module's config.
      */
     public SwerveCANcoder(CANcoder canCoder, SwerveConfig config, SwerveModuleConfig moduleConfig) {
-        super(SwerveAbsoluteEncoderType.CANCODER);
         absolutePositionSignal = canCoder.getAbsolutePosition();
 
         double hz = 1.0 / config.getPeriod();
@@ -34,17 +32,15 @@ public class SwerveCANcoder extends SwerveEncoder {
         CANcoderConfiguration canCoderConfig = new CANcoderConfiguration();
 
         canCoderConfig.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue.Signed_PlusMinusHalf;
-        canCoderConfig.MagnetSensor.MagnetOffset = moduleConfig.getAbsoluteEncoderOffset() / Math2.TWO_PI;
+        canCoderConfig.MagnetSensor.MagnetOffset = moduleConfig.getEncoderOffset() / Math2.TWO_PI;
         canCoderConfig.MagnetSensor.SensorDirection =
-            moduleConfig.getAbsoluteEncoderInverted()
-                ? SensorDirectionValue.Clockwise_Positive
-                : SensorDirectionValue.CounterClockwise_Positive;
+            moduleConfig.getEncoderInverted() ? SensorDirectionValue.Clockwise_Positive : SensorDirectionValue.CounterClockwise_Positive;
 
         canCoder.getConfigurator().apply(canCoderConfig);
     }
 
     @Override
-    protected double getRealPosition() {
+    public double getPosition() {
         return absolutePositionSignal.refresh().getValue() * Math2.TWO_PI;
     }
 }

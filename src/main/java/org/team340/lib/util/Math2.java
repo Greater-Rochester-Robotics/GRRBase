@@ -52,9 +52,21 @@ public final class Math2 {
      */
     public static final Rotation2d ROTATION2D_0 = new Rotation2d();
     /**
+     * A {@link Rotation2d} with a value of {@code 1/2 PI}.
+     */
+    public static final Rotation2d ROTATION2D_HALF_PI = new Rotation2d(HALF_PI);
+    /**
      * A {@link Rotation2d} with a value of {@code PI}.
      */
     public static final Rotation2d ROTATION2D_PI = new Rotation2d(Math.PI);
+    /**
+     * A {@link Rotation2d} with a value of {@code -1/2 PI}.
+     */
+    public static final Rotation2d ROTATION2D_NEG_HALF_PI = new Rotation2d(-HALF_PI);
+    /**
+     * A {@link Rotation2d} with a value of {@code -PI}.
+     */
+    public static final Rotation2d ROTATION2D_NEG_PI = new Rotation2d(-Math.PI);
     /**
      * Identity {@link Rotation3d}.
      */

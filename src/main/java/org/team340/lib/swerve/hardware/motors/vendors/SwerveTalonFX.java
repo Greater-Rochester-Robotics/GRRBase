@@ -19,11 +19,12 @@ import org.team340.lib.util.config.PIDConfig;
 /**
  * Wrapper for a Talon FX for swerve.
  */
-public class SwerveTalonFX extends SwerveMotor {
+public class SwerveTalonFX implements SwerveMotor {
 
     private static final int PID_SLOT = 0;
 
     private final TalonFX talonFX;
+    private final boolean isMoveMotor;
     private final StatusSignal<Double> velocitySignal;
     private final StatusSignal<Double> positionSignal;
     private final double conversionFactor;
@@ -36,32 +37,32 @@ public class SwerveTalonFX extends SwerveMotor {
      * @param moduleConfig The motor's module's config.
      */
     public SwerveTalonFX(boolean isMoveMotor, TalonFX talonFX, SwerveConfig config, SwerveModuleConfig moduleConfig) {
-        super(isMoveMotor);
         this.talonFX = talonFX;
+        this.isMoveMotor = isMoveMotor;
 
         SwerveConversions conversions = new SwerveConversions(config);
-        conversionFactor = isMoveMotor() ? conversions.moveRotationsPerMeter() : conversions.turnRotationsPerRadian();
+        conversionFactor = isMoveMotor ? conversions.moveRotationsPerMeter() : conversions.turnRotationsPerRadian();
 
         TalonFXConfiguration fxConfig = new TalonFXConfiguration();
 
-        fxConfig.CurrentLimits.SupplyCurrentLimit = isMoveMotor() ? config.getMoveCurrentLimit() : config.getTurnCurrentLimit();
+        fxConfig.CurrentLimits.SupplyCurrentLimit = isMoveMotor ? config.getMoveCurrentLimit() : config.getTurnCurrentLimit();
         fxConfig.CurrentLimits.SupplyCurrentLimitEnable = false;
-        fxConfig.CurrentLimits.StatorCurrentLimit = isMoveMotor() ? config.getMoveCurrentLimit() : config.getTurnCurrentLimit();
+        fxConfig.CurrentLimits.StatorCurrentLimit = isMoveMotor ? config.getMoveCurrentLimit() : config.getTurnCurrentLimit();
         fxConfig.CurrentLimits.StatorCurrentLimitEnable = true;
 
         fxConfig.MotorOutput.NeutralMode =
-            (isMoveMotor() ? moduleConfig.getMoveMotorBrake() : moduleConfig.getTurnMotorBrake())
+            (isMoveMotor ? moduleConfig.getMoveMotorBrake() : moduleConfig.getTurnMotorBrake())
                 ? NeutralModeValue.Brake
                 : NeutralModeValue.Coast;
         fxConfig.MotorOutput.Inverted =
-            (isMoveMotor() ? moduleConfig.getMoveMotorInverted() : moduleConfig.getTurnMotorInverted())
+            (isMoveMotor ? moduleConfig.getMoveMotorInverted() : moduleConfig.getTurnMotorInverted())
                 ? InvertedValue.Clockwise_Positive
                 : InvertedValue.CounterClockwise_Positive;
 
-        fxConfig.ClosedLoopRamps.VoltageClosedLoopRampPeriod = isMoveMotor() ? config.getMoveRampRate() : config.getTurnRampRate();
-        fxConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = isMoveMotor() ? config.getMoveRampRate() : config.getTurnRampRate();
+        fxConfig.ClosedLoopRamps.VoltageClosedLoopRampPeriod = isMoveMotor ? config.getMoveRampRate() : config.getTurnRampRate();
+        fxConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = isMoveMotor ? config.getMoveRampRate() : config.getTurnRampRate();
 
-        PIDConfig pidConfig = isMoveMotor() ? config.getMovePID() : config.getTurnPID();
+        PIDConfig pidConfig = isMoveMotor ? config.getMovePID() : config.getTurnPID();
         fxConfig.Slot0.kP = pidConfig.p();
         fxConfig.Slot0.kI = pidConfig.i();
         fxConfig.Slot0.kD = pidConfig.d();
@@ -83,23 +84,28 @@ public class SwerveTalonFX extends SwerveMotor {
     }
 
     @Override
-    protected double getRealVelocity() {
+    public double getVelocity() {
         return velocitySignal.refresh().getValue() / conversionFactor;
     }
 
     @Override
-    protected double getRealPosition() {
+    public double getPosition() {
         return positionSignal.refresh().getValue() / conversionFactor;
     }
 
     @Override
-    protected void setRealReference(double target, double ff) {
-        if (isMoveMotor()) {
+    public void setReference(double target, double ff) {
+        if (isMoveMotor) {
             VelocityVoltage request = new VelocityVoltage(target * conversionFactor).withSlot(PID_SLOT).withFeedForward(ff);
             talonFX.setControl(request);
         } else {
             PositionVoltage request = new PositionVoltage(target * 1.0 / Math2.TWO_PI).withSlot(PID_SLOT).withFeedForward(ff);
             talonFX.setControl(request);
         }
+    }
+
+    @Override
+    public void setVoltage(double voltage) {
+        talonFX.setVoltage(voltage);
     }
 }

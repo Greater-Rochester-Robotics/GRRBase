@@ -32,6 +32,7 @@ import org.team340.lib.swerve.hardware.encoders.SwerveEncoder;
 import org.team340.lib.swerve.hardware.encoders.vendors.SwerveCANcoder;
 import org.team340.lib.swerve.hardware.encoders.vendors.SwerveSparkEncoder;
 import org.team340.lib.swerve.hardware.imu.SwerveIMU;
+import org.team340.lib.swerve.hardware.imu.SwerveIMUSim;
 import org.team340.lib.swerve.hardware.imu.vendors.SwerveADIS16470;
 import org.team340.lib.swerve.hardware.imu.vendors.SwervePigeon2;
 import org.team340.lib.swerve.hardware.motors.SwerveMotor;
@@ -94,7 +95,7 @@ public abstract class SwerveBase extends GRRSubsystem {
     /**
      * Supported encoders.
      */
-    public static enum SwerveAbsoluteEncoderType {
+    public static enum SwerveEncoderType {
         CANCODER,
         SPARK_ENCODER,
     }
@@ -195,12 +196,12 @@ public abstract class SwerveBase extends GRRSubsystem {
                     moduleBuilder.addDoubleProperty(
                         "velocity",
                         () -> Math2.toFixed(module.getVelocity()),
-                        v -> module.setDesiredState(new SwerveModuleState(v, Rotation2d.fromRadians(module.getAbsoluteAngle())))
+                        v -> module.setDesiredState(new SwerveModuleState(v, Rotation2d.fromRadians(module.getHeading())))
                     );
                     moduleBuilder.addDoubleProperty("distance", () -> Math2.toFixed(module.getDistance()), null);
                     moduleBuilder.addDoubleProperty(
                         "angle",
-                        () -> Math2.toFixed(module.getAbsoluteAngle()),
+                        () -> Math2.toFixed(module.getHeading()),
                         v -> module.setDesiredState(new SwerveModuleState(0.0, Rotation2d.fromRadians(v)))
                     );
                 })
@@ -428,12 +429,24 @@ public abstract class SwerveBase extends GRRSubsystem {
     }
 
     /**
+     * Drives the robot's move motors at a specified voltage.
+     * Useful for feedforward characterization.
+     * @param voltage The voltage to apply to the move motors.
+     * @param heading A robot relative heading for the modules to point towards.
+     */
+    protected void driveVoltage(double voltage, Rotation2d heading) {
+        for (int i = 0; i < modules.length; i++) {
+            modules[i].setVoltage(voltage, heading);
+        }
+    }
+
+    /**
      * Drives using raw swerve module states.
      * @param states The states to drive with.
      */
     protected void driveStates(SwerveModuleState[] states) {
         if (RobotBase.isSimulation()) {
-            imu.updateSim(kinematics.toChassisSpeeds(states));
+            ((SwerveIMUSim) imu).updateSim(kinematics.toChassisSpeeds(states));
         }
 
         for (int i = 0; i < states.length; i++) {
@@ -448,6 +461,8 @@ public abstract class SwerveBase extends GRRSubsystem {
      * Creates an IMU.
      */
     private SwerveIMU createIMU() {
+        if (RobotBase.isSimulation()) return new SwerveIMUSim();
+
         Object[] imuArgs = config.getImuArgs();
 
         switch (config.getImuType()) {
@@ -478,14 +493,14 @@ public abstract class SwerveBase extends GRRSubsystem {
         CANSparkMax turnSparkMax = null;
         CANSparkFlex turnSparkFlex = null;
 
-        switch (moduleConfig.getAbsoluteEncoderType()) {
+        switch (moduleConfig.getEncoderType()) {
             case CANCODER:
                 encoder =
                     new SwerveCANcoder(
                         createCANcoder(
                             moduleConfig.getLabel() + " Absolute Encoder",
-                            moduleConfig.getAbsoluteEncoderDeviceId(),
-                            moduleConfig.getAbsoluteEncoderCanBus()
+                            moduleConfig.getEncoderDeviceId(),
+                            moduleConfig.getEncoderCanBus()
                         ),
                         config,
                         moduleConfig
@@ -569,6 +584,19 @@ public abstract class SwerveBase extends GRRSubsystem {
                         label,
                         deviceId,
                         config.getMoveMotorType().equals(SwerveMotorType.SPARK_MAX_BRUSHLESS) ? MotorType.kBrushless : MotorType.kBrushed
+                    ),
+                    encoder,
+                    config,
+                    moduleConfig
+                );
+            case SPARK_FLEX_BRUSHED:
+            case SPARK_FLEX_BRUSHLESS:
+                return new SwerveSparkFlex(
+                    isMoveMotor,
+                    createSparkFlex(
+                        label,
+                        deviceId,
+                        config.getMoveMotorType().equals(SwerveMotorType.SPARK_FLEX_BRUSHLESS) ? MotorType.kBrushless : MotorType.kBrushed
                     ),
                     encoder,
                     config,

@@ -6,7 +6,7 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkAbsoluteEncoder.Type;
 import com.revrobotics.SparkPIDController;
 import com.revrobotics.SparkPIDController.ArbFFUnits;
-import org.team340.lib.swerve.SwerveBase.SwerveAbsoluteEncoderType;
+import org.team340.lib.swerve.SwerveBase.SwerveEncoderType;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.config.SwerveModuleConfig;
 import org.team340.lib.swerve.hardware.encoders.SwerveEncoder;
@@ -23,10 +23,12 @@ import org.team340.lib.util.config.rev.SparkPIDControllerConfig;
 /**
  * Wrapper for a REV Spark Flex for swerve.
  */
-public class SwerveSparkFlex extends SwerveMotor {
+public class SwerveSparkFlex implements SwerveMotor {
 
     private static final int PID_SLOT = 0;
 
+    private final CANSparkFlex sparkFlex;
+    private final boolean isMoveMotor;
     private final RelativeEncoder relativeEncoder;
     private final SparkPIDController pidController;
 
@@ -45,28 +47,30 @@ public class SwerveSparkFlex extends SwerveMotor {
         SwerveConfig config,
         SwerveModuleConfig moduleConfig
     ) {
-        super(isMoveMotor);
+        this.sparkFlex = sparkFlex;
+        this.isMoveMotor = isMoveMotor;
+
         relativeEncoder = sparkFlex.getEncoder();
         pidController = sparkFlex.getPIDController();
 
         SwerveConversions conversions = new SwerveConversions(config);
 
         int periodMs = (int) (config.getPeriod() * 1000.0);
-        boolean usingAttachedEncoder = SwerveAbsoluteEncoderType.SPARK_ENCODER.equals(moduleConfig.getAbsoluteEncoderType());
-        double conversionFactor = 1.0 / (isMoveMotor() ? conversions.moveRotationsPerMeter() : conversions.turnRotationsPerRadian());
-        PIDConfig pidConfig = isMoveMotor() ? config.getMovePID() : config.getTurnPID();
+        boolean usingAttachedEncoder = SwerveEncoderType.SPARK_ENCODER.equals(moduleConfig.getEncoderType());
+        double conversionFactor = 1.0 / (isMoveMotor ? conversions.moveRotationsPerMeter() : conversions.turnRotationsPerRadian());
+        PIDConfig pidConfig = isMoveMotor ? config.getMovePID() : config.getTurnPID();
 
         new SparkFlexConfig()
             .clearFaults()
             .restoreFactoryDefaults()
             .enableVoltageCompensation(config.getOptimalVoltage())
-            .setSmartCurrentLimit((int) (isMoveMotor() ? config.getMoveCurrentLimit() : config.getTurnCurrentLimit()))
+            .setSmartCurrentLimit((int) (isMoveMotor ? config.getMoveCurrentLimit() : config.getTurnCurrentLimit()))
             .setIdleMode(
-                (isMoveMotor() ? moduleConfig.getMoveMotorBrake() : moduleConfig.getTurnMotorBrake()) ? IdleMode.kBrake : IdleMode.kCoast
+                (isMoveMotor ? moduleConfig.getMoveMotorBrake() : moduleConfig.getTurnMotorBrake()) ? IdleMode.kBrake : IdleMode.kCoast
             )
-            .setInverted(isMoveMotor() ? moduleConfig.getMoveMotorInverted() : moduleConfig.getTurnMotorInverted())
-            .setOpenLoopRampRate(isMoveMotor() ? config.getMoveRampRate() : config.getTurnRampRate())
-            .setClosedLoopRampRate(isMoveMotor() ? config.getMoveRampRate() : config.getTurnRampRate())
+            .setInverted(isMoveMotor ? moduleConfig.getMoveMotorInverted() : moduleConfig.getTurnMotorInverted())
+            .setOpenLoopRampRate(isMoveMotor ? config.getMoveRampRate() : config.getTurnRampRate())
+            .setClosedLoopRampRate(isMoveMotor ? config.getMoveRampRate() : config.getTurnRampRate())
             .setPeriodicFramePeriod(Frame.S0, periodMs)
             .setPeriodicFramePeriod(Frame.S1, periodMs)
             .setPeriodicFramePeriod(Frame.S2, periodMs)
@@ -90,8 +94,8 @@ public class SwerveSparkFlex extends SwerveMotor {
             new AbsoluteEncoderConfig()
                 .setPositionConversionFactor(Math2.TWO_PI)
                 .setVelocityConversionFactor(Math2.TWO_PI / 60.0)
-                .setInverted(moduleConfig.getAbsoluteEncoderInverted())
-                .setZeroOffset(moduleConfig.getAbsoluteEncoderOffset())
+                .setInverted(moduleConfig.getEncoderInverted())
+                .setZeroOffset(moduleConfig.getEncoderOffset())
                 .apply(sparkFlex, sparkFlex.getAbsoluteEncoder(Type.kDutyCycle));
         }
 
@@ -100,23 +104,28 @@ public class SwerveSparkFlex extends SwerveMotor {
     }
 
     @Override
-    protected double getRealVelocity() {
+    public double getVelocity() {
         return relativeEncoder.getVelocity();
     }
 
     @Override
-    protected double getRealPosition() {
+    public double getPosition() {
         return relativeEncoder.getPosition();
     }
 
     @Override
-    protected void setRealReference(double target, double ff) {
+    public void setReference(double target, double ff) {
         pidController.setReference(
             target,
-            isMoveMotor() ? CANSparkFlex.ControlType.kVelocity : CANSparkFlex.ControlType.kPosition,
+            isMoveMotor ? CANSparkFlex.ControlType.kVelocity : CANSparkFlex.ControlType.kPosition,
             PID_SLOT,
             ff,
             ArbFFUnits.kVoltage
         );
+    }
+
+    @Override
+    public void setVoltage(double voltage) {
+        sparkFlex.setVoltage(voltage);
     }
 }
