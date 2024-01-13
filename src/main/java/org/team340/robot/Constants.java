@@ -1,10 +1,10 @@
 package org.team340.robot;
 
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
+import edu.wpi.first.wpilibj.ADIS16470_IMU.CalibrationTime;
+import edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis;
 import edu.wpi.first.wpilibj.SPI.Port;
-import org.team340.lib.drivers.controller.Controller2Config;
-import org.team340.lib.drivers.imu.ADIS16470.CalibrationTime;
-import org.team340.lib.drivers.imu.ADIS16470.IMUAxis;
+import org.team340.lib.controller.Controller2Config;
 import org.team340.lib.swerve.SwerveBase.SwerveMotorType;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.config.SwerveModuleConfig;

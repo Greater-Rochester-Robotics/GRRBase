@@ -9,6 +9,9 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkAbsoluteEncoder;
 import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.ADIS16470_IMU;
+import edu.wpi.first.wpilibj.ADIS16470_IMU.CalibrationTime;
+import edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DigitalSource;
@@ -22,9 +25,6 @@ import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.team340.lib.commands.CommandBuilder;
-import org.team340.lib.drivers.imu.ADIS16470;
-import org.team340.lib.drivers.imu.ADIS16470.CalibrationTime;
-import org.team340.lib.drivers.imu.ADIS16470.IMUAxis;
 
 /**
  * An extension to WPILib's subsystem.
@@ -349,8 +349,8 @@ public abstract class GRRSubsystem extends SubsystemBase {
      * @param pitchAxis The axis that measures the pitch.
      * @param rollAxis The axis that measures the roll.
      */
-    protected ADIS16470 createADIS16470(String label, IMUAxis yawAxis, IMUAxis pitchAxis, IMUAxis rollAxis) {
-        ADIS16470 adis16470 = new ADIS16470(yawAxis, pitchAxis, rollAxis);
+    protected ADIS16470_IMU createADIS16470(String label, IMUAxis yawAxis, IMUAxis pitchAxis, IMUAxis rollAxis) {
+        ADIS16470_IMU adis16470 = new ADIS16470_IMU(yawAxis, pitchAxis, rollAxis);
         new HardwareSendables.ADIS16470(label, adis16470).addToDashboard(this);
         return adis16470;
     }
@@ -364,7 +364,7 @@ public abstract class GRRSubsystem extends SubsystemBase {
      * @param port The SPI Port the gyro is plugged into.
      * @param calibrationTime Calibration time.
      */
-    protected ADIS16470 createADIS16470(
+    protected ADIS16470_IMU createADIS16470(
         String label,
         IMUAxis yawAxis,
         IMUAxis pitchAxis,
@@ -372,7 +372,7 @@ public abstract class GRRSubsystem extends SubsystemBase {
         SPI.Port port,
         CalibrationTime calibrationTime
     ) {
-        ADIS16470 adis16470 = new ADIS16470(yawAxis, pitchAxis, rollAxis, port, calibrationTime);
+        ADIS16470_IMU adis16470 = new ADIS16470_IMU(yawAxis, pitchAxis, rollAxis, port, calibrationTime);
         new HardwareSendables.ADIS16470(label, adis16470).addToDashboard(this);
         return adis16470;
     }

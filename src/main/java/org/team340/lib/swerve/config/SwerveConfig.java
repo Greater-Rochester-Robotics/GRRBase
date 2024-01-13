@@ -1,12 +1,12 @@
 package org.team340.lib.swerve.config;
 
+import edu.wpi.first.wpilibj.ADIS16470_IMU;
 import edu.wpi.first.wpilibj.SPI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.MissingResourceException;
 import java.util.function.Consumer;
 import org.team340.lib.blacklight.BlacklightConfig;
-import org.team340.lib.drivers.imu.ADIS16470;
 import org.team340.lib.swerve.SwerveBase.SwerveEncoderType;
 import org.team340.lib.swerve.SwerveBase.SwerveIMUType;
 import org.team340.lib.swerve.SwerveBase.SwerveMotorType;
@@ -56,11 +56,11 @@ public class SwerveConfig {
      * @param calibrationTime The time frame to calibrate for.
      */
     public SwerveConfig useADIS16470(
-        ADIS16470.IMUAxis yawAxis,
-        ADIS16470.IMUAxis pitchAxis,
-        ADIS16470.IMUAxis rollAxis,
+        ADIS16470_IMU.IMUAxis yawAxis,
+        ADIS16470_IMU.IMUAxis pitchAxis,
+        ADIS16470_IMU.IMUAxis rollAxis,
         SPI.Port port,
-        ADIS16470.CalibrationTime calibrationTime
+        ADIS16470_IMU.CalibrationTime calibrationTime
     ) {
         imuType = SwerveIMUType.ADIS16470;
         imuArgs = new Object[] { yawAxis, pitchAxis, rollAxis, port, calibrationTime };

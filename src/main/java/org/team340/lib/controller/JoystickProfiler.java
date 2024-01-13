@@ -1,4 +1,4 @@
-package org.team340.lib.drivers.controller;
+package org.team340.lib.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;

@@ -17,6 +17,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.ADIS16470_IMU;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.SPI;
 import java.util.ArrayList;
@@ -25,7 +26,6 @@ import org.team340.lib.GRRDashboard;
 import org.team340.lib.GRRSubsystem;
 import org.team340.lib.blacklight.Blacklight;
 import org.team340.lib.blacklight.BlacklightConfig;
-import org.team340.lib.drivers.imu.ADIS16470;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.config.SwerveModuleConfig;
 import org.team340.lib.swerve.hardware.encoders.SwerveEncoder;
@@ -470,11 +470,11 @@ public abstract class SwerveBase extends GRRSubsystem {
                 return new SwerveADIS16470(
                     createADIS16470(
                         "Swerve IMU",
-                        (ADIS16470.IMUAxis) imuArgs[0],
-                        (ADIS16470.IMUAxis) imuArgs[1],
-                        (ADIS16470.IMUAxis) imuArgs[2],
+                        (ADIS16470_IMU.IMUAxis) imuArgs[0],
+                        (ADIS16470_IMU.IMUAxis) imuArgs[1],
+                        (ADIS16470_IMU.IMUAxis) imuArgs[2],
                         (SPI.Port) imuArgs[3],
-                        (ADIS16470.CalibrationTime) imuArgs[4]
+                        (ADIS16470_IMU.CalibrationTime) imuArgs[4]
                     )
                 );
             case PIGEON2:

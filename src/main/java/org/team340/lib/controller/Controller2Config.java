@@ -1,4 +1,4 @@
-package org.team340.lib.drivers.controller;
+package org.team340.lib.controller;
 
 /**
  * Config builder for {@link Controller2}.

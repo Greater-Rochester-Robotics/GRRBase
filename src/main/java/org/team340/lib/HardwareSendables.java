@@ -570,7 +570,7 @@ final class HardwareSendables {
          * @param label The label to use. Shown in the dashboard.
          * @param adis16470 The ADIS16470.
          */
-        public ADIS16470(String label, org.team340.lib.drivers.imu.ADIS16470 adis16470) {
+        public ADIS16470(String label, edu.wpi.first.wpilibj.ADIS16470_IMU adis16470) {
             super(
                 "SPI-" + adis16470.getPort(),
                 label,

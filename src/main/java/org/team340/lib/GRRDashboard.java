@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
-import org.team340.lib.drivers.controller.Controller2;
+import org.team340.lib.controller.Controller2;
 import org.team340.lib.util.Math2;
 
 /**

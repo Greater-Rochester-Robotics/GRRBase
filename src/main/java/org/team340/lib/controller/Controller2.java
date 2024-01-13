@@ -1,4 +1,4 @@
-package org.team340.lib.drivers.controller;
+package org.team340.lib.controller;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.util.sendable.Sendable;
@@ -440,7 +440,7 @@ public class Controller2 extends CommandXboxController implements Sendable {
     public void initSendable(SendableBuilder builder) {
         XboxController hid = getHID();
 
-        builder.publishConstString(".api", "AdvancedController");
+        builder.publishConstString(".api", "Controller2");
 
         builder.addBooleanProperty("a", hid::getAButton, null);
         builder.addBooleanProperty("b", hid::getBButton, null);
