@@ -405,15 +405,21 @@ public abstract class SwerveBase extends GRRSubsystem {
      */
     protected void driveSpeeds(ChassisSpeeds chassisSpeeds, boolean discretize, boolean withRatelimiter) {
         if (discretize) {
+            // Calculate how much the robot will have turned in configured lookahead number of seconds.
             double dtheta = chassisSpeeds.omegaRadiansPerSecond * config.getDiscretizationLookahead();
+
+            // Find the coefficients of the twist experienced by the robot.
             double sin = -dtheta / 2.0;
             double cos = Math2.epsilonEquals(Math.cos(dtheta) - 1.0, 0.0)
                 ? 1.0 - ((1.0 / 12.0) * dtheta * dtheta)
                 : (sin * Math.sin(dtheta)) / (Math.cos(dtheta) - 1.0);
 
+            // Find distance traveled over lookahead period.
             double dt = config.getPeriod();
             double dx = chassisSpeeds.vxMetersPerSecond * dt;
             double dy = chassisSpeeds.vyMetersPerSecond * dt;
+
+            // Apply the found twist to the chassis speeds.
             chassisSpeeds =
                 new ChassisSpeeds(((dx * cos) - (dy * sin)) / dt, ((dx * sin) + (dy * cos)) / dt, chassisSpeeds.omegaRadiansPerSecond);
         }
