@@ -8,7 +8,27 @@ import org.team340.lib.util.Math2;
 /**
  * Config builder for {@link RelativeEncoder}.
  */
-public class RelativeEncoderConfig extends RevConfigBase<RelativeEncoder> {
+public final class RelativeEncoderConfig extends RevConfigBase<RelativeEncoder> {
+
+    /**
+     * Creates an empty config.
+     */
+    public RelativeEncoderConfig(){}
+
+    /**
+     * Creates a config that copies the config steps from the base provided.
+     * @param base The config to copy the steps from.
+     */
+    private RelativeEncoderConfig(RevConfigBase<RelativeEncoder> base){
+        super(base);
+    }
+
+    /**
+     * Clones this config
+     */
+    public RelativeEncoderConfig clone(){
+        return new RelativeEncoderConfig(this);
+    }
 
     /**
      * Applies the config to a Spark Max attached encoder.

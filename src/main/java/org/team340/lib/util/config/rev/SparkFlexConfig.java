@@ -9,9 +9,29 @@ import org.team340.lib.util.Math2;
 /**
  * Config builder for {@link CANSparkFlex}.
  */
-public class SparkFlexConfig extends RevConfigBase<CANSparkFlex> {
+public final class SparkFlexConfig extends RevConfigBase<CANSparkFlex> {
 
     private static final double FACTORY_DEFAULTS_SLEEP = 50.0;
+
+        /**
+     * Creates an empty config.
+     */
+    public SparkFlexConfig(){}
+
+    /**
+     * Creates a config that copies the config steps from the base provided.
+     * @param base The config to copy the steps from.
+     */
+    private SparkFlexConfig(RevConfigBase<CANSparkFlex> base){
+        super(base);
+    }
+
+    /**
+     * Clones this config
+     */
+    public SparkFlexConfig clone(){
+        return new SparkFlexConfig(this);
+    }
 
     /**
      * Applies the config.
