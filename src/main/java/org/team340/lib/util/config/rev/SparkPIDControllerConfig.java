@@ -25,7 +25,7 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
     }
 
     /**
-     * Clones this config
+     * Clones this config.
      */
     public SparkPIDControllerConfig clone() {
         return new SparkPIDControllerConfig(this);

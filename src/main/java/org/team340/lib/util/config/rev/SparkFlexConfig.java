@@ -27,7 +27,7 @@ public final class SparkFlexConfig extends RevConfigBase<CANSparkFlex> {
     }
 
     /**
-     * Clones this config
+     * Clones this config.
      */
     public SparkFlexConfig clone() {
         return new SparkFlexConfig(this);

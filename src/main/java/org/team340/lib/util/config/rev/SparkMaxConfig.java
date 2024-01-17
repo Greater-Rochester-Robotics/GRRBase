@@ -25,7 +25,7 @@ public final class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
     }
 
     /**
-     * Clones this config
+     * Clones this config.
      */
     public SparkMaxConfig clone() {
         return new SparkMaxConfig(this);

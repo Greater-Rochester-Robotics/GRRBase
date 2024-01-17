@@ -24,7 +24,7 @@ public final class RelativeEncoderConfig extends RevConfigBase<RelativeEncoder> 
     }
 
     /**
-     * Clones this config
+     * Clones this config.
      */
     public RelativeEncoderConfig clone() {
         return new RelativeEncoderConfig(this);

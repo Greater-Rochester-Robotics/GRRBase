@@ -23,7 +23,7 @@ public final class SparkLimitSwitchConfig extends RevConfigBase<SparkLimitSwitch
     }
 
     /**
-     * Clones this config
+     * Clones this config.
      */
     public SparkLimitSwitchConfig clone() {
         return new SparkLimitSwitchConfig(this);
