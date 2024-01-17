@@ -9,23 +9,23 @@ import com.revrobotics.SparkLimitSwitch;
  */
 public final class SparkLimitSwitchConfig extends RevConfigBase<SparkLimitSwitch> {
 
-        /**
+    /**
      * Creates an empty config.
      */
-    public SparkLimitSwitchConfig(){}
+    public SparkLimitSwitchConfig() {}
 
     /**
      * Creates a config that copies the config steps from the base provided.
      * @param base The config to copy the steps from.
      */
-    private SparkLimitSwitchConfig(RevConfigBase<SparkLimitSwitch> base){
+    private SparkLimitSwitchConfig(RevConfigBase<SparkLimitSwitch> base) {
         super(base);
     }
 
     /**
      * Clones this config
      */
-    public SparkLimitSwitchConfig clone(){
+    public SparkLimitSwitchConfig clone() {
         return new SparkLimitSwitchConfig(this);
     }
 

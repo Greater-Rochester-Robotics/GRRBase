@@ -13,20 +13,20 @@ public final class RelativeEncoderConfig extends RevConfigBase<RelativeEncoder> 
     /**
      * Creates an empty config.
      */
-    public RelativeEncoderConfig(){}
+    public RelativeEncoderConfig() {}
 
     /**
      * Creates a config that copies the config steps from the base provided.
      * @param base The config to copy the steps from.
      */
-    private RelativeEncoderConfig(RevConfigBase<RelativeEncoder> base){
+    private RelativeEncoderConfig(RevConfigBase<RelativeEncoder> base) {
         super(base);
     }
 
     /**
      * Clones this config
      */
-    public RelativeEncoderConfig clone(){
+    public RelativeEncoderConfig clone() {
         return new RelativeEncoderConfig(this);
     }
 

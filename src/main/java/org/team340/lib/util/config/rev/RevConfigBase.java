@@ -32,14 +32,14 @@ abstract class RevConfigBase<T> {
     /**
      * Creates a base config with no config steps.
      */
-    RevConfigBase(){}
+    RevConfigBase() {}
 
     /**
      * Creates a base config that copies the config steps from the base provided.
      * @param base The config to copy the steps from.
      */
-    RevConfigBase(RevConfigBase<T> base){
-        for(RevConfigStep<T> step: base.configSteps){
+    RevConfigBase(RevConfigBase<T> base) {
+        for (RevConfigStep<T> step : base.configSteps) {
             configSteps.add(step);
         }
     }

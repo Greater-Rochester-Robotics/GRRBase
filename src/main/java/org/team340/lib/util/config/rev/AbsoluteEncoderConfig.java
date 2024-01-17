@@ -13,20 +13,20 @@ public final class AbsoluteEncoderConfig extends RevConfigBase<AbsoluteEncoder> 
     /**
      * Creates an empty config.
      */
-    public AbsoluteEncoderConfig(){}
+    public AbsoluteEncoderConfig() {}
 
     /**
      * Creates a config that copies the config steps from the base provided.
      * @param base The config to copy the steps from.
      */
-    private AbsoluteEncoderConfig(RevConfigBase<AbsoluteEncoder> base){
+    private AbsoluteEncoderConfig(RevConfigBase<AbsoluteEncoder> base) {
         super(base);
     }
 
     /**
      * Clones this config
      */
-    public AbsoluteEncoderConfig clone(){
+    public AbsoluteEncoderConfig clone() {
         return new AbsoluteEncoderConfig(this);
     }
 

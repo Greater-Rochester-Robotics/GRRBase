@@ -14,20 +14,20 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
     /**
      * Creates an empty config.
      */
-    public SparkPIDControllerConfig(){}
+    public SparkPIDControllerConfig() {}
 
     /**
      * Creates a config that copies the config steps from the base provided.
      * @param base The config to copy the steps from.
      */
-    private SparkPIDControllerConfig(RevConfigBase<SparkPIDController> base){
+    private SparkPIDControllerConfig(RevConfigBase<SparkPIDController> base) {
         super(base);
     }
 
     /**
      * Clones this config
      */
-    public SparkPIDControllerConfig clone(){
+    public SparkPIDControllerConfig clone() {
         return new SparkPIDControllerConfig(this);
     }
 

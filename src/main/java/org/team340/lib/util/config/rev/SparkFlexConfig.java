@@ -13,23 +13,23 @@ public final class SparkFlexConfig extends RevConfigBase<CANSparkFlex> {
 
     private static final double FACTORY_DEFAULTS_SLEEP = 50.0;
 
-        /**
+    /**
      * Creates an empty config.
      */
-    public SparkFlexConfig(){}
+    public SparkFlexConfig() {}
 
     /**
      * Creates a config that copies the config steps from the base provided.
      * @param base The config to copy the steps from.
      */
-    private SparkFlexConfig(RevConfigBase<CANSparkFlex> base){
+    private SparkFlexConfig(RevConfigBase<CANSparkFlex> base) {
         super(base);
     }
 
     /**
      * Clones this config
      */
-    public SparkFlexConfig clone(){
+    public SparkFlexConfig clone() {
         return new SparkFlexConfig(this);
     }
 

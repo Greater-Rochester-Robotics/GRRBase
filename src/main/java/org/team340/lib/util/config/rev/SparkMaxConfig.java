@@ -10,26 +10,27 @@ import org.team340.lib.util.Math2;
  * Config builder for {@link CANSparkMax}.
  */
 public final class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
-    
+
     /**
      * Creates an empty config.
      */
-    public SparkMaxConfig(){}
+    public SparkMaxConfig() {}
 
     /**
      * Creates a config that copies the config steps from the base provided.
      * @param base The config to copy the steps from.
      */
-    private SparkMaxConfig(RevConfigBase<CANSparkMax> base){
+    private SparkMaxConfig(RevConfigBase<CANSparkMax> base) {
         super(base);
     }
 
     /**
      * Clones this config
      */
-    public SparkMaxConfig clone(){
+    public SparkMaxConfig clone() {
         return new SparkMaxConfig(this);
     }
+
     private static final double FACTORY_DEFAULTS_SLEEP = 50.0;
 
     /**
