@@ -3,3 +3,19 @@ A template repository for Java-based robots in the FIRST Robotics Competition. I
 
 ## Code Styling
 All Java code follows the styling guide of [Prettier](https://prettier.io/). You can apply these rules via [Spotless](https://github.com/diffplug/spotless/tree/main) using the command `./gradlew spotlessApply`
+
+## Library Packages
+
+* CommandBuilder
+* BlackLight
+* Controller2
+* JoystickProfiler
+* SwerveBase
+* SwerveModule
+* Math2
+* Polar2d
+* StringUtil
+* SendableFactory
+* GRRDashboard
+* GRRSubsystem
+* HardwareSendables
