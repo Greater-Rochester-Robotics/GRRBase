@@ -23,7 +23,7 @@ class SwerveModule {
     private final SwerveMotor turnMotor;
     private final SwerveEncoder encoder;
     private final SimpleMotorFeedforward moveFFController;
-    private final Timer controlTimer;
+    private final Timer controlTimer = new Timer();
 
     private double lastMoveSpeed = 0.0;
     private double simDistance = 0.0;
@@ -52,12 +52,6 @@ class SwerveModule {
         this.encoder = encoder;
 
         moveFFController = new SimpleMotorFeedforward(config.getMoveFF().s(), config.getMoveFF().v(), config.getMoveFF().a());
-
-        if (RobotBase.isSimulation()) {
-            controlTimer = new Timer();
-        } else {
-            controlTimer = null;
-        }
     }
 
     /**
