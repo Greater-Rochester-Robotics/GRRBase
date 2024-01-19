@@ -277,10 +277,11 @@ public class SwerveConfig {
      * Initial theoretical values can be estimated using the following formulas:
      *
      * <br><br>
-     * <b>Max Robot Velocity:</b> {@code (<Move Motor Free Speed RPM> / 60) / (<Move Gear Ratio> / (<Wheel Diameter (Meters)> * PI))}
+     * <b>Max Robot Velocity:</b> {@code (<Move Motor Free Speed RPM> * 0.80 / 60) / (<Move Gear Ratio> / (<Wheel Diameter (Meters)> * PI))}
      *
      * <br><br>
      * <b>Max Robot Acceleration:</b> {@code <Max Robot Velocity> * 2} (VERY much an estimate, typical ballpark acceleration for robots weighing ~120 pounds)
+     * Can also be pulled from Choreo.
      *
      * <br><br>
      * <b>Max Robot Rotational Velocity:</b> {@code (<Max Robot Velocity> / (<Robot Length (Meters)>^2 + <Robot Width (Meters)>^2)^0.5) * 2}

@@ -120,6 +120,7 @@ public class SwerveModuleConfig {
     /**
      * Sets the module's position relative to the center of the robot (in meters).
      * Reminder that relative to the front of the robot, X is forwards and Y is sideways.
+     * This can be found from CAD.
      * @param x The module's X position in meters.
      * @param y The module's Y position in meters.
      */
@@ -138,7 +139,7 @@ public class SwerveModuleConfig {
     /**
      * Sets the move motor for the module.
      * @param deviceId The device's ID on the CAN bus.
-     * @param brake If brake mode should be enabled.
+     * @param brake If brake mode should be enabled. Brake mode is typically enabled.
      * @param inverted If the motor's output is inverted.
      */
     public SwerveModuleConfig setMoveMotor(int deviceId, boolean brake, boolean inverted) {
@@ -152,7 +153,7 @@ public class SwerveModuleConfig {
      * Sets the move motor for the module.
      * @param deviceId The device's ID on the CAN bus.
      * @param canBus The name of the CAN bus being used.
-     * @param brake If brake mode should be enabled.
+     * @param brake If brake mode should be enabled. Brake mode is typically enabled.
      * @param inverted If the motor's output is inverted.
      */
     public SwerveModuleConfig setMoveMotor(int deviceId, String canBus, boolean brake, boolean inverted) {
@@ -194,7 +195,7 @@ public class SwerveModuleConfig {
     /**
      * Sets the turn motor for the module.
      * @param deviceId The device's ID on the CAN bus.
-     * @param brake If brake mode should be enabled.
+     * @param brake If brake mode should be enabled. Brake mode is typically disabled.
      * @param inverted If the motor's output is inverted.
      */
     public SwerveModuleConfig setTurnMotor(int deviceId, boolean brake, boolean inverted) {
@@ -208,7 +209,7 @@ public class SwerveModuleConfig {
      * Sets the turn motor for the module.
      * @param deviceId The device's ID on the CAN bus.
      * @param canBus The name of the CAN bus being used.
-     * @param brake If brake mode should be enabled.
+     * @param brake If brake mode should be enabled. Brake mode is typically disabled.
      * @param inverted If the motor's output is inverted.
      */
     public SwerveModuleConfig setTurnMotor(int deviceId, String canBus, boolean brake, boolean inverted) {
