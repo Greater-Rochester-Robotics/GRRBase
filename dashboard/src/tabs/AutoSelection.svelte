@@ -1,54 +1,60 @@
 <script lang="ts">
-    import field23 from "../assets/field23.png";
+    import { derived } from "svelte/store";
+    import field24 from "../assets/field24.png";
     import { FIELD_HEIGHT, FIELD_WIDTH } from "../constants";
     import { AutosActive, AutosOptions, AutosSelected, RobotBlueAlliance } from "../ntStores";
 
     // import field22 from '../assets/field22.png';
-    const field = field23;
+    // import field23 from '../assets/field23.png';
+    const field = field24;
 
     // Option typings.
-    type ControlPoint = { x: number; y: number };
     type Option = {
+        id: string;
         label: string;
-        splines: Array<{
-            p0: ControlPoint;
-            p1: ControlPoint | null;
-            p2: ControlPoint | null;
-            p3: ControlPoint | null;
-        }>;
-        raw: string;
+        points: Array<[number, number]>;
     };
 
-    // Load options.
-    let options: Option[] = [];
-    $: options =
-        $AutosOptions?.map((option) => {
-            try {
-                return {
-                    ...JSON.parse(option),
-                    raw: option,
-                };
-            } catch (error) {
-                console.error(error);
-            }
-        }) ?? [];
+    // Parses options from NT value.
+    const options = derived(AutosOptions, ($value) => {
+        return (
+            $value?.map((option) => {
+                try {
+                    const parsed = { ...JSON.parse(option) };
+                    if (![`id`, `label`, `points`].every((v) => Object.keys(parsed).includes(v)))
+                        throw new Error(`Invalid auto option: ${option}`);
+                    return {
+                        id: parsed.id,
+                        label: parsed.label,
+                        points: (parsed.points as number[]).reduce(
+                            (p, c, i, a) => (i % 2 === 0 ? [...p, [c, a[i + 1]]] : p),
+                            [] as Option[`points`],
+                        ),
+                    } as Option;
+                } catch (error) {
+                    console.log(error);
+                    return null;
+                }
+            }) ?? []
+        ).filter((v) => v !== null) as Option[];
+    });
 
     // Helper for mirroring the field based on the robot's alliance.
-    $: am = $RobotBlueAlliance ? 1 : -1;
+    const am = derived(RobotBlueAlliance, ($value) => ($value ? 1 : -1));
 </script>
 
 <main>
     <div class="autos-container">
-        {#if options.length}
-            {#each options as { label, splines, raw }}
+        {#if $options.length}
+            {#each $options as { id, label, points }}
                 <!-- An auto selection. -->
                 <button
                     class="auto-selection"
-                    class:auto-selection-client="{raw === $AutosSelected}"
-                    class:auto-selection-robot="{raw === $AutosActive}"
+                    class:auto-selection-client="{id === $AutosSelected}"
+                    class:auto-selection-robot="{id === $AutosActive}"
                     on:keydown="{() => {}}"
                     on:click="{() => {
-                        $AutosSelected = raw;
+                        $AutosSelected = id;
                     }}"
                 >
                     <!-- The selection's path. -->
@@ -60,25 +66,15 @@
                         <svg
                             viewBox="{$RobotBlueAlliance ? 0 : -FIELD_WIDTH} {-FIELD_HEIGHT} {FIELD_WIDTH} {FIELD_HEIGHT}"
                             fill="none"
-                            stroke="var(--auto-spline)"
+                            stroke="var(--auto-line)"
                             stroke-width="0.06"
                             stroke-linecap="round"
                             stroke-linejoin="round"
                         >
-                            {#each splines as spline}
-                                {#if spline.p1 && spline.p2 && spline.p3}
-                                    <path
-                                        d="M {am * spline.p0.x} {-spline.p0.y} C {am * spline.p1.x} {-spline.p1.y}, {am *
-                                            spline.p2.x} {-spline.p2.y}, {am * spline.p3.x} {-spline.p3.y}"
-                                    ></path>
+                            {#each points as [x, y], i}
+                                {#if i < points.length - 1}
+                                    <line x1="{$am * x}" y1="{y}" x2="{$am * points[i + 1][0]}" y2="{points[i + 1][1]}"></line>
                                 {/if}
-
-                                <circle
-                                    cx="{am * spline.p0.x}"
-                                    cy="{-spline.p0.y}"
-                                    r="0.15"
-                                    fill="var(--auto-cp-{$RobotBlueAlliance ? `blue` : `red`})"
-                                ></circle>
                             {/each}
                         </svg>
                     </div>

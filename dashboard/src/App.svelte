@@ -4,11 +4,11 @@
     import ConnectingDialog from "./components/ConnectingDialog.svelte";
     import NavBar from "./components/NavBar.svelte";
 
-    import Analysis from "./tabs/Analysis.svelte";
     import AutoSelection from "./tabs/AutoSelection.svelte";
     import DriverView from "./tabs/DriverView.svelte";
 
-    import { NTConnected, RobotEnabled } from "./ntStores";
+    import { NTConnected } from "./ntStores";
+    import { NTSvelteClientState } from "./lib/NTSvelte";
 
     // Define your tabs here.
     // The navbar will be automatically populated using this object, and tabs will be dynamically displayed when selected.
@@ -17,7 +17,6 @@
     const tabs = {
         "Driver View": DriverView,
         "Auto Selection": AutoSelection,
-        Analysis: Analysis,
     };
 
     // Helpers for tab selection.
@@ -28,10 +27,8 @@
 </script>
 
 <main>
-    {#if $NTConnected || IGNORE_CONNECTION}
-        <!-- If connected, show the current tab and the navbar. -->
-        <p>{$RobotEnabled}</p>
-
+    <!-- If connected, show the current tab and the navbar. -->
+    {#if $NTConnected === NTSvelteClientState.CONNECTED || IGNORE_CONNECTION}
         <!-- The selected tab. -->
         <div class="tab">
             <svelte:component this="{tabs[currentTab]}" />

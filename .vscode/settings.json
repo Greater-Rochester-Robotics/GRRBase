@@ -64,6 +64,7 @@
     "Motorcontrol",
     "Msgpack",
     "NetworkTables",
+    "NTURI",
     "Odometry",
     "Overcurrent",
     "PIDF",
@@ -82,14 +83,17 @@
     "TalonSRX",
     "Tauri",
     "Teleop",
+    "Topicsonly",
     "Traj",
     "Unannounce",
+    "Unsub",
     "Unsubscriber",
     "Unsubscribers",
     "Vbat",
     "WPIBlue",
     "WPILib",
     "WPILibJ",
-    "WPIRed"
+    "WPIRed",
+    "Writables"
   ]
 }

@@ -100,7 +100,7 @@
                 <code class="nav-bar-connection-address" contenteditable on:blur="{onURIBlur}">{$NTURI}</code>
 
                 <!-- NT Connection Stats. -->
-                <code>{$NTBitrate}kb/s | {$NTLatency}ms</code>
+                <code>{($NTBitrate / 1000).toFixed(2)}kb/s | {$NTLatency.toFixed(2)}ms</code>
             </div>
         </div>
     </div>
