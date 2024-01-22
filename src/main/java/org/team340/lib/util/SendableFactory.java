@@ -30,6 +30,7 @@ public class SendableFactory {
             initSendableConsumer = initSendable;
         }
 
+        @Override
         public void initSendable(SendableBuilder builder) {
             initSendableConsumer.accept(builder);
         }

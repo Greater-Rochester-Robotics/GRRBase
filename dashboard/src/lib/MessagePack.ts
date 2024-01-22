@@ -1,6 +1,6 @@
 /**
  * MessagePack serializer and deserializer.
- * Adapted from https://github.com/gerth2/NetworkTablesClients (nt4/js/src/msgpack/msgpack.js)
+ * Adapted from https://github.com/gerth2/NetworkTablesClients/blob/main/nt4/js/src/msgpack/msgpack.js
  */
 export class MessagePack {
     private constructor() {}
@@ -589,8 +589,14 @@ export class MessagePack {
             };
         }
 
-        // Decodes a string from UTF-8 bytes.
-        // Based on: https://gist.github.com/pascaldekloe/62546103a1576803dade9269ccf76330
+        /**
+         * Decodes a string from UTF-8 bytes.
+         * From https://gist.github.com/pascaldekloe/62546103a1576803dade9269ccf76330
+         * @param bytes The bytes to decode.
+         * @param start The index of the byte to start with.
+         * @param length The number of bytes to decode.
+         * @returns The decoded string.
+         */
         function decodeUtf8(bytes: Uint8Array, start: number, length: number): string {
             let i = start,
                 str = ``;
