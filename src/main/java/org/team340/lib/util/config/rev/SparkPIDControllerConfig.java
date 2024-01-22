@@ -9,7 +9,27 @@ import org.team340.lib.util.Math2;
 /**
  * Config builder for {@link SparkPIDController}.
  */
-public class SparkPIDControllerConfig extends RevConfigBase<SparkPIDController> {
+public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDController> {
+
+    /**
+     * Creates an empty config.
+     */
+    public SparkPIDControllerConfig() {}
+
+    /**
+     * Creates a config that copies the config steps from the base provided.
+     * @param base The config to copy the steps from.
+     */
+    private SparkPIDControllerConfig(RevConfigBase<SparkPIDController> base) {
+        super(base);
+    }
+
+    /**
+     * Clones this config.
+     */
+    public SparkPIDControllerConfig clone() {
+        return new SparkPIDControllerConfig(this);
+    }
 
     /**
      * Applies the config.

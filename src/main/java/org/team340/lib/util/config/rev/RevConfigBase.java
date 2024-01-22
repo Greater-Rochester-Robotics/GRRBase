@@ -27,7 +27,22 @@ abstract class RevConfigBase<T> {
         }
     }
 
-    private final List<RevConfigStep<T>> configSteps = new ArrayList<>();
+    final List<RevConfigStep<T>> configSteps = new ArrayList<>();
+
+    /**
+     * Creates a base config with no config steps.
+     */
+    RevConfigBase() {}
+
+    /**
+     * Creates a base config that copies the config steps from the base provided.
+     * @param base The config to copy the steps from.
+     */
+    RevConfigBase(RevConfigBase<T> base) {
+        for (RevConfigStep<T> step : base.configSteps) {
+            configSteps.add(step);
+        }
+    }
 
     /**
      * Stores a configuration step.
