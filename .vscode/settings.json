@@ -1,5 +1,6 @@
 {
   "java.configuration.updateBuildConfiguration": "automatic",
+  "java.debug.settings.onBuildFailureProceed": true,
   "java.server.launchMode": "Standard",
   "files.exclude": {
     "**/.git": true,

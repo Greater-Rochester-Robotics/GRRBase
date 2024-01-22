@@ -12,7 +12,7 @@
     type Option = {
         id: string;
         label: string;
-        points: Array<[number, number]>;
+        points: Array<[number, number, number]>;
     };
 
     // Parses options from NT value.
@@ -23,24 +23,13 @@
                     const parsed = { ...JSON.parse(option) };
                     if (![`id`, `label`, `points`].every((v) => Object.keys(parsed).includes(v)))
                         throw new Error(`Invalid auto option: ${option}`);
-                    return {
-                        id: parsed.id,
-                        label: parsed.label,
-                        points: (parsed.points as number[]).reduce(
-                            (p, c, i, a) => (i % 2 === 0 ? [...p, [c, a[i + 1]]] : p),
-                            [] as Option[`points`],
-                        ),
-                    } as Option;
+                    return parsed;
                 } catch (error) {
-                    console.log(error);
                     return null;
                 }
             }) ?? []
         ).filter((v) => v !== null) as Option[];
     });
-
-    // Helper for mirroring the field based on the robot's alliance.
-    const am = derived(RobotBlueAlliance, ($value) => ($value ? 1 : -1));
 </script>
 
 <main>
@@ -64,16 +53,21 @@
 
                         <!-- The path. -->
                         <svg
-                            viewBox="{$RobotBlueAlliance ? 0 : -FIELD_WIDTH} {-FIELD_HEIGHT} {FIELD_WIDTH} {FIELD_HEIGHT}"
+                            viewBox="{0} {0} {FIELD_WIDTH} {FIELD_HEIGHT}"
                             fill="none"
                             stroke="var(--auto-line)"
                             stroke-width="0.06"
                             stroke-linecap="round"
                             stroke-linejoin="round"
                         >
-                            {#each points as [x, y], i}
+                            {#each points as [x, y, _], i}
                                 {#if i < points.length - 1}
-                                    <line x1="{$am * x}" y1="{y}" x2="{$am * points[i + 1][0]}" y2="{points[i + 1][1]}"></line>
+                                    <line
+                                        x1="{$RobotBlueAlliance ? x : FIELD_WIDTH - x}"
+                                        y1="{FIELD_HEIGHT - y}"
+                                        x2="{$RobotBlueAlliance ? points[i + 1][0] : FIELD_WIDTH - points[i + 1][0]}"
+                                        y2="{FIELD_HEIGHT - points[i + 1][1]}"
+                                    ></line>
                                 {/if}
                             {/each}
                         </svg>

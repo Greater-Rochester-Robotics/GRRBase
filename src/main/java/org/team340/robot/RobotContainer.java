@@ -10,7 +10,6 @@ import org.team340.lib.controller.JoystickProfiler;
 import org.team340.lib.util.Math2;
 import org.team340.lib.util.config.rev.RevConfigUtils;
 import org.team340.robot.Constants.ControllerConstants;
-import org.team340.robot.commands.Autos;
 import org.team340.robot.commands.SystemsCheck;
 import org.team340.robot.subsystems.Swerve;
 
@@ -115,7 +114,7 @@ public final class RobotContainer {
      * added to {@link GRRDashboard}.
      */
     private static void configAutos() {
-        GRRDashboard.addAutoCommand("Example", Autos.example());
+        GRRDashboard.addAutoCommand("Example", none());
     }
 
     /**

@@ -435,7 +435,7 @@ export class NTSvelteClient {
     private static readonly _HISTORY_SWEEP_PERIOD = 100;
     private static readonly _OPEN_TIMEOUT = 5000;
     private static readonly _PORT = 5810;
-    private static readonly _RECONNECT_DELAY = 500;
+    private static readonly _RECONNECT_DELAY = 1500;
     private static readonly _RTT_PERIOD = 500;
     private static readonly _SERVER_AVAILABLE_TIMEOUT = 500;
     private static readonly _WS_PROTOCOL = `v4.1.networktables.first.wpi.edu`;
