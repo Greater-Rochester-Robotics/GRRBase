@@ -114,6 +114,11 @@ public class SwerveSparkMax implements SwerveMotor {
     }
 
     @Override
+    public double getDutyCycle() {
+        return sparkMax.getAppliedOutput();
+    }
+
+    @Override
     public void setReference(double target, double ff) {
         pidController.setReference(
             target,

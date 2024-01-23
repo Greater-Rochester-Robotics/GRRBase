@@ -83,6 +83,14 @@ class SwerveModule {
         }
     }
 
+    public double getMoveDutyCycle() {
+        if (RobotBase.isSimulation()) {
+            return (simVelocity / config.getMaxV()) * 12.0;
+        } else {
+            return moveMotor.getDutyCycle();
+        }
+    }
+
     /**
      * Gets the heading of the swerve module in radians.
      */

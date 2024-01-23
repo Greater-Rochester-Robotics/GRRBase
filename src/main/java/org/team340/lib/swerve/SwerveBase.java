@@ -1,5 +1,10 @@
 package org.team340.lib.swerve;
 
+import static edu.wpi.first.units.MutableMeasure.mutable;
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Volts;
+
 import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
@@ -16,10 +21,19 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.units.Distance;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.MutableMeasure;
+import edu.wpi.first.units.Velocity;
+import edu.wpi.first.units.Voltage;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.ADIS16470_IMU;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Mechanism;
 import java.util.ArrayList;
 import java.util.List;
 import org.team340.lib.GRRDashboard;
@@ -111,6 +125,12 @@ public abstract class SwerveBase extends GRRSubsystem {
     protected final SwerveDrivePoseEstimator poseEstimator;
     protected final List<Blacklight> blacklights = new ArrayList<>();
 
+    protected final MutableMeasure<Voltage> sysIdAppliedVoltage = mutable(Volts.of(0));
+    protected final MutableMeasure<Distance> sysIdDistance = mutable(Meters.of(0));
+    protected final MutableMeasure<Velocity<Distance>> sysIdVelocity = mutable(MetersPerSecond.of(0));
+
+    protected final SysIdRoutine sysIdRoutine;
+
     /**
      * Create the GRRSwerve subsystem.
      * @param label The label for the subsystem. Shown in the dashboard.
@@ -153,6 +173,26 @@ public abstract class SwerveBase extends GRRSubsystem {
             blacklight.startListeners();
             blacklights.add(blacklight);
         }
+
+        sysIdRoutine = new SysIdRoutine(
+            new Config(),
+            new Mechanism(
+                (Measure<Voltage> volts) -> {
+                    driveVoltage(volts.in(Volts), Math2.ROTATION2D_0);
+                },
+                log -> { 
+                    for (SwerveModule module : modules) {
+                        log
+                            .motor("module-" + module.getLabel())
+                            .voltage(sysIdAppliedVoltage.mut_replace(module.getMoveDutyCycle() * RobotController.getBatteryVoltage(), Volts))
+                            .linearPosition(sysIdDistance.mut_replace(module.getDistance(), Meters))
+                            .linearVelocity(sysIdVelocity.mut_replace(module.getVelocity(), MetersPerSecond));
+                    }
+                },
+                this,
+                "Swerve"
+            )
+        );
 
         imu.setZero(Math2.ROTATION2D_0);
 
