@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { onDestroy } from "svelte";
     import { derived } from "svelte/store";
     import field24 from "../assets/field24.png";
     import { FIELD_HEIGHT, FIELD_WIDTH } from "../constants";
@@ -8,11 +9,14 @@
     // import field23 from '../assets/field23.png';
     const field = field24;
 
+    const ROBOT = 0.8382;
+
     // Option typings.
     type Option = {
         id: string;
         label: string;
-        points: Array<[number, number, number]>;
+        points: Array<[number, number, number, number]>; // x, y, heading, timestamp
+        time: number;
     };
 
     // Parses options from NT value.
@@ -30,12 +34,40 @@
             }) ?? []
         ).filter((v) => v !== null) as Option[];
     });
+
+    // Replay positions.
+    const createEmptyReplay = (): typeof replay =>
+        new Array($options.length).fill(null).map(() => ({ x: Number.MIN_SAFE_INTEGER, y: Number.MIN_SAFE_INTEGER, heading: 0 }));
+    let replay: Array<{ x: number; y: number; heading: number }> = createEmptyReplay();
+    const timeInterval = setInterval(() => {
+        let newReplay: typeof replay = createEmptyReplay();
+        const lerp = (s: number, e: number, a: number): number => s + a * (e - s);
+        $options.forEach((option, i) => {
+            const t = (Date.now() / 1000) % option.time;
+            let start = option.points.findLast((point) => point[3] <= t);
+            let end = option.points.find((point) => point[3] > t) ?? start;
+            if (!start) start = end;
+            if (start && end) {
+                const a = (t - start![3]) / (end![3] - start![3]);
+                const x = lerp(start![0], end![0], a);
+                const y = lerp(start![1], end![1], a);
+                const heading = lerp(start![2], end![2], a);
+                newReplay[i] = {
+                    x: $RobotBlueAlliance ? x - ROBOT / 2 : FIELD_WIDTH - (x + ROBOT / 2),
+                    y: FIELD_HEIGHT - y - ROBOT / 2,
+                    heading: ($RobotBlueAlliance ? Math.PI - heading : heading) * (180 / Math.PI),
+                };
+            }
+        });
+        replay = newReplay;
+    }, 5);
+    onDestroy(() => clearInterval(timeInterval));
 </script>
 
 <main>
     <div class="autos-container">
         {#if $options.length}
-            {#each $options as { id, label, points }}
+            {#each $options as { id, label, points }, i}
                 <!-- An auto selection. -->
                 <button
                     class="auto-selection"
@@ -70,6 +102,13 @@
                                     ></line>
                                 {/if}
                             {/each}
+
+                            {#if replay[i] && replay[i].x !== Number.MIN_SAFE_INTEGER}
+                                <g transform="rotate({replay[i].heading}, {replay[i].x + ROBOT / 2}, {replay[i].y + ROBOT / 2})">
+                                    <rect x="{replay[i].x}" y="{replay[i].y}" width="{ROBOT}" height="{ROBOT}"></rect>
+                                    <circle cx="{replay[i].x}" cy="{replay[i].y + ROBOT / 2}" r="0.1"></circle>
+                                </g>
+                            {/if}
                         </svg>
                     </div>
 

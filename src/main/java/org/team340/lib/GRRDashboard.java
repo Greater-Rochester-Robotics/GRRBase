@@ -1,8 +1,8 @@
 package org.team340.lib;
 
 import com.choreo.lib.ChoreoTrajectory;
+import com.choreo.lib.ChoreoTrajectoryState;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.util.sendable.Sendable;
@@ -179,6 +179,16 @@ public final class GRRDashboard {
      * @param trajectories Trajectories used by the auto.
      * @param command The command to add to the dashboard.
      */
+    public static void addAutoCommand(String label, List<ChoreoTrajectory> trajectories, Command command) {
+        autoChooser.addOption(label, trajectories.stream().toArray(ChoreoTrajectory[]::new), command);
+    }
+
+    /**
+     * Adds an auto command to the dashboard.
+     * @param label The label for the command.
+     * @param trajectories Trajectories used by the auto.
+     * @param command The command to add to the dashboard.
+     */
     public static void addAutoCommand(String label, ChoreoTrajectory[] trajectories, Command command) {
         autoChooser.addOption(label, trajectories, command);
     }
@@ -307,27 +317,37 @@ public final class GRRDashboard {
         public String addOption(String label, ChoreoTrajectory[] trajectories, Command command) {
             String id = UUID.randomUUID().toString();
             String json = "";
-            for (ChoreoTrajectory trajectory : trajectories) {
-                List<double[]> points = new ArrayList<>();
-                for (Pose2d pose : trajectory.getPoses()) {
-                    points.add(new double[] { pose.getX(), pose.getY(), pose.getRotation().getRadians() });
-                }
 
-                try {
-                    json =
-                        new ObjectMapper()
-                            .writeValueAsString(
-                                new HashMap<>() {
-                                    {
-                                        put("id", id);
-                                        put("label", label);
-                                        put("points", points);
-                                    }
-                                }
-                            );
-                } catch (Exception e) {
-                    e.printStackTrace();
+            List<double[]> points = new ArrayList<>();
+            double lastTimestamp = 0.0;
+
+            for (int i = 0; i < trajectories.length; i++) {
+                ChoreoTrajectoryState[] states = trajectories[i].getStates();
+                if (i > 0 && trajectories[i - 1].getStates().length > 0) lastTimestamp += trajectories[i - 1].getFinalState().timestamp;
+                for (ChoreoTrajectoryState state : states) {
+                    points.add(new double[] { state.x, state.y, state.heading, state.timestamp + lastTimestamp });
                 }
+            }
+
+            ChoreoTrajectory lastTrajectory = trajectories.length > 0 ? trajectories[trajectories.length - 1] : new ChoreoTrajectory();
+            double time = lastTimestamp + (lastTrajectory.getStates().length > 0 ? lastTrajectory.getFinalState().timestamp : 0.0);
+
+            try {
+                json =
+                    new ObjectMapper()
+                        .writeValueAsString(
+                            new HashMap<>() {
+                                {
+                                    put("id", id);
+                                    put("label", label);
+                                    put("points", points);
+                                    put("time", time);
+                                }
+                            }
+                        );
+            } catch (Exception e) {
+                e.printStackTrace();
+                json = "";
             }
 
             if (json.isEmpty()) json = "{ \"id\": \"" + id + "\", \"label\": \"" + label + "\", \"points\": [] }";
