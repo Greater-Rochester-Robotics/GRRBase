@@ -2,6 +2,7 @@ package org.team340.lib.swerve.config;
 
 import edu.wpi.first.wpilibj.ADIS16470_IMU;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.MissingResourceException;
@@ -44,6 +45,7 @@ public class SwerveConfig {
     private double[] standardDeviations;
     private double fieldLength = -1.0;
     private double fieldWidth = -1.0;
+    private Config sysIdConfig = null;
     private List<SwerveModuleConfig> modules = new ArrayList<>();
     private List<BlacklightConfig> blacklights = new ArrayList<>();
 
@@ -419,6 +421,15 @@ public class SwerveConfig {
         return fieldWidth;
     }
 
+    public SwerveConfig setSysIdConfig(Config sysIdConfig) {
+        this.sysIdConfig = sysIdConfig;
+        return this;
+    }
+
+    public Config getSysIdConfig() {
+        return sysIdConfig;
+    }
+
     /**
      * Adds a module to the config.
      * See {@link SwerveModuleConfig}.
@@ -506,6 +517,7 @@ public class SwerveConfig {
         if (standardDeviations == null) throwMissing("Standard Deviations");
         if (fieldLength == -1) throwMissing("Field Length");
         if (fieldWidth == -1) throwMissing("Field Width");
+        if (sysIdConfig == null) throwMissing("SysId Config");
         if (modules.size() == 0) throwMissing("Modules");
 
         for (SwerveModuleConfig module : modules) {

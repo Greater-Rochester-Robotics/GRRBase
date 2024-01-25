@@ -32,7 +32,6 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Mechanism;
 import java.util.ArrayList;
 import java.util.List;
@@ -174,25 +173,30 @@ public abstract class SwerveBase extends GRRSubsystem {
             blacklights.add(blacklight);
         }
 
-        sysIdRoutine = new SysIdRoutine(
-            new Config(),
-            new Mechanism(
-                (Measure<Voltage> volts) -> {
-                    driveVoltage(volts.in(Volts), Math2.ROTATION2D_0);
-                },
-                log -> { 
-                    for (SwerveModule module : modules) {
-                        log
-                            .motor("module-" + module.getLabel())
-                            .voltage(sysIdAppliedVoltage.mut_replace(module.getMoveDutyCycle() * RobotController.getBatteryVoltage(), Volts))
-                            .linearPosition(sysIdDistance.mut_replace(module.getDistance(), Meters))
-                            .linearVelocity(sysIdVelocity.mut_replace(module.getVelocity(), MetersPerSecond));
-                    }
-                },
-                this,
-                "Swerve"
-            )
-        );
+        sysIdRoutine =
+            new SysIdRoutine(
+                // Default config, rampRate is 1V/sec, stepVoltage is 7V, and timeout is 10secs
+                config.getSysIdConfig(),
+                new Mechanism(
+                    // Defines how drive command should be sent to motors
+                    (Measure<Voltage> volts) -> {
+                        driveVoltage(volts.in(Volts), Math2.ROTATION2D_0);
+                    },
+                    log -> {
+                        for (SwerveModule module : modules) {
+                            log
+                                .motor("module-" + StringUtil.toCamelCase(module.getLabel()))
+                                .voltage(
+                                    sysIdAppliedVoltage.mut_replace(module.getMoveDutyCycle() * RobotController.getBatteryVoltage(), Volts)
+                                )
+                                .linearPosition(sysIdDistance.mut_replace(module.getDistance(), Meters))
+                                .linearVelocity(sysIdVelocity.mut_replace(module.getVelocity(), MetersPerSecond));
+                        }
+                    },
+                    this,
+                    "Swerve"
+                )
+            );
 
         imu.setZero(Math2.ROTATION2D_0);
 
