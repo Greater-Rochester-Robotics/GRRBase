@@ -6,6 +6,8 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.config.SwerveModuleConfig;
 import org.team340.lib.swerve.hardware.encoders.SwerveEncoder;
@@ -24,6 +26,9 @@ class SwerveModule {
     private final SwerveEncoder encoder;
     private final SimpleMotorFeedforward moveFFController;
     private final Timer controlTimer = new Timer();
+
+    private final Deque<Double> distanceQueue = new ArrayDeque<>();
+    private final Deque<Double> headingQueue = new ArrayDeque<>();
 
     private double lastMoveSpeed = 0.0;
     private double simDistance = 0.0;
@@ -167,5 +172,18 @@ class SwerveModule {
 
         lastMoveSpeed = RobotBase.isSimulation() ? simVelocity : getVelocity();
         controlTimer.restart();
+    }
+
+    public void sample() {
+        distanceQueue.add(getDistance());
+        headingQueue.add(getHeading());
+    }
+
+    public double getDistanceQueue() {
+        return distanceQueue.poll();
+    }
+
+    public double getHeadingQueue() {
+        return headingQueue.poll();
     }
 }
