@@ -421,11 +421,17 @@ public class SwerveConfig {
         return fieldWidth;
     }
 
+    /**
+     * Sets config for SysId.
+     */
     public SwerveConfig setSysIdConfig(Config sysIdConfig) {
         this.sysIdConfig = sysIdConfig;
         return this;
     }
 
+    /**
+     * Gets config for SysId.
+     */
     public Config getSysIdConfig() {
         return sysIdConfig;
     }
