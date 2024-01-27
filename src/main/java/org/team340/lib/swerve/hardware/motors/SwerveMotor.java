@@ -16,6 +16,11 @@ public interface SwerveMotor {
     public abstract double getPosition();
 
     /**
+     * Gets the motor's applied duty cycle.
+     */
+    public abstract double getDutyCycle();
+
+    /**
      * Sets the motor's closed loop target.
      * If the motor is a move motor, the target is in meters/second.
      * If the motor is a turn motor, the target is an unclamped position in radians.

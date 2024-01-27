@@ -27,6 +27,7 @@ public class SwerveTalonFX implements SwerveMotor {
     private final boolean isMoveMotor;
     private final StatusSignal<Double> velocitySignal;
     private final StatusSignal<Double> positionSignal;
+    private final StatusSignal<Double> dutyCycleSignal;
     private final double conversionFactor;
 
     /**
@@ -71,10 +72,12 @@ public class SwerveTalonFX implements SwerveMotor {
 
         velocitySignal = talonFX.getVelocity();
         positionSignal = talonFX.getPosition();
+        dutyCycleSignal = talonFX.getDutyCycle();
 
         double hz = 1.0 / config.getPeriod();
         velocitySignal.setUpdateFrequency(hz);
         positionSignal.setUpdateFrequency(hz);
+        dutyCycleSignal.setUpdateFrequency(hz);
 
         talonFX.clearStickyFaults();
         talonFX.getConfigurator().apply(fxConfig);
@@ -91,6 +94,11 @@ public class SwerveTalonFX implements SwerveMotor {
     @Override
     public double getPosition() {
         return positionSignal.refresh().getValue() / conversionFactor;
+    }
+
+    @Override
+    public double getDutyCycle() {
+        return dutyCycleSignal.refresh().getValue();
     }
 
     @Override
