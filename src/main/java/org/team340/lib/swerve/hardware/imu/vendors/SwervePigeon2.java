@@ -1,5 +1,6 @@
 package org.team340.lib.swerve.hardware.imu.vendors;
 
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -28,10 +29,9 @@ public class SwervePigeon2 implements SwerveIMU {
         pitchSignal = pigeon2.getPitch();
         rollSignal = pigeon2.getRoll();
 
-        double hz = 1.0 / config.getPeriod();
-        yawSignal.setUpdateFrequency(hz);
-        pitchSignal.setUpdateFrequency(hz);
-        rollSignal.setUpdateFrequency(hz);
+        double hz = 1.0 / config.getOdometryPeriod();
+        BaseStatusSignal.setUpdateFrequencyForAll(hz, yawSignal, pitchSignal, rollSignal);
+        pigeon2.optimizeBusUtilization();
     }
 
     @Override

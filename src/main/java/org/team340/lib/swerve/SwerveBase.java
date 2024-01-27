@@ -9,6 +9,7 @@ import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkAbsoluteEncoder;
+import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
@@ -28,12 +29,16 @@ import edu.wpi.first.units.Velocity;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.ADIS16470_IMU;
+import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Mechanism;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 import org.team340.lib.GRRDashboard;
 import org.team340.lib.GRRSubsystem;
@@ -123,6 +128,9 @@ public abstract class SwerveBase extends GRRSubsystem {
     protected final SwerveField2d field;
     protected final SwerveDrivePoseEstimator poseEstimator;
     protected final List<Blacklight> blacklights = new ArrayList<>();
+    protected final Notifier odometryThread;
+    protected final Deque<Double> timeStampQueue = new ArrayDeque<>();
+    protected final Deque<Rotation2d> gyroAngleQueue = new ArrayDeque<>();
 
     protected final MutableMeasure<Voltage> sysIdAppliedVoltage = mutable(Volts.of(0));
     protected final MutableMeasure<Distance> sysIdDistance = mutable(Meters.of(0));
@@ -172,6 +180,10 @@ public abstract class SwerveBase extends GRRSubsystem {
             blacklight.startListeners();
             blacklights.add(blacklight);
         }
+
+        odometryThread = new Notifier(this::sampleOdometry);
+        odometryThread.setName("Swerve Odometry");
+        odometryThread.startPeriodic(config.getOdometryPeriod());
 
         sysIdRoutine =
             new SysIdRoutine(
@@ -293,6 +305,17 @@ public abstract class SwerveBase extends GRRSubsystem {
     }
 
     /**
+     * Sample timestamp, gyro angle, and module positions to queues.
+     */
+    protected void sampleOdometry() {
+        timeStampQueue.add(MathSharedStore.getTimestamp());
+        gyroAngleQueue.add(imu.getYaw());
+        for (SwerveModule module : modules) {
+            module.sample();
+        }
+    }
+
+    /**
      * Resets odometry.
      * @param newPose The new pose.
      */
@@ -307,9 +330,17 @@ public abstract class SwerveBase extends GRRSubsystem {
      */
     protected void updateOdometry() {
         for (Blacklight blacklight : blacklights) blacklight.update(poseEstimator);
-        SwerveModulePosition[] modulePositions = getModulePositions();
-        Pose2d newPose = poseEstimator.update(imu.getYaw(), modulePositions);
-        field.update(newPose, modulePositions);
+        Iterator<Double> timeStampIterator = timeStampQueue.iterator();
+        while (timeStampIterator.hasNext()) {
+            SwerveModulePosition[] modulePositions = new SwerveModulePosition[modules.length];
+            for (int i = 0; i < modulePositions.length; i++) {
+                modulePositions[i] = new SwerveModulePosition(modules[i].getDistanceQueue(), new Rotation2d(modules[i].getHeadingQueue()));
+            }
+
+            poseEstimator.updateWithTime(timeStampIterator.next(), gyroAngleQueue.poll(), modulePositions);
+        }
+
+        field.update(getPosition(), getModulePositions());
     }
 
     /**

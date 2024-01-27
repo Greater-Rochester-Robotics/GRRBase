@@ -42,6 +42,7 @@ public class SwerveConfig {
     private SwerveMotorType moveMotorType;
     private SwerveMotorType turnMotorType;
     private double discretizationLookahead = -1.0;
+    private double odometryPeriod = -1.0;
     private double[] standardDeviations;
     private double fieldLength = -1.0;
     private double fieldWidth = -1.0;
@@ -378,6 +379,22 @@ public class SwerveConfig {
     }
 
     /**
+     * Sets period in seconds between odometry samples.
+     * @param odometryPeriod Period in seconds.
+     */
+    public SwerveConfig setOdometryPeriod(double odometryPeriod) {
+        this.odometryPeriod = odometryPeriod;
+        return this;
+    }
+
+    /**
+     * Gets period in seconds between odometry samples.
+     */
+    public double getOdometryPeriod() {
+        return odometryPeriod;
+    }
+
+    /**
      * Sets the standard deviations for pose estimation from module odometry.
      * A good starting configuration is all axis with a magnitude of {@code 0.1}.
      * @param x The X axis standard deviation in meters.
@@ -520,6 +537,7 @@ public class SwerveConfig {
         if (moveMotorType == null) throwMissing("Move Motor Type");
         if (turnMotorType == null) throwMissing("Turn Motor Type");
         if (discretizationLookahead == -1) throwMissing("Discretization Lookahead");
+        if (odometryPeriod == -1) throwMissing("Odometry Period");
         if (standardDeviations == null) throwMissing("Standard Deviations");
         if (fieldLength == -1) throwMissing("Field Length");
         if (fieldWidth == -1) throwMissing("Field Width");
