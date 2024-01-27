@@ -260,6 +260,9 @@ public abstract class SwerveBase extends GRRSubsystem {
         return poseEstimator.getEstimatedPosition();
     }
 
+    /**
+     * Sample timestamp, gyro angle, and module positions to queues.
+     */
     protected void sampleOdometry() {
         timeStampQueue.add(MathSharedStore.getTimestamp());
         gyroAngleQueue.add(imu.getYaw());

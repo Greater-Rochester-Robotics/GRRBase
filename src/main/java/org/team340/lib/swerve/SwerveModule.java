@@ -174,15 +174,24 @@ class SwerveModule {
         controlTimer.restart();
     }
 
+    /**
+     * Adds current distance and heading to respective queues.
+     */
     public void sample() {
         distanceQueue.add(getDistance());
         headingQueue.add(getHeading());
     }
 
+    /**
+     * Gets first distance value in queue.
+     */
     public double getDistanceQueue() {
         return distanceQueue.poll();
     }
 
+    /**
+     * Gets first heading value in queue.
+     */
     public double getHeadingQueue() {
         return headingQueue.poll();
     }
