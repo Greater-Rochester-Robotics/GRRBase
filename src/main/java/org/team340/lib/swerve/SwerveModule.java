@@ -83,6 +83,9 @@ class SwerveModule {
         }
     }
 
+    /**
+     * Gets current duty cycle of move motor.
+     */
     public double getMoveDutyCycle() {
         if (RobotBase.isSimulation()) {
             return (simVelocity / config.getMaxV()) * 12.0;
