@@ -115,6 +115,11 @@ public class SwerveSparkFlex implements SwerveMotor {
     }
 
     @Override
+    public double getDutyCycle() {
+        return sparkFlex.getAppliedOutput();
+    }
+
+    @Override
     public void setReference(double target, double ff) {
         pidController.setReference(
             target,
