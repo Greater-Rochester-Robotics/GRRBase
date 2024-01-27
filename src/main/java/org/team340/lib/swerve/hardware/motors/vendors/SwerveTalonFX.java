@@ -1,5 +1,6 @@
 package org.team340.lib.swerve.hardware.motors.vendors;
 
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
@@ -72,9 +73,9 @@ public class SwerveTalonFX implements SwerveMotor {
         velocitySignal = talonFX.getVelocity();
         positionSignal = talonFX.getPosition();
 
-        double hz = 1.0 / config.getPeriod();
-        velocitySignal.setUpdateFrequency(hz);
-        positionSignal.setUpdateFrequency(hz);
+        double hz = 1.0 / config.getOdometryPeriod();
+        BaseStatusSignal.setUpdateFrequencyForAll(hz, velocitySignal, positionSignal);
+        talonFX.optimizeBusUtilization();
 
         talonFX.clearStickyFaults();
         talonFX.getConfigurator().apply(fxConfig);

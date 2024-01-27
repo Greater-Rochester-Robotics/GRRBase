@@ -164,6 +164,7 @@ public abstract class SwerveBase extends GRRSubsystem {
 
         odometryThread = new Notifier(this::sampleOdometry);
         odometryThread.setName("Swerve Odometry");
+        odometryThread.startPeriodic(config.getOdometryPeriod());
 
         imu.setZero(Math2.ROTATION2D_0);
 

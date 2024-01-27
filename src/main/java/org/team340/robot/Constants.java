@@ -117,6 +117,7 @@ public final class Constants {
             .setSpeedConstraints(5.0, 10.0, 17.5, 30.0)
             .setMotorTypes(SwerveMotorType.SPARK_FLEX_BRUSHLESS, SwerveMotorType.SPARK_FLEX_BRUSHLESS)
             .setDiscretizationLookahead(0.020)
+            .setOdometryPeriod(0.004)
             .setStandardDeviations(0.1, 0.1, 0.1)
             .setFieldSize(FIELD_LENGTH, FIELD_WIDTH)
             .addModule(FRONT_LEFT)

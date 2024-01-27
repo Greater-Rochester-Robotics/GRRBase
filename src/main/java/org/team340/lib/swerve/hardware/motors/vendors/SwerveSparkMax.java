@@ -56,6 +56,7 @@ public class SwerveSparkMax implements SwerveMotor {
         SwerveConversions conversions = new SwerveConversions(config);
 
         int periodMs = (int) (config.getPeriod() * 1000.0);
+        int periodOdometryMs = (int) (config.getOdometryPeriod() * 1000.0);
         boolean usingAttachedEncoder = SwerveEncoderType.SPARK_ENCODER.equals(moduleConfig.getEncoderType());
         double conversionFactor = 1.0 / (isMoveMotor ? conversions.moveRotationsPerMeter() : conversions.turnRotationsPerRadian());
         PIDConfig pidConfig = isMoveMotor ? config.getMovePID() : config.getTurnPID();
@@ -72,11 +73,11 @@ public class SwerveSparkMax implements SwerveMotor {
             .setOpenLoopRampRate(isMoveMotor ? config.getMoveRampRate() : config.getTurnRampRate())
             .setClosedLoopRampRate(isMoveMotor ? config.getMoveRampRate() : config.getTurnRampRate())
             .setPeriodicFramePeriod(Frame.S0, periodMs)
-            .setPeriodicFramePeriod(Frame.S1, periodMs)
-            .setPeriodicFramePeriod(Frame.S2, periodMs)
+            .setPeriodicFramePeriod(Frame.S1, periodOdometryMs)
+            .setPeriodicFramePeriod(Frame.S2, periodOdometryMs)
             .setPeriodicFramePeriod(Frame.S3, 10000)
-            .setPeriodicFramePeriod(Frame.S4, usingAttachedEncoder ? periodMs : 10000)
-            .setPeriodicFramePeriod(Frame.S5, usingAttachedEncoder ? periodMs : 10000)
+            .setPeriodicFramePeriod(Frame.S4, usingAttachedEncoder ? periodOdometryMs : 10000)
+            .setPeriodicFramePeriod(Frame.S5, usingAttachedEncoder ? periodOdometryMs : 10000)
             .apply(sparkMax);
 
         new SparkPIDControllerConfig()
