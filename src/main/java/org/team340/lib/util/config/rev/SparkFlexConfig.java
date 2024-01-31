@@ -11,7 +11,7 @@ import org.team340.lib.util.Math2;
  */
 public final class SparkFlexConfig extends RevConfigBase<CANSparkFlex> {
 
-    private static final double FACTORY_DEFAULTS_SLEEP = 50.0;
+    private static final double FACTORY_DEFAULTS_SLEEP = 25.0;
 
     /**
      * Creates an empty config.
@@ -39,10 +39,13 @@ public final class SparkFlexConfig extends RevConfigBase<CANSparkFlex> {
      */
     public void apply(CANSparkFlex sparkFlex) {
         addStep(
-            sm -> {
+            sf -> {
                 RevConfigUtils.burnFlashSleep();
-                return sm.burnFlash();
+                return sf.burnFlash();
             },
+            sf -> true,
+            false,
+            1,
             "Burn Flash"
         );
         super.applySteps(sparkFlex, "Spark Flex (ID " + sparkFlex.getDeviceId() + ")");

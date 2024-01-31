@@ -186,24 +186,32 @@ class SwerveModule {
     }
 
     /**
-     * Adds current distance and heading to respective queues.
+     * Adds the module's current distance and heading to their respective queues for odometry.
      */
-    public void sample() {
+    public void recordSample() {
         distanceQueue.add(getDistance());
         headingQueue.add(getHeading());
     }
 
     /**
-     * Gets first distance value in queue.
+     * Polls first distance value in the odometry sample queue.
      */
-    public double getDistanceQueue() {
-        return distanceQueue.poll();
+    public double pollDistanceSample() {
+        try {
+            return distanceQueue.pop();
+        } catch (Exception e) {
+            return Double.MIN_VALUE;
+        }
     }
 
     /**
-     * Gets first heading value in queue.
+     * Polls first heading value in the odometry sample queue.
      */
-    public double getHeadingQueue() {
-        return headingQueue.poll();
+    public double pollHeadingSample() {
+        try {
+            return headingQueue.pop();
+        } catch (Exception e) {
+            return Double.MIN_VALUE;
+        }
     }
 }

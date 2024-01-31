@@ -1,5 +1,6 @@
 package org.team340.lib.util.config.rev;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import java.text.Collator;
 import java.util.Collection;
@@ -12,11 +13,11 @@ import java.util.TreeSet;
 public final class RevConfigUtils {
 
     public static final double EPSILON = 1e-4;
-    public static final double BURN_FLASH_SLEEP = 250.0;
-    public static final double CHECK_SLEEP = 25;
-    public static final int SET_ITERATIONS = 3;
+    public static final double BURN_FLASH_SLEEP = 100.0;
+    public static final double CHECK_SLEEP = 25.0;
+    public static final int DEFAULT_SET_ITERATIONS = 3;
 
-    private static final Collection<String> success = new TreeSet<>(SuccessComparator.getInstance());
+    private static final Collection<String> errors = new TreeSet<>(ErrorComparator.getInstance());
 
     private RevConfigUtils() {
         throw new UnsupportedOperationException("This is a utility class!");
@@ -34,37 +35,42 @@ public final class RevConfigUtils {
     }
 
     /**
-     * Saves a configuration success string to be logged.
-     * @param successString The success string.
+     * Saves a configuration error string to be logged.
+     * @param errorString The error string.
      */
-    static void addSuccess(String successString) {
-        success.add(successString);
+    static void addError(String errorString) {
+        errors.add(errorString);
     }
 
     /**
-     * Prints successful configurations to stdout.
+     * Prints unsuccessful configurations to stdout.
      * Useful for debugging, should be ran after initializing all hardware.
      */
-    public static void printSuccess() {
-        System.out.println("\nSuccessfully configured " + success.size() + " options on REV hardware:");
-        for (String successString : success) {
-            System.out.println("\t" + successString);
+    public static void printError() {
+        if (errors.size() <= 0) {
+            System.out.println("\nAll REV hardware configured successfully\n");
+        } else {
+            DriverStation.reportWarning("\nErrors while configuring " + errors.size() + " options on REV hardware:", false);
+
+            for (String errorString : errors) {
+                DriverStation.reportWarning("\t" + errorString, false);
+            }
+            DriverStation.reportWarning("\n", false);
+            errors.clear();
         }
-        System.out.println("\n");
-        success.clear();
     }
 
-    private static final class SuccessComparator implements Comparator<String> {
+    private static final class ErrorComparator implements Comparator<String> {
 
-        private static SuccessComparator instance;
+        private static ErrorComparator instance;
         private final Collator localeComparator = Collator.getInstance();
 
-        public static SuccessComparator getInstance() {
-            if (instance == null) instance = new SuccessComparator();
+        public static ErrorComparator getInstance() {
+            if (instance == null) instance = new ErrorComparator();
             return instance;
         }
 
-        private SuccessComparator() {}
+        private ErrorComparator() {}
 
         @Override
         public int compare(String arg0, String arg1) {

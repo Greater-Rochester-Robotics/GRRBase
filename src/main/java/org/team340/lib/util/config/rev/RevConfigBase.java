@@ -16,6 +16,7 @@ abstract class RevConfigBase<T> {
         Function<T, REVLibError> applier,
         Function<T, Boolean> checker,
         boolean trustCheck,
+        int setIterations,
         String name
     ) {
         public RevConfigStep(Function<T, REVLibError> applier, String name) {
@@ -24,6 +25,10 @@ abstract class RevConfigBase<T> {
 
         public RevConfigStep(Function<T, REVLibError> applier, Function<T, Boolean> checker, String name) {
             this(applier, checker, true, name);
+        }
+
+        public RevConfigStep(Function<T, REVLibError> applier, Function<T, Boolean> checker, boolean trustCheck, String name) {
+            this(applier, checker, trustCheck, RevConfigUtils.DEFAULT_SET_ITERATIONS, name);
         }
     }
 
@@ -66,13 +71,20 @@ abstract class RevConfigBase<T> {
     }
 
     /**
+     * Stores a configuration step.
+     */
+    void addStep(Function<T, REVLibError> applier, Function<T, Boolean> checker, boolean trustCheck, int setIterations, String name) {
+        configSteps.add(new RevConfigStep<T>(applier, checker, trustCheck, setIterations, name));
+    }
+
+    /**
      * Applies the config.
      * @param hardware The hardware to apply the config to.
      * @param identifier A string used to identify the hardware in logs.
      */
     void applySteps(T hardware, String identifier) {
         for (RevConfigStep<T> step : configSteps) {
-            applyStep(hardware, identifier, step, new String[RevConfigUtils.SET_ITERATIONS], RevConfigUtils.SET_ITERATIONS);
+            applyStep(hardware, identifier, step, new String[RevConfigUtils.DEFAULT_SET_ITERATIONS], RevConfigUtils.DEFAULT_SET_ITERATIONS);
         }
     }
 
@@ -111,23 +123,19 @@ abstract class RevConfigBase<T> {
         iterationsLeft--;
         if (iterationsLeft <= 0) {
             String resultsString = "";
-            boolean hadFailure = false;
+            boolean hadSuccess = false;
             for (int i = 0; i < results.length; i++) {
                 if (
-                    !(results[i].equals(REVLibError.kOk.name()) || results[i].equals("Skipped")) &&
-                    !(RobotBase.isSimulation() && results[i].startsWith(REVLibError.kParamMismatchType.name()))
-                ) hadFailure = true;
+                    results[i].equals(REVLibError.kOk.name()) ||
+                    results[i].equals("Skipped") ||
+                    (RobotBase.isSimulation() && results[i].startsWith(REVLibError.kParamMismatchType.name()))
+                ) hadSuccess = true;
                 resultsString += results[i];
                 if (i != results.length - 1) resultsString += ", ";
             }
 
-            if (hadFailure) {
-                DriverStation.reportWarning(
-                    "Failure(s) encountered while configuring \"" + step.name() + "\" on " + identifier + ": " + resultsString,
-                    true
-                );
-            } else {
-                RevConfigUtils.addSuccess(identifier + " \"" + step.name() + "\": " + resultsString);
+            if (!hadSuccess) {
+                RevConfigUtils.addError(identifier + " \"" + step.name() + "\": " + resultsString);
             }
         } else {
             applyStep(hardware, identifier, step, results, iterationsLeft);

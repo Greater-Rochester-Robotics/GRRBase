@@ -6,6 +6,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import java.util.function.Supplier;
 import org.team340.lib.swerve.SwerveBase;
 import org.team340.lib.util.Math2;
@@ -87,5 +88,21 @@ public class Swerve extends SwerveBase {
      */
     public Command lock() {
         return commandBuilder("swerve.lock()").onExecute(this::lockWheels);
+    }
+
+    /**
+     * Runs a SysId quasistatic test.
+     * @param direction The direction to run the test in.
+     */
+    public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+        return sysIdRoutine.quasistatic(direction);
+    }
+
+    /**
+     * Runs a SysId dynamic test.
+     * @param direction The direction to run the test in.
+     */
+    public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+        return sysIdRoutine.dynamic(direction);
     }
 }
