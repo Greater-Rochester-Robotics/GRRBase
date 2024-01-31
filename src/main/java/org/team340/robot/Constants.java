@@ -4,6 +4,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj.ADIS16470_IMU.CalibrationTime;
 import edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis;
 import edu.wpi.first.wpilibj.SPI.Port;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import org.team340.lib.controller.Controller2Config;
 import org.team340.lib.swerve.SwerveBase.SwerveMotorType;
 import org.team340.lib.swerve.config.SwerveConfig;
@@ -119,6 +120,7 @@ public final class Constants {
             .setDiscretizationLookahead(0.020)
             .setOdometryPeriod(0.004)
             .setStandardDeviations(0.1, 0.1, 0.1)
+            .setSysIdConfig(new SysIdRoutine.Config())
             .setFieldSize(FIELD_LENGTH, FIELD_WIDTH)
             .addModule(FRONT_LEFT)
             .addModule(BACK_LEFT)

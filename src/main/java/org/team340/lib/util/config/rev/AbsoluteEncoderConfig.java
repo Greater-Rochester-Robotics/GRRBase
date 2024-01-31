@@ -41,6 +41,9 @@ public final class AbsoluteEncoderConfig extends RevConfigBase<AbsoluteEncoder> 
                 RevConfigUtils.burnFlashSleep();
                 return sparkMax.burnFlash();
             },
+            ae -> true,
+            false,
+            1,
             "Burn Flash"
         );
         super.applySteps(absoluteEncoder, "Spark Max (ID " + sparkMax.getDeviceId() + ") Absolute Encoder");
@@ -57,6 +60,9 @@ public final class AbsoluteEncoderConfig extends RevConfigBase<AbsoluteEncoder> 
                 RevConfigUtils.burnFlashSleep();
                 return sparkFlex.burnFlash();
             },
+            ae -> true,
+            false,
+            1,
             "Burn Flash"
         );
         super.applySteps(absoluteEncoder, "Spark Flex (ID " + sparkFlex.getDeviceId() + ") Absolute Encoder");

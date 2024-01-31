@@ -43,6 +43,9 @@ public final class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
                 RevConfigUtils.burnFlashSleep();
                 return sm.burnFlash();
             },
+            sm -> true,
+            false,
+            1,
             "Burn Flash"
         );
         super.applySteps(sparkMax, "Spark Max (ID " + sparkMax.getDeviceId() + ")");

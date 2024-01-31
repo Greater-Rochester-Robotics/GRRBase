@@ -37,10 +37,13 @@ public final class RelativeEncoderConfig extends RevConfigBase<RelativeEncoder> 
      */
     public void apply(CANSparkMax sparkMax, RelativeEncoder relativeEncoder) {
         addStep(
-            ae -> {
+            re -> {
                 RevConfigUtils.burnFlashSleep();
                 return sparkMax.burnFlash();
             },
+            re -> true,
+            false,
+            1,
             "Burn Flash"
         );
         super.applySteps(relativeEncoder, "Spark Max (ID " + sparkMax.getDeviceId() + ") Relative Encoder");
@@ -53,10 +56,13 @@ public final class RelativeEncoderConfig extends RevConfigBase<RelativeEncoder> 
      */
     public void apply(CANSparkFlex sparkFlex, RelativeEncoder relativeEncoder) {
         addStep(
-            ae -> {
+            re -> {
                 RevConfigUtils.burnFlashSleep();
                 return sparkFlex.burnFlash();
             },
+            re -> true,
+            false,
+            1,
             "Burn Flash"
         );
         super.applySteps(relativeEncoder, "Spark Flex (ID " + sparkFlex.getDeviceId() + ") Relative Encoder");

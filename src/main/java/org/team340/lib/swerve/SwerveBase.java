@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import org.team340.lib.GRRDashboard;
 import org.team340.lib.GRRSubsystem;
 import org.team340.lib.blacklight.Blacklight;
@@ -128,9 +129,11 @@ public abstract class SwerveBase extends GRRSubsystem {
     protected final SwerveField2d field;
     protected final SwerveDrivePoseEstimator poseEstimator;
     protected final List<Blacklight> blacklights = new ArrayList<>();
+
     protected final Notifier odometryThread;
-    protected final Deque<Double> timeStampQueue = new ArrayDeque<>();
-    protected final Deque<Rotation2d> gyroAngleQueue = new ArrayDeque<>();
+    protected final ReentrantLock odometryMutex = new ReentrantLock();
+    protected final Deque<Double> timestampQueue = new ArrayDeque<>();
+    protected final Deque<Rotation2d> imuYawQueue = new ArrayDeque<>();
 
     protected final MutableMeasure<Voltage> sysIdAppliedVoltage = mutable(Volts.of(0));
     protected final MutableMeasure<Distance> sysIdDistance = mutable(Meters.of(0));
@@ -305,13 +308,18 @@ public abstract class SwerveBase extends GRRSubsystem {
     }
 
     /**
-     * Sample timestamp, gyro angle, and module positions to queues.
+     * Samples a timestamp, IMU yaw, and module positions to odometry sample queues.
      */
     protected void sampleOdometry() {
-        timeStampQueue.add(MathSharedStore.getTimestamp());
-        gyroAngleQueue.add(imu.getYaw());
-        for (SwerveModule module : modules) {
-            module.sample();
+        try {
+            odometryMutex.lock();
+            timestampQueue.add(MathSharedStore.getTimestamp());
+            imuYawQueue.add(imu.getYaw());
+            for (SwerveModule module : modules) {
+                module.recordSample();
+            }
+        } finally {
+            odometryMutex.unlock();
         }
     }
 
@@ -329,18 +337,36 @@ public abstract class SwerveBase extends GRRSubsystem {
      * Should be ran periodically.
      */
     protected void updateOdometry() {
-        for (Blacklight blacklight : blacklights) blacklight.update(poseEstimator);
-        Iterator<Double> timeStampIterator = timeStampQueue.iterator();
-        while (timeStampIterator.hasNext()) {
-            SwerveModulePosition[] modulePositions = new SwerveModulePosition[modules.length];
-            for (int i = 0; i < modulePositions.length; i++) {
-                modulePositions[i] = new SwerveModulePosition(modules[i].getDistanceQueue(), new Rotation2d(modules[i].getHeadingQueue()));
+        try {
+            odometryMutex.lock();
+            for (Blacklight blacklight : blacklights) blacklight.update(poseEstimator);
+            Iterator<Double> timestampIterator = timestampQueue.iterator();
+            while (timestampIterator.hasNext()) {
+                SwerveModulePosition[] modulePositions = new SwerveModulePosition[modules.length];
+                boolean missingModule = false;
+                for (int i = 0; i < modulePositions.length; i++) {
+                    double distance = modules[i].pollDistanceSample();
+                    double heading = modules[i].pollHeadingSample();
+                    if (distance == Double.MIN_VALUE || heading == Double.MIN_VALUE) {
+                        missingModule = true;
+                        continue;
+                    }
+                    modulePositions[i] = new SwerveModulePosition(distance, new Rotation2d(heading));
+                }
+                double timestamp = timestampIterator.next();
+                if (missingModule) continue;
+                try {
+                    Rotation2d yaw = imuYawQueue.pop();
+                    poseEstimator.updateWithTime(timestamp, yaw, modulePositions);
+                } catch (Exception e) {
+                    continue;
+                }
             }
-
-            poseEstimator.updateWithTime(timeStampIterator.next(), gyroAngleQueue.poll(), modulePositions);
+            timestampQueue.clear();
+            field.update(getPosition(), getModulePositions());
+        } finally {
+            odometryMutex.unlock();
         }
-
-        field.update(getPosition(), getModulePositions());
     }
 
     /**

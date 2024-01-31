@@ -14,8 +14,6 @@ import org.team340.lib.swerve.SwerveBase.SwerveMotorType;
 import org.team340.lib.util.config.FeedForwardConfig;
 import org.team340.lib.util.config.PIDConfig;
 
-// TODO Documentation (startup and tuning)
-
 /**
  * Config builder for {@link SwerveBase}.
  */
@@ -44,9 +42,9 @@ public class SwerveConfig {
     private double discretizationLookahead = -1.0;
     private double odometryPeriod = -1.0;
     private double[] standardDeviations;
+    private Config sysIdConfig = null;
     private double fieldLength = -1.0;
     private double fieldWidth = -1.0;
-    private Config sysIdConfig = null;
     private List<SwerveModuleConfig> modules = new ArrayList<>();
     private List<BlacklightConfig> blacklights = new ArrayList<>();
 
@@ -414,6 +412,21 @@ public class SwerveConfig {
     }
 
     /**
+     * Sets config for SysId.
+     */
+    public SwerveConfig setSysIdConfig(Config sysIdConfig) {
+        this.sysIdConfig = sysIdConfig;
+        return this;
+    }
+
+    /**
+     * Gets config for SysId.
+     */
+    public Config getSysIdConfig() {
+        return sysIdConfig;
+    }
+
+    /**
      * Sets the field size.
      * @param fieldLength The field's length in meters. Typically {@code 16.5417}.
      * @param fieldWidth The field's width in meters. Typically {@code 8.0136}.
@@ -436,21 +449,6 @@ public class SwerveConfig {
      */
     public double getFieldWidth() {
         return fieldWidth;
-    }
-
-    /**
-     * Sets config for SysId.
-     */
-    public SwerveConfig setSysIdConfig(Config sysIdConfig) {
-        this.sysIdConfig = sysIdConfig;
-        return this;
-    }
-
-    /**
-     * Gets config for SysId.
-     */
-    public Config getSysIdConfig() {
-        return sysIdConfig;
     }
 
     /**
@@ -539,9 +537,9 @@ public class SwerveConfig {
         if (discretizationLookahead == -1) throwMissing("Discretization Lookahead");
         if (odometryPeriod == -1) throwMissing("Odometry Period");
         if (standardDeviations == null) throwMissing("Standard Deviations");
+        if (sysIdConfig == null) throwMissing("SysId Config");
         if (fieldLength == -1) throwMissing("Field Length");
         if (fieldWidth == -1) throwMissing("Field Width");
-        if (sysIdConfig == null) throwMissing("SysId Config");
         if (modules.size() == 0) throwMissing("Modules");
 
         for (SwerveModuleConfig module : modules) {

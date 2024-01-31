@@ -44,6 +44,9 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
                 RevConfigUtils.burnFlashSleep();
                 return sparkMax.burnFlash();
             },
+            pc -> true,
+            false,
+            1,
             "Burn Flash"
         );
         super.applySteps(pidController, "Spark Max (ID " + sparkMax.getDeviceId() + ") PID Controller");
@@ -60,6 +63,9 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
                 RevConfigUtils.burnFlashSleep();
                 return sparkFlex.burnFlash();
             },
+            pc -> true,
+            false,
+            1,
             "Burn Flash"
         );
         super.applySteps(pidController, "Spark Flex (ID " + sparkFlex.getDeviceId() + ") PID Controller");
