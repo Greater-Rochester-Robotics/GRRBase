@@ -18,11 +18,11 @@ Contains a joystick profiler for controllers, as well as a wrapper class for WPI
 ### `org.team340.lib.swerve`
 Contains a hardware agnostic swerve library with extra features such as a rate limiter that respects the kinematic constraints of the robot.
 
-### `org.team340.lib.utils`
+### `org.team340.lib.util`
 Contains various utility classes.
 
-### `org.team340.lib.utils.config`
+### `org.team340.lib.util.config`
 Contains various wrapper classes for saving constants.
 
-### `org.team340.lib.utils.config.rev`
+### `org.team340.lib.util.config.rev`
 Contains configuration builders that safely apply settings to REV hardware.
