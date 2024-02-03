@@ -6,8 +6,6 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
-import java.util.ArrayDeque;
-import java.util.Deque;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.config.SwerveModuleConfig;
 import org.team340.lib.swerve.hardware.encoders.SwerveEncoder;
@@ -17,7 +15,7 @@ import org.team340.lib.util.Math2;
 /**
  * A swerve module for {@link SwerveBase}
  */
-class SwerveModule {
+public class SwerveModule {
 
     private final SwerveConfig config;
     private final SwerveModuleConfig moduleConfig;
@@ -27,9 +25,7 @@ class SwerveModule {
     private final SimpleMotorFeedforward moveFFController;
     private final Timer controlTimer = new Timer();
 
-    private final Deque<Double> distanceQueue = new ArrayDeque<>();
-    private final Deque<Double> headingQueue = new ArrayDeque<>();
-
+    private SwerveModuleState desiredState = new SwerveModuleState();
     private double lastMoveSpeed = 0.0;
     private double simDistance = 0.0;
     private double simHeading = 0.0;
@@ -43,7 +39,7 @@ class SwerveModule {
      * @param config The general swerve config.
      * @param moduleConfig The module's config.
      */
-    public SwerveModule(
+    SwerveModule(
         SwerveMotor moveMotor,
         SwerveMotor turnMotor,
         SwerveEncoder encoder,
@@ -64,6 +60,17 @@ class SwerveModule {
      */
     public String getLabel() {
         return moduleConfig.getLabel();
+    }
+
+    /**
+     * Gets current duty cycle of move motor.
+     */
+    public double getMoveDutyCycle() {
+        if (RobotBase.isSimulation()) {
+            return (simVelocity / config.getVelocity()) * 12.0;
+        } else {
+            return moveMotor.getDutyCycle();
+        }
     }
 
     /**
@@ -89,17 +96,6 @@ class SwerveModule {
     }
 
     /**
-     * Gets current duty cycle of move motor.
-     */
-    public double getMoveDutyCycle() {
-        if (RobotBase.isSimulation()) {
-            return (simVelocity / config.getMaxV()) * 12.0;
-        } else {
-            return moveMotor.getDutyCycle();
-        }
-    }
-
-    /**
      * Gets the heading of the swerve module in radians.
      */
     public double getHeading() {
@@ -108,6 +104,13 @@ class SwerveModule {
         } else {
             return encoder.getPosition();
         }
+    }
+
+    /**
+     * Gets the desired state of the swerve module.
+     */
+    public SwerveModuleState getDesiredState() {
+        return desiredState;
     }
 
     /**
@@ -125,9 +128,8 @@ class SwerveModule {
     }
 
     /**
-     * Sets a desired state of the swerve module.
+     * Sets the desired state of the swerve module.
      * @param state The new state.
-     * @return If the module was flipped.
      */
     public void setDesiredState(SwerveModuleState state) {
         double moveSpeed = state.speedMetersPerSecond;
@@ -155,6 +157,7 @@ class SwerveModule {
             simVelocity = moveSpeed;
         }
 
+        desiredState = state;
         lastMoveSpeed = moveSpeed;
         controlTimer.restart();
     }
@@ -170,48 +173,21 @@ class SwerveModule {
         moveMotor.setVoltage(voltage);
         turnMotor.setReference(turnTarget, 0.0);
 
+        double expectedVelocity =
+            moveFFController.maxAchievableVelocity(
+                config.getOptimalVoltage(),
+                controlTimer.get() == 0 ? 0.0 : (simVelocity - lastMoveSpeed) / controlTimer.get()
+            ) *
+            (voltage / config.getOptimalVoltage());
+
         if (RobotBase.isSimulation()) {
             simDistance += simVelocity * controlTimer.get();
             simHeading = heading.getRadians();
-            simVelocity =
-                moveFFController.maxAchievableVelocity(
-                    config.getOptimalVoltage(),
-                    controlTimer.get() == 0 ? 0.0 : (simVelocity - lastMoveSpeed) / controlTimer.get()
-                ) *
-                (voltage / config.getOptimalVoltage());
+            simVelocity = expectedVelocity;
         }
 
+        desiredState = new SwerveModuleState(expectedVelocity, heading);
         lastMoveSpeed = RobotBase.isSimulation() ? simVelocity : getVelocity();
         controlTimer.restart();
-    }
-
-    /**
-     * Adds the module's current distance and heading to their respective queues for odometry.
-     */
-    public void recordSample() {
-        distanceQueue.add(getDistance());
-        headingQueue.add(getHeading());
-    }
-
-    /**
-     * Polls first distance value in the odometry sample queue.
-     */
-    public double pollDistanceSample() {
-        try {
-            return distanceQueue.pop();
-        } catch (Exception e) {
-            return Double.MIN_VALUE;
-        }
-    }
-
-    /**
-     * Polls first heading value in the odometry sample queue.
-     */
-    public double pollHeadingSample() {
-        try {
-            return headingQueue.pop();
-        } catch (Exception e) {
-            return Double.MIN_VALUE;
-        }
     }
 }

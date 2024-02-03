@@ -76,7 +76,7 @@ public class SwerveRatelimiter {
         SwerveModuleState[] desiredModuleStates = kinematics.toSwerveModuleStates(desiredSpeeds);
 
         // - Preliminary wheel speed desaturation based on the configured max robot velocity.
-        SwerveDriveKinematics.desaturateWheelSpeeds(desiredModuleStates, config.getMaxV());
+        SwerveDriveKinematics.desaturateWheelSpeeds(desiredModuleStates, config.getVelocity());
 
         // - Determine desired speeds based on desaturated module states.
         desiredSpeeds = kinematics.toChassisSpeeds(desiredModuleStates);
@@ -185,7 +185,7 @@ public class SwerveRatelimiter {
 
         // - Find the maximum feasible delta in the a module's heading.
         //   Acceleration is assumed to be a non-factor.
-        double maxHeadingDelta = config.getPeriod() * config.getMaxModuleRv();
+        double maxHeadingDelta = config.getPeriod() * config.getModuleRotationalVelocity();
 
         // (Limit the velocity delta based on module heading constraints)
         // If we aren't stopping:
@@ -282,7 +282,7 @@ public class SwerveRatelimiter {
                     modulesLastVy[i],
                     desiredModuleVx,
                     desiredModuleVy,
-                    config.getPeriod() * config.getMaxA()
+                    config.getPeriod() * config.getAcceleration()
                 );
 
             // - Set the scalar to the minimum of its current value and the

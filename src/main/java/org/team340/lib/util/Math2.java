@@ -27,6 +27,10 @@ public final class Math2 {
      */
     public static final double DEFAULT_EPSILON = 1e-9;
     /**
+     * Default precision used in {@link Math2#toFixed(double)}.
+     */
+    public static final double DEFAULT_TO_FIXED_PRECISION = 1e-3;
+    /**
      * {@code PI * 2}
      */
     public static final double TWO_PI = Math.PI * 2.0;
@@ -159,7 +163,7 @@ public final class Math2 {
      * @return The rounded value.
      */
     public static double toFixed(double value) {
-        return toFixed(value, 1e-3);
+        return toFixed(value, DEFAULT_TO_FIXED_PRECISION);
     }
 
     /**
