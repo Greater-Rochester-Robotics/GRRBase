@@ -7,6 +7,14 @@ import edu.wpi.first.math.geometry.Rotation2d;
  */
 public interface SwerveIMU {
     /**
+     * Supported IMUs.
+     */
+    public static enum Type {
+        ADIS16470,
+        PIGEON2,
+    }
+
+    /**
      * Gets the IMU's absolute yaw.
      */
     public Rotation2d getYaw();

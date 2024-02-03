@@ -7,10 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.MissingResourceException;
 import java.util.function.Consumer;
-import org.team340.lib.blacklight.BlacklightConfig;
-import org.team340.lib.swerve.SwerveBase.SwerveEncoderType;
-import org.team340.lib.swerve.SwerveBase.SwerveIMUType;
-import org.team340.lib.swerve.SwerveBase.SwerveMotorType;
+import org.team340.lib.swerve.hardware.encoders.SwerveEncoder;
+import org.team340.lib.swerve.hardware.imu.SwerveIMU;
+import org.team340.lib.swerve.hardware.motors.SwerveMotor;
 import org.team340.lib.util.config.FeedForwardConfig;
 import org.team340.lib.util.config.PIDConfig;
 
@@ -19,7 +18,7 @@ import org.team340.lib.util.config.PIDConfig;
  */
 public class SwerveConfig {
 
-    private SwerveIMUType imuType;
+    private SwerveIMU.Type imuType;
     private Object[] imuArgs;
     private double period = -1.0;
     private PIDConfig movePID;
@@ -27,26 +26,25 @@ public class SwerveConfig {
     private PIDConfig turnPID;
     private double moveRampRate = -1.0;
     private double turnRampRate = -1.0;
+    private SwerveMotor.Type moveMotorType;
+    private SwerveMotor.Type turnMotorType;
+    private double velocity = -1.0;
+    private double rotationalVelocity = -1.0;
+    private double acceleration = -1.0;
+    private double moduleRotationalVelocity = -1.0;
     private double optimalVoltage = -1.0;
     private double moveCurrentLimit = -1.0;
     private double turnCurrentLimit = -1.0;
     private double moveGearRatio = -1.0;
     private double turnGearRatio = -1.0;
     private double wheelDiameterInches = -1.0;
-    private double maxV = -1.0;
-    private double maxRv = -1.0;
-    private double maxA = -1.0;
-    private double maxModuleRv = -1.0;
-    private SwerveMotorType moveMotorType;
-    private SwerveMotorType turnMotorType;
     private double discretizationLookahead = -1.0;
     private double odometryPeriod = -1.0;
-    private double[] standardDeviations;
+    private double[] odometryStd;
     private Config sysIdConfig = null;
     private double fieldLength = -1.0;
     private double fieldWidth = -1.0;
     private List<SwerveModuleConfig> modules = new ArrayList<>();
-    private List<BlacklightConfig> blacklights = new ArrayList<>();
 
     /**
      * Use an ADIS16470 IMU.
@@ -63,7 +61,7 @@ public class SwerveConfig {
         SPI.Port port,
         ADIS16470_IMU.CalibrationTime calibrationTime
     ) {
-        imuType = SwerveIMUType.ADIS16470;
+        imuType = SwerveIMU.Type.ADIS16470;
         imuArgs = new Object[] { yawAxis, pitchAxis, rollAxis, port, calibrationTime };
         return this;
     }
@@ -82,7 +80,7 @@ public class SwerveConfig {
      * @param canBus The name of the CAN bus being used.
      */
     public SwerveConfig usePigeon2(int deviceId, String canBus) {
-        imuType = SwerveIMUType.PIGEON2;
+        imuType = SwerveIMU.Type.PIGEON2;
         imuArgs = new Object[] { deviceId, canBus };
         return this;
     }
@@ -90,7 +88,7 @@ public class SwerveConfig {
     /**
      * Gets the selected IMU's type.
      */
-    public SwerveIMUType getImuType() {
+    public SwerveIMU.Type getImuType() {
         return imuType;
     }
 
@@ -180,6 +178,7 @@ public class SwerveConfig {
 
     /**
      * Sets the motor ramp rate.
+     * Increase this to reduce the load on the motors.
      * @param moveRampRate Time in seconds to go from {@code 0.0} to full throttle on the move motors.
      * @param turnRampRate Time in seconds to go from {@code 0.0} to full throttle on the turn motors.
      */
@@ -201,6 +200,107 @@ public class SwerveConfig {
      */
     public double getTurnRampRate() {
         return turnRampRate;
+    }
+
+    /**
+     * Sets the motor types used.
+     * @param moveMotorType The move motor type.
+     * @param turnMotorType The turn motor type.
+     */
+    public SwerveConfig setMotorTypes(SwerveMotor.Type moveMotorType, SwerveMotor.Type turnMotorType) {
+        this.moveMotorType = moveMotorType;
+        this.turnMotorType = turnMotorType;
+        return this;
+    }
+
+    /**
+     * Gets the move motor type.
+     */
+    public SwerveMotor.Type getMoveMotorType() {
+        return moveMotorType;
+    }
+
+    /**
+     * Gets the turn motor type.
+     */
+    public SwerveMotor.Type getTurnMotorType() {
+        return turnMotorType;
+    }
+
+    /**
+     * Sets max speed constraints.
+     * These are used for constraining the requested velocity commanded to swerve modules, as well as scaling when driving by a percent of max speed.
+     *
+     * <br><br>
+     * You may find more predictable behavior by setting these values lower than the actual maximum capabilities of your robot.
+     * It is recommended that these values are tested for using an actual robot. An easy way to do so is to set these values to an impossibly high value, then examine the outputs in network tables.
+     * Initial theoretical values can be estimated using the following formulas:
+     *
+     * <br><br>
+     * <b>Max Robot Velocity:</b> {@code (<Move Motor Free Speed RPM> * 0.80 / 60) / (<Move Gear Ratio> / (<Wheel Diameter (Meters)> * PI))}
+     *
+     * <br><br>
+     * <b>Max Robot Rotational Velocity:</b> {@code (<Max Robot Velocity> / (<Robot Length (Meters)>^2 + <Robot Width (Meters)>^2)^0.5) * 2}
+     *
+     * @param velocity The maximum velocity the robot is capable of in meters/second.
+     * @param rotationalVelocity The maximum rotational velocity the robot is capable of in radians/second.
+     */
+    public SwerveConfig setMaxSpeeds(double velocity, double rotationalVelocity) {
+        this.velocity = velocity;
+        this.rotationalVelocity = rotationalVelocity;
+        return this;
+    }
+
+    /**
+     * Gets the configured maximum robot velocity in meters/second.
+     */
+    public double getVelocity() {
+        return velocity;
+    }
+
+    /**
+     * Gets the configured maximum robot rotational velocity in radians/second.
+     */
+    public double getRotationalVelocity() {
+        return rotationalVelocity;
+    }
+
+    /**
+     * Sets constraints for the ratelimiter.
+     *
+     * <br><br>
+     * You may find more predictable behavior by setting these values lower than the actual maximum capabilities of your robot.
+     * It is recommended that these values are tested for using an actual robot. An easy way to do so is to set these values to an impossibly high value, then examine the outputs in network tables.
+     * Initial theoretical values can be estimated using the following formulas:
+     *
+     * <br><br>
+     * <b>Max Robot Acceleration:</b> {@code <Max Robot Velocity> * 2} (VERY much an estimate, typical ballpark acceleration for robots weighing ~120 pounds)
+     * Can also be pulled from Choreo.
+     *
+     * <br><br>
+     * <b>Max Module Rotational Velocity:</b> {@code (<Turn Motor Free Speed RPM> / 60) / (<Turn Gear Ratio> / (PI * 2)) * 0.7}
+     *
+     * @param acceleration The maximum acceleration the robot is capable of in meters/second/second.
+     * @param moduleRotationalVelocity The maximum module rotational velocity the robot is capable of in radians/second.
+     */
+    public SwerveConfig setRatelimits(double acceleration, double moduleRotationalVelocity) {
+        this.acceleration = acceleration;
+        this.moduleRotationalVelocity = moduleRotationalVelocity;
+        return this;
+    }
+
+    /**
+     * Gets the configured maximum robot acceleration in meters/second/second.
+     */
+    public double getAcceleration() {
+        return acceleration;
+    }
+
+    /**
+     * Gets the configured maximum module rotational velocity in radians/second.
+     */
+    public double getModuleRotationalVelocity() {
+        return moduleRotationalVelocity;
     }
 
     /**
@@ -272,91 +372,6 @@ public class SwerveConfig {
     }
 
     /**
-     * Sets speed constraints.
-     * You may find more predictable behavior by setting these values lower than the actual maximum capabilities of your robot.
-     * It is recommended that these values are tested for using an actual robot. An easy way to do so is to set these values to an impossibly high value, then examine the outputs in network tables.
-     * Initial theoretical values can be estimated using the following formulas:
-     *
-     * <br><br>
-     * <b>Max Robot Velocity:</b> {@code (<Move Motor Free Speed RPM> * 0.80 / 60) / (<Move Gear Ratio> / (<Wheel Diameter (Meters)> * PI))}
-     *
-     * <br><br>
-     * <b>Max Robot Acceleration:</b> {@code <Max Robot Velocity> * 2} (VERY much an estimate, typical ballpark acceleration for robots weighing ~120 pounds)
-     * Can also be pulled from Choreo.
-     *
-     * <br><br>
-     * <b>Max Robot Rotational Velocity:</b> {@code (<Max Robot Velocity> / (<Robot Length (Meters)>^2 + <Robot Width (Meters)>^2)^0.5) * 2}
-     *
-     * <br><br>
-     * <b>Max Module Rotational Velocity:</b> {@code (<Turn Motor Free Speed RPM> / 60) / (<Turn Gear Ratio> / (PI * 2)) * 0.7}
-     *
-     * @param maxV The maximum velocity the robot is capable of in meters/second.
-     * @param maxRv The maximum rotational velocity the robot is capable of in radians/second.
-     * @param maxA The maximum acceleration the robot is capable of in meters/second/second.
-     * @param maxModuleRv The maximum rotational acceleration of a single swerve module in radians/second/second.
-     */
-    public SwerveConfig setSpeedConstraints(double maxV, double maxRv, double maxA, double maxModuleRv) {
-        this.maxV = maxV;
-        this.maxRv = maxRv;
-        this.maxA = maxA;
-        this.maxModuleRv = maxModuleRv;
-        return this;
-    }
-
-    /**
-     * Gets the configured maximum robot velocity in meters/second.
-     */
-    public double getMaxV() {
-        return maxV;
-    }
-
-    /**
-     * Gets the configured maximum robot rotational velocity in radians/second.
-     */
-    public double getMaxRv() {
-        return maxRv;
-    }
-
-    /**
-     * Gets the configured maximum robot acceleration in meters/second/second.
-     */
-    public double getMaxA() {
-        return maxA;
-    }
-
-    /**
-     * Gets the configured maximum module rotational velocity in radians/second.
-     */
-    public double getMaxModuleRv() {
-        return maxModuleRv;
-    }
-
-    /**
-     * Sets the motor types used.
-     * @param moveMotorType The move motor type.
-     * @param turnMotorType The turn motor type.
-     */
-    public SwerveConfig setMotorTypes(SwerveMotorType moveMotorType, SwerveMotorType turnMotorType) {
-        this.moveMotorType = moveMotorType;
-        this.turnMotorType = turnMotorType;
-        return this;
-    }
-
-    /**
-     * Gets the move motor type.
-     */
-    public SwerveMotorType getMoveMotorType() {
-        return moveMotorType;
-    }
-
-    /**
-     * Gets the turn motor type.
-     */
-    public SwerveMotorType getTurnMotorType() {
-        return turnMotorType;
-    }
-
-    /**
      * Sets the discretization lookahead in seconds.
      * Used for countering drift caused by translating and rotating simultaneously. This
      * should be characterized on the robot, as it effectively models lag in the physical
@@ -399,16 +414,16 @@ public class SwerveConfig {
      * @param y The Y axis standard deviation in meters.
      * @param rot The rotational standard deviation in radians.
      */
-    public SwerveConfig setStandardDeviations(double x, double y, double rot) {
-        this.standardDeviations = new double[] { x, y, rot };
+    public SwerveConfig setOdometryStd(double x, double y, double rot) {
+        this.odometryStd = new double[] { x, y, rot };
         return this;
     }
 
     /**
      * Gets the configured standard deviations for odometry, as an array of {@code [x, y, rot]}.
      */
-    public double[] getStandardDeviations() {
-        return standardDeviations;
+    public double[] getOdometryStd() {
+        return odometryStd;
     }
 
     /**
@@ -481,35 +496,6 @@ public class SwerveConfig {
     }
 
     /**
-     * Adds a Blacklight to the config.
-     * See {@link BlacklightConfig}.
-     * @param blacklightConfig The config of the Blacklight to add.
-     */
-    public SwerveConfig addBlacklight(BlacklightConfig blacklightConfig) {
-        blacklights.add(blacklightConfig);
-        return this;
-    }
-
-    /**
-     * Adds a Blacklight to the config.
-     * See {@link BlacklightConfig}.
-     * @param blacklightConfigConsumer A consumer for the Blacklight config.
-     */
-    public SwerveConfig addBlacklight(Consumer<BlacklightConfig> blacklightConfigConsumer) {
-        BlacklightConfig blacklightConfig = new BlacklightConfig();
-        blacklightConfigConsumer.accept(blacklightConfig);
-        blacklights.add(blacklightConfig);
-        return this;
-    }
-
-    /**
-     * Gets configured Blacklights.
-     */
-    public List<BlacklightConfig> getBlacklights() {
-        return blacklights;
-    }
-
-    /**
      * Verifies the config as well as the config's modules.
      * Throws an error if an issue is found.
      */
@@ -522,21 +508,21 @@ public class SwerveConfig {
         if (turnPID == null) throwMissing("Turn PID");
         if (moveRampRate == -1) throwMissing("MoveRamp Rate");
         if (turnRampRate == -1) throwMissing("Turn Ramp Rate");
+        if (moveMotorType == null) throwMissing("Move Motor Type");
+        if (turnMotorType == null) throwMissing("Turn Motor Type");
+        if (velocity == -1) throwMissing("Velocity");
+        if (rotationalVelocity == -1) throwMissing("Rotational Velocity");
+        if (acceleration == -1) throwMissing("Acceleration");
+        if (moduleRotationalVelocity == -1) throwMissing("Module Rotational Velocity");
         if (optimalVoltage == -1) throwMissing("Optimal Voltage");
         if (moveCurrentLimit == -1) throwMissing("Move Current Limit");
         if (turnCurrentLimit == -1) throwMissing("Turn Current Limit");
         if (moveGearRatio == -1) throwMissing("Move Gear Ratio");
         if (turnGearRatio == -1) throwMissing("Turn Gear Ratio");
         if (wheelDiameterInches == -1) throwMissing("Wheel Diameter");
-        if (maxV == -1) throwMissing("Max Robot Velocity");
-        if (maxRv == -1) throwMissing("Max Robot Rotational Velocity");
-        if (maxA == -1) throwMissing("Max Robot Acceleration");
-        if (maxModuleRv == -1) throwMissing("Max Module Rotational Velocity");
-        if (moveMotorType == null) throwMissing("Move Motor Type");
-        if (turnMotorType == null) throwMissing("Turn Motor Type");
         if (discretizationLookahead == -1) throwMissing("Discretization Lookahead");
         if (odometryPeriod == -1) throwMissing("Odometry Period");
-        if (standardDeviations == null) throwMissing("Standard Deviations");
+        if (odometryStd == null) throwMissing("Odometry Standard Deviations");
         if (sysIdConfig == null) throwMissing("SysId Config");
         if (fieldLength == -1) throwMissing("Field Length");
         if (fieldWidth == -1) throwMissing("Field Width");
@@ -547,19 +533,19 @@ public class SwerveConfig {
 
             if (
                 (
-                    !turnMotorType.equals(SwerveMotorType.SPARK_MAX_BRUSHED) &&
-                    !turnMotorType.equals(SwerveMotorType.SPARK_MAX_BRUSHLESS) &&
-                    !turnMotorType.equals(SwerveMotorType.SPARK_FLEX_BRUSHED) &&
-                    !turnMotorType.equals(SwerveMotorType.SPARK_FLEX_BRUSHLESS)
+                    !turnMotorType.equals(SwerveMotor.Type.SPARK_MAX_BRUSHED) &&
+                    !turnMotorType.equals(SwerveMotor.Type.SPARK_MAX_BRUSHLESS) &&
+                    !turnMotorType.equals(SwerveMotor.Type.SPARK_FLEX_BRUSHED) &&
+                    !turnMotorType.equals(SwerveMotor.Type.SPARK_FLEX_BRUSHLESS)
                 ) &&
-                module.getEncoderType().equals(SwerveEncoderType.SPARK_ENCODER)
+                module.getEncoderType().equals(SwerveEncoder.Type.SPARK_ENCODER)
             ) throw new UnsupportedOperationException("Cannot use Spark attached encoder on non-Spark motor");
 
             if (
-                !module.getMoveMotorCanBus().isEmpty() && !moveMotorType.equals(SwerveMotorType.TALONFX)
+                !module.getMoveMotorCanBus().isEmpty() && !moveMotorType.equals(SwerveMotor.Type.TALONFX)
             ) throw new UnsupportedOperationException("Cannot set custom CAN bus for non-Talon FX motor");
             if (
-                !module.getTurnMotorCanBus().isEmpty() && !turnMotorType.equals(SwerveMotorType.TALONFX)
+                !module.getTurnMotorCanBus().isEmpty() && !turnMotorType.equals(SwerveMotor.Type.TALONFX)
             ) throw new UnsupportedOperationException("Cannot set custom CAN bus for non-Talon FX motor");
         }
     }
