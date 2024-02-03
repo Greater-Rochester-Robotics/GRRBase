@@ -341,7 +341,7 @@ public final class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
     /**
      * Sets timeout for sending CAN messages with {@code setParameter*()} and {@code getParameter*()}
      *  calls.These calls will block for up to this amount of time before returning a timeout error.
-     * A timeout of {@code 0.0} will make the {@code setParameter*()} calls non-blocking, and instead
+     * A timeout of {@code 0} will make the {@code setParameter*()} calls non-blocking, and instead
      * will check the response in a separate thread. With this configuration, any error messages will
      * appear on the driver station but will not be returned by the {@code getLastError()} call.
      * @param milliseconds The timeout in milliseconds.
@@ -424,7 +424,7 @@ public final class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * 'on/off' controller. This limit is enabled by default but is set higher than
      * the default Smart Current Limit. The time the controller is off after the current
      * limit is reached is determined by the parameter limitCycles, which is the number
-     * of PWM cycles (20kHz). The recommended value is the default of {@code 0.0} which is
+     * of PWM cycles (20kHz). The recommended value is the default of {@code 0} which is
      * the minimum time and is part of a PWM cycle from when the over current is detected.
      * This allows the controller to regulate the current close to the limit value.
      * @param limit The current limit in amps.
@@ -441,7 +441,7 @@ public final class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * 'on/off' controller. This limit is enabled by default but is set higher than
      * the default Smart Current Limit. The time the controller is off after the current
      * limit is reached is determined by the parameter limitCycles, which is the number
-     * of PWM cycles (20kHz). The recommended value is the default of {@code 0.0} which is
+     * of PWM cycles (20kHz). The recommended value is the default of {@code 0} which is
      * the minimum time and is part of a PWM cycle from when the over current is detected.
      * This allows the controller to regulate the current close to the limit value.
      * @param limit The current limit in amps.
@@ -478,8 +478,8 @@ public final class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * smarter strategy to deal with high current draws and keep the motor and controller
      * operating in a safe region. The controller can also limit the current based on the RPM
      * of the motor in a linear fashion to help with controllability in closed loop control.
-     * For a response that is linear the entire RPM range leave limit RPM at {@code 0.0}.
-     * @param stallLimit The current limit in amps at {@code 0.0} RPM.
+     * For a response that is linear the entire RPM range leave limit RPM at {@code 0}.
+     * @param stallLimit The current limit in amps at {@code 0} RPM.
      * @param freeLimit The current limit at free speed ({@code 5700} RPM for NEO).
      */
     public SparkMaxConfig setSmartCurrentLimit(int stallLimit, int freeLimit) {
@@ -497,8 +497,8 @@ public final class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * smarter strategy to deal with high current draws and keep the motor and controller
      * operating in a safe region. The controller can also limit the current based on the RPM
      * of the motor in a linear fashion to help with controllability in closed loop control.
-     * For a response that is linear the entire RPM range leave limit RPM at {@code 0.0}.
-     * @param stallLimit The current limit in amps at {@code 0.0} RPM.
+     * For a response that is linear the entire RPM range leave limit RPM at {@code 0}.
+     * @param stallLimit The current limit in amps at {@code 0} RPM.
      * @param freeLimit The current limit at free speed ({@code 5700} RPM for NEO).
      * @param limitRPM RPM less than this value will be set to the stallLimit, RPM values greater than limitRPM will scale linearly to freeLimit.
      */
