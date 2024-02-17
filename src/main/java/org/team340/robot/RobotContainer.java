@@ -5,7 +5,7 @@ import static edu.wpi.first.wpilibj2.command.Commands.*;
 import org.team340.lib.GRRDashboard;
 import org.team340.lib.controller.Controller2;
 import org.team340.lib.util.Math2;
-import org.team340.lib.util.config.rev.RevConfigUtils;
+import org.team340.lib.util.config.rev.RevConfigRegistry;
 import org.team340.robot.Constants.ControllerConstants;
 import org.team340.robot.commands.SystemsCheck;
 import org.team340.robot.subsystems.Swerve;
@@ -46,7 +46,7 @@ public final class RobotContainer {
         GRRDashboard.setSystemsCheck(SystemsCheck.command());
 
         // Print errors from REV hardware initialization.
-        RevConfigUtils.printError();
+        RevConfigRegistry.printError();
 
         // Configure bindings and autos.
         configBindings();

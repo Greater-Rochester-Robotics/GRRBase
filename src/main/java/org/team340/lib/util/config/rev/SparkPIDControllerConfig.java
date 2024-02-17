@@ -40,16 +40,6 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
      * @param pidController The PID controller.
      */
     public void apply(CANSparkMax sparkMax, SparkPIDController pidController) {
-        addStep(
-            pc -> {
-                RevConfigUtils.burnFlashSleep();
-                return sparkMax.burnFlash();
-            },
-            pc -> true,
-            false,
-            1,
-            "Burn Flash"
-        );
         super.applySteps(pidController, "Spark Max (ID " + sparkMax.getDeviceId() + ") PID Controller");
     }
 
@@ -59,16 +49,6 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
      * @param pidController The PID controller.
      */
     public void apply(CANSparkFlex sparkFlex, SparkPIDController pidController) {
-        addStep(
-            pc -> {
-                RevConfigUtils.burnFlashSleep();
-                return sparkFlex.burnFlash();
-            },
-            pc -> true,
-            false,
-            1,
-            "Burn Flash"
-        );
         super.applySteps(pidController, "Spark Flex (ID " + sparkFlex.getDeviceId() + ") PID Controller");
     }
 
@@ -79,7 +59,7 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
     public SparkPIDControllerConfig setD(double gain) {
         addStep(
             pidController -> pidController.setD(gain),
-            pidController -> Math2.epsilonEquals(pidController.getD(), gain, RevConfigUtils.EPSILON),
+            pidController -> Math2.epsilonEquals(pidController.getD(), gain, RevConfigRegistry.EPSILON),
             "D Gain"
         );
         return this;
@@ -93,7 +73,7 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
     public SparkPIDControllerConfig setD(double gain, int slotId) {
         addStep(
             pidController -> pidController.setD(gain, slotId),
-            pidController -> Math2.epsilonEquals(pidController.getD(slotId), gain, RevConfigUtils.EPSILON),
+            pidController -> Math2.epsilonEquals(pidController.getD(slotId), gain, RevConfigRegistry.EPSILON),
             "D Gain (Slot " + slotId + ")"
         );
         return this;
@@ -106,7 +86,7 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
     public SparkPIDControllerConfig setDFilter(double gain) {
         addStep(
             pidController -> pidController.setDFilter(gain),
-            pidController -> Math2.epsilonEquals(pidController.getDFilter(0), gain, RevConfigUtils.EPSILON),
+            pidController -> Math2.epsilonEquals(pidController.getDFilter(0), gain, RevConfigRegistry.EPSILON),
             "D Filter"
         );
         return this;
@@ -120,7 +100,7 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
     public SparkPIDControllerConfig setDFilter(double gain, int slotId) {
         addStep(
             pidController -> pidController.setDFilter(gain, slotId),
-            pidController -> Math2.epsilonEquals(pidController.getDFilter(slotId), gain, RevConfigUtils.EPSILON),
+            pidController -> Math2.epsilonEquals(pidController.getDFilter(slotId), gain, RevConfigRegistry.EPSILON),
             "D Filter (Slot " + slotId + ")"
         );
         return this;
@@ -147,7 +127,7 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
     public SparkPIDControllerConfig setFF(double gain) {
         addStep(
             pidController -> pidController.setFF(gain),
-            pidController -> Math2.epsilonEquals(pidController.getFF(), gain, RevConfigUtils.EPSILON),
+            pidController -> Math2.epsilonEquals(pidController.getFF(), gain, RevConfigRegistry.EPSILON),
             "FF Gain"
         );
         return this;
@@ -161,7 +141,7 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
     public SparkPIDControllerConfig setFF(double gain, int slotId) {
         addStep(
             pidController -> pidController.setFF(gain, slotId),
-            pidController -> Math2.epsilonEquals(pidController.getFF(slotId), gain, RevConfigUtils.EPSILON),
+            pidController -> Math2.epsilonEquals(pidController.getFF(slotId), gain, RevConfigRegistry.EPSILON),
             "FF Gain (Slot " + slotId + ")"
         );
         return this;
@@ -174,7 +154,7 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
     public SparkPIDControllerConfig setI(double gain) {
         addStep(
             pidController -> pidController.setI(gain),
-            pidController -> Math2.epsilonEquals(pidController.getI(), gain, RevConfigUtils.EPSILON),
+            pidController -> Math2.epsilonEquals(pidController.getI(), gain, RevConfigRegistry.EPSILON),
             "I Gain"
         );
         return this;
@@ -188,7 +168,7 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
     public SparkPIDControllerConfig setI(double gain, int slotId) {
         addStep(
             pidController -> pidController.setI(gain, slotId),
-            pidController -> Math2.epsilonEquals(pidController.getI(slotId), gain, RevConfigUtils.EPSILON),
+            pidController -> Math2.epsilonEquals(pidController.getI(slotId), gain, RevConfigRegistry.EPSILON),
             "I Gain (Slot " + slotId + ")"
         );
         return this;
@@ -203,7 +183,7 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
     public SparkPIDControllerConfig setIMaxAccum(double iMaxAccum, int slotId) {
         addStep(
             pidController -> pidController.setIMaxAccum(iMaxAccum, slotId),
-            pidController -> Math2.epsilonEquals(pidController.getIMaxAccum(slotId), iMaxAccum, RevConfigUtils.EPSILON),
+            pidController -> Math2.epsilonEquals(pidController.getIMaxAccum(slotId), iMaxAccum, RevConfigRegistry.EPSILON),
             "I Max Accumulator (Slot " + slotId + ")"
         );
         return this;
@@ -217,7 +197,7 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
     public SparkPIDControllerConfig setIZone(double iZone) {
         addStep(
             pidController -> pidController.setIZone(iZone),
-            pidController -> Math2.epsilonEquals(pidController.getIZone(), iZone, RevConfigUtils.EPSILON),
+            pidController -> Math2.epsilonEquals(pidController.getIZone(), iZone, RevConfigRegistry.EPSILON),
             "I Zone"
         );
         return this;
@@ -232,7 +212,7 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
     public SparkPIDControllerConfig setIZone(double iZone, int slotId) {
         addStep(
             pidController -> pidController.setIZone(iZone, slotId),
-            pidController -> Math2.epsilonEquals(pidController.getIZone(slotId), iZone, RevConfigUtils.EPSILON),
+            pidController -> Math2.epsilonEquals(pidController.getIZone(slotId), iZone, RevConfigRegistry.EPSILON),
             "I Zone (Slot " + slotId + ")"
         );
         return this;
@@ -247,8 +227,8 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
         addStep(
             pidController -> pidController.setOutputRange(min, max),
             pidController ->
-                Math2.epsilonEquals(pidController.getOutputMin(), min, RevConfigUtils.EPSILON) &&
-                Math2.epsilonEquals(pidController.getOutputMax(), max, RevConfigUtils.EPSILON),
+                Math2.epsilonEquals(pidController.getOutputMin(), min, RevConfigRegistry.EPSILON) &&
+                Math2.epsilonEquals(pidController.getOutputMax(), max, RevConfigRegistry.EPSILON),
             "Output Range"
         );
         return this;
@@ -264,8 +244,8 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
         addStep(
             pidController -> pidController.setOutputRange(min, max, slotId),
             pidController ->
-                Math2.epsilonEquals(pidController.getOutputMin(slotId), min, RevConfigUtils.EPSILON) &&
-                Math2.epsilonEquals(pidController.getOutputMax(slotId), max, RevConfigUtils.EPSILON),
+                Math2.epsilonEquals(pidController.getOutputMin(slotId), min, RevConfigRegistry.EPSILON) &&
+                Math2.epsilonEquals(pidController.getOutputMax(slotId), max, RevConfigRegistry.EPSILON),
             "Output Range (Slot " + slotId + ")"
         );
         return this;
@@ -278,7 +258,7 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
     public SparkPIDControllerConfig setP(double gain) {
         addStep(
             pidController -> pidController.setP(gain),
-            pidController -> Math2.epsilonEquals(pidController.getP(), gain, RevConfigUtils.EPSILON),
+            pidController -> Math2.epsilonEquals(pidController.getP(), gain, RevConfigRegistry.EPSILON),
             "P Gain"
         );
         return this;
@@ -292,7 +272,7 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
     public SparkPIDControllerConfig setP(double gain, int slotId) {
         addStep(
             pidController -> pidController.setP(gain, slotId),
-            pidController -> Math2.epsilonEquals(pidController.getP(slotId), gain, RevConfigUtils.EPSILON),
+            pidController -> Math2.epsilonEquals(pidController.getP(slotId), gain, RevConfigRegistry.EPSILON),
             "P Gain (Slot " + slotId + ")"
         );
         return this;
@@ -318,7 +298,7 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
     public SparkPIDControllerConfig setPositionPIDWrappingMaxInput(double max) {
         addStep(
             pidController -> pidController.setPositionPIDWrappingMaxInput(max),
-            pidController -> Math2.epsilonEquals(pidController.getPositionPIDWrappingMaxInput(), max, RevConfigUtils.EPSILON),
+            pidController -> Math2.epsilonEquals(pidController.getPositionPIDWrappingMaxInput(), max, RevConfigRegistry.EPSILON),
             "Position PID Wrapping Max Input"
         );
         return this;
@@ -331,7 +311,7 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
     public SparkPIDControllerConfig setPositionPIDWrappingMinInput(double min) {
         addStep(
             pidController -> pidController.setPositionPIDWrappingMinInput(min),
-            pidController -> Math2.epsilonEquals(pidController.getPositionPIDWrappingMinInput(), min, RevConfigUtils.EPSILON),
+            pidController -> Math2.epsilonEquals(pidController.getPositionPIDWrappingMinInput(), min, RevConfigRegistry.EPSILON),
             "Position PID Wrapping Min Input"
         );
         return this;
@@ -472,7 +452,7 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
         addStep(
             pidController -> pidController.setSmartMotionAllowedClosedLoopError(allowedErr, slotId),
             pidController ->
-                Math2.epsilonEquals(pidController.getSmartMotionAllowedClosedLoopError(slotId), allowedErr, RevConfigUtils.EPSILON),
+                Math2.epsilonEquals(pidController.getSmartMotionAllowedClosedLoopError(slotId), allowedErr, RevConfigRegistry.EPSILON),
             "Smart Motion Allowed Closed Loop Error (Slot " + slotId + ")"
         );
         return this;
@@ -487,7 +467,7 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
     public SparkPIDControllerConfig setSmartMotionMaxAccel(double maxAccel, int slotId) {
         addStep(
             pidController -> pidController.setSmartMotionMaxAccel(maxAccel, slotId),
-            pidController -> Math2.epsilonEquals(pidController.getSmartMotionMaxAccel(slotId), maxAccel, RevConfigUtils.EPSILON),
+            pidController -> Math2.epsilonEquals(pidController.getSmartMotionMaxAccel(slotId), maxAccel, RevConfigRegistry.EPSILON),
             "Smart Motion Max Acceleration (Slot " + slotId + ")"
         );
         return this;
@@ -502,7 +482,7 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
     public SparkPIDControllerConfig setSmartMotionMaxVelocity(double maxVel, int slotId) {
         addStep(
             pidController -> pidController.setSmartMotionMaxVelocity(maxVel, slotId),
-            pidController -> Math2.epsilonEquals(pidController.getSmartMotionMaxVelocity(slotId), maxVel, RevConfigUtils.EPSILON),
+            pidController -> Math2.epsilonEquals(pidController.getSmartMotionMaxVelocity(slotId), maxVel, RevConfigRegistry.EPSILON),
             "Smart Motion Max Velocity (Slot " + slotId + ")"
         );
         return this;
@@ -516,7 +496,7 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
     public SparkPIDControllerConfig setSmartMotionMinOutputVelocity(double minVel, int slotId) {
         addStep(
             pidController -> pidController.setSmartMotionMinOutputVelocity(minVel, slotId),
-            pidController -> Math2.epsilonEquals(pidController.getSmartMotionMinOutputVelocity(slotId), minVel, RevConfigUtils.EPSILON),
+            pidController -> Math2.epsilonEquals(pidController.getSmartMotionMinOutputVelocity(slotId), minVel, RevConfigRegistry.EPSILON),
             "Smart Motion Min Velocity (Slot " + slotId + ")"
         );
         return this;

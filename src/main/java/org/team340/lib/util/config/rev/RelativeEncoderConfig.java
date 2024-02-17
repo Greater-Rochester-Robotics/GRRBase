@@ -36,16 +36,6 @@ public final class RelativeEncoderConfig extends RevConfigBase<RelativeEncoder> 
      * @param relativeEncoder The relative encoder.
      */
     public void apply(CANSparkMax sparkMax, RelativeEncoder relativeEncoder) {
-        addStep(
-            re -> {
-                RevConfigUtils.burnFlashSleep();
-                return sparkMax.burnFlash();
-            },
-            re -> true,
-            false,
-            1,
-            "Burn Flash"
-        );
         super.applySteps(relativeEncoder, "Spark Max (ID " + sparkMax.getDeviceId() + ") Relative Encoder");
     }
 
@@ -55,16 +45,6 @@ public final class RelativeEncoderConfig extends RevConfigBase<RelativeEncoder> 
      * @param relativeEncoder The relative encoder.
      */
     public void apply(CANSparkFlex sparkFlex, RelativeEncoder relativeEncoder) {
-        addStep(
-            re -> {
-                RevConfigUtils.burnFlashSleep();
-                return sparkFlex.burnFlash();
-            },
-            re -> true,
-            false,
-            1,
-            "Burn Flash"
-        );
         super.applySteps(relativeEncoder, "Spark Flex (ID " + sparkFlex.getDeviceId() + ") Relative Encoder");
     }
 
@@ -122,7 +102,7 @@ public final class RelativeEncoderConfig extends RevConfigBase<RelativeEncoder> 
     public RelativeEncoderConfig setPositionConversionFactor(double factor) {
         addStep(
             relativeEncoder -> relativeEncoder.setPositionConversionFactor(factor),
-            relativeEncoder -> Math2.epsilonEquals(relativeEncoder.getPositionConversionFactor(), factor, RevConfigUtils.EPSILON),
+            relativeEncoder -> Math2.epsilonEquals(relativeEncoder.getPositionConversionFactor(), factor, RevConfigRegistry.EPSILON),
             "Position Conversion Factor"
         );
         return this;
@@ -136,7 +116,7 @@ public final class RelativeEncoderConfig extends RevConfigBase<RelativeEncoder> 
     public RelativeEncoderConfig setVelocityConversionFactor(double factor) {
         addStep(
             relativeEncoder -> relativeEncoder.setVelocityConversionFactor(factor),
-            relativeEncoder -> Math2.epsilonEquals(relativeEncoder.getVelocityConversionFactor(), factor, RevConfigUtils.EPSILON),
+            relativeEncoder -> Math2.epsilonEquals(relativeEncoder.getVelocityConversionFactor(), factor, RevConfigRegistry.EPSILON),
             "Velocity Conversion Factor"
         );
         return this;

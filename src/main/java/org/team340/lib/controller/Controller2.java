@@ -7,7 +7,6 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import org.team340.lib.GRRDashboard;
-import org.team340.lib.util.Math2;
 
 /**
  * A modified {@link CommandXboxController}.
@@ -453,19 +452,19 @@ public class Controller2 extends CommandXboxController implements Sendable {
         builder.addIntegerProperty("pov", hid::getPOV, null);
 
         builder.addBooleanProperty("ls", hid::getLeftStickButton, null);
-        builder.addDoubleProperty("lx", () -> Math2.toFixed(getLeftX()), null);
-        builder.addDoubleProperty("ly", () -> Math2.toFixed(getLeftY()), null);
-        builder.addDoubleProperty("ln", () -> Math2.toFixed(Math.hypot(getLeftX(), getLeftY())), null);
-        builder.addDoubleProperty("lns", () -> Math2.toFixed(Math.hypot(super.getLeftX(), super.getLeftY())), null);
+        builder.addDoubleProperty("lx", this::getLeftX, null);
+        builder.addDoubleProperty("ly", this::getLeftY, null);
+        builder.addDoubleProperty("ln", () -> Math.hypot(getLeftX(), getLeftY()), null);
+        builder.addDoubleProperty("lns", () -> Math.hypot(super.getLeftX(), super.getLeftY()), null);
 
         builder.addBooleanProperty("rs", hid::getRightStickButton, null);
-        builder.addDoubleProperty("rx", () -> Math2.toFixed(getRightX()), null);
-        builder.addDoubleProperty("ry", () -> Math2.toFixed(getRightY()), null);
+        builder.addDoubleProperty("rx", this::getRightX, null);
+        builder.addDoubleProperty("ry", this::getRightY, null);
 
         builder.addBooleanProperty("lb", hid::getLeftBumper, null);
         builder.addBooleanProperty("rb", hid::getRightBumper, null);
 
-        builder.addDoubleProperty("lt", () -> Math2.toFixed(getLeftTriggerAxis()), null);
-        builder.addDoubleProperty("rt", () -> Math2.toFixed(getRightTriggerAxis()), null);
+        builder.addDoubleProperty("lt", this::getLeftTriggerAxis, null);
+        builder.addDoubleProperty("rt", this::getRightTriggerAxis, null);
     }
 }

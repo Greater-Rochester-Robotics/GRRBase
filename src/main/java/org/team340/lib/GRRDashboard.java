@@ -26,7 +26,6 @@ import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import org.team340.lib.controller.Controller2;
-import org.team340.lib.util.Math2;
 
 /**
  * Utility class for interfacing with the dashboard.
@@ -402,13 +401,13 @@ public final class GRRDashboard {
         @Override
         public void initSendable(SendableBuilder builder) {
             builder.addBooleanProperty("blueAlliance", () -> DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Blue), null);
-            builder.addDoubleProperty("cpuTemperature", () -> Math2.toFixed(RobotController.getCPUTemp()), null);
+            builder.addDoubleProperty("cpuTemperature", RobotController::getCPUTemp, null);
             builder.addBooleanProperty("enabled", DriverStation::isEnabled, null);
-            builder.addIntegerProperty("matchTime", () -> (int) DriverStation.getMatchTime(), null);
-            builder.addDoubleProperty("ntUpdateTime", () -> Math2.toFixed(lastWatchdog, 1e-6), null);
-            builder.addDoubleProperty("powerUsage", () -> Math2.toFixed(lastPowerUsage), null);
+            builder.addDoubleProperty("matchTime", DriverStation::getMatchTime, null);
+            builder.addDoubleProperty("ntUpdateTime", () -> lastWatchdog, null);
+            builder.addDoubleProperty("powerUsage", () -> lastPowerUsage, null);
             builder.addIntegerProperty("timestamp", RobotController::getFPGATime, null);
-            builder.addDoubleProperty("voltage", () -> Math2.toFixed(RobotController.getBatteryVoltage()), null);
+            builder.addDoubleProperty("voltage", RobotController::getBatteryVoltage, null);
         }
     }
 }

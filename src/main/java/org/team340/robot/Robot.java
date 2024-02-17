@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import org.team340.lib.GRRDashboard;
+import org.team340.lib.util.config.rev.RevConfigRegistry;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -28,6 +29,7 @@ public final class Robot extends TimedRobot {
 
         DataLogManager.logNetworkTables(true);
         GRRDashboard.initAsync(this, Constants.TELEMETRY_PERIOD, Constants.POWER_USAGE_PERIOD);
+        RevConfigRegistry.init(this);
         RobotContainer.init();
     }
 

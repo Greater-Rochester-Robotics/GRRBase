@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
-import org.team340.lib.util.Math2;
 
 // TODO Faults
 
@@ -172,13 +171,13 @@ final class HardwareSendables {
                         usageMutex.unlock();
                     }
 
-                    return Math2.toFixed(p);
+                    return p;
                 },
                 null
             );
-            builder.addDoubleProperty("powerUsage", () -> Math2.toFixed(usage), null);
-            builder.addDoubleProperty("voltage", () -> Math2.toFixed(voltage.get()), null);
-            builder.addDoubleProperty("current", () -> Math2.toFixed(current.get()), null);
+            builder.addDoubleProperty("powerUsage", () -> usage, null);
+            builder.addDoubleProperty("voltage", voltage::get, null);
+            builder.addDoubleProperty("current", current::get, null);
         }
     }
 
@@ -224,10 +223,10 @@ final class HardwareSendables {
         @Override
         public void initSendable(SendableBuilder builder) {
             super.initSendable(builder);
-            builder.addDoubleProperty("output", () -> Math2.toFixed(output.get()), null);
-            builder.addDoubleProperty("temperature", () -> Math2.toFixed(temperature.get()), null);
-            builder.addDoubleProperty("velocity", () -> Math2.toFixed(velocity.get()), null);
-            builder.addDoubleProperty("position", () -> Math2.toFixed(position.get()), null);
+            builder.addDoubleProperty("output", output::get, null);
+            builder.addDoubleProperty("temperature", temperature::get, null);
+            builder.addDoubleProperty("velocity", velocity::get, null);
+            builder.addDoubleProperty("position", position::get, null);
         }
     }
 
@@ -255,8 +254,8 @@ final class HardwareSendables {
         @Override
         public void initSendable(SendableBuilder builder) {
             super.initSendable(builder);
-            builder.addDoubleProperty("velocity", () -> Math2.toFixed(velocity.get()), null);
-            builder.addDoubleProperty("position", () -> Math2.toFixed(position.get()), null);
+            builder.addDoubleProperty("velocity", velocity::get, null);
+            builder.addDoubleProperty("position", position::get, null);
         }
     }
 
@@ -287,9 +286,9 @@ final class HardwareSendables {
         @Override
         public void initSendable(SendableBuilder builder) {
             super.initSendable(builder);
-            builder.addDoubleProperty("yaw", () -> Math2.toFixed(yaw.get()), null);
-            builder.addDoubleProperty("pitch", () -> Math2.toFixed(pitch.get()), null);
-            builder.addDoubleProperty("roll", () -> Math2.toFixed(roll.get()), null);
+            builder.addDoubleProperty("yaw", yaw::get, null);
+            builder.addDoubleProperty("pitch", pitch::get, null);
+            builder.addDoubleProperty("roll", roll::get, null);
         }
     }
 
@@ -663,7 +662,7 @@ final class HardwareSendables {
         @Override
         public void initSendable(SendableBuilder builder) {
             super.initSendable(builder);
-            builder.addDoubleProperty("pressure", () -> Math2.toFixed(pressure.get()), null);
+            builder.addDoubleProperty("pressure", pressure::get, null);
             builder.addBooleanProperty("pressureSwitchOn", pressureSwitchOn::get, null);
             builder.addBooleanProperty("compressorOn", compressorOn::get, null);
         }
