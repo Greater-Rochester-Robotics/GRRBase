@@ -156,7 +156,7 @@ public class SwerveModule {
             simVelocity = moveSpeed;
         }
 
-        desiredState = flipped ? new SwerveModuleState(state.speedMetersPerSecond, state.angle.rotateBy(Math2.ROTATION2D_PI)) : state;
+        desiredState = flipped ? new SwerveModuleState(-state.speedMetersPerSecond, state.angle.rotateBy(Math2.ROTATION2D_PI)) : state;
         lastMoveSpeed = moveSpeed;
         controlTimer.restart();
     }
