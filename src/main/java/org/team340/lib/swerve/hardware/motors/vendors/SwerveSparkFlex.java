@@ -13,8 +13,8 @@ import org.team340.lib.swerve.hardware.motors.SwerveMotor;
 import org.team340.lib.swerve.util.SwerveConversions;
 import org.team340.lib.util.Math2;
 import org.team340.lib.util.config.PIDConfig;
-import org.team340.lib.util.config.rev.AbsoluteEncoderConfig;
 import org.team340.lib.util.config.rev.RelativeEncoderConfig;
+import org.team340.lib.util.config.rev.SparkAbsoluteEncoderConfig;
 import org.team340.lib.util.config.rev.SparkFlexConfig;
 import org.team340.lib.util.config.rev.SparkFlexConfig.Frame;
 import org.team340.lib.util.config.rev.SparkPIDControllerConfig;
@@ -56,13 +56,12 @@ public class SwerveSparkFlex implements SwerveMotor {
 
         int periodMs = (int) (config.getPeriod() * 1000.0);
         int periodOdometryMs = (int) (config.getOdometryPeriod() * 1000.0);
-        boolean usingAttachedEncoder = SwerveEncoder.Type.SPARK_ENCODER.equals(moduleConfig.getEncoderType());
+        boolean usingAttachedEncoder = SwerveEncoder.Type.SPARK_ENCODER.equals(moduleConfig.getEncoderType()) && !isMoveMotor;
         double conversionFactor = 1.0 / (isMoveMotor ? conversions.moveRotationsPerMeter() : conversions.turnRotationsPerRadian());
         PIDConfig pidConfig = isMoveMotor ? config.getMovePID() : config.getTurnPID();
 
         new SparkFlexConfig()
             .clearFaults()
-            .restoreFactoryDefaults()
             .enableVoltageCompensation(config.getOptimalVoltage())
             .setSmartCurrentLimit((int) (isMoveMotor ? config.getMoveCurrentLimit() : config.getTurnCurrentLimit()))
             .setIdleMode(
@@ -91,7 +90,7 @@ public class SwerveSparkFlex implements SwerveMotor {
             .apply(sparkFlex, relativeEncoder);
 
         if (usingAttachedEncoder) {
-            new AbsoluteEncoderConfig()
+            new SparkAbsoluteEncoderConfig()
                 .setPositionConversionFactor(Math2.TWO_PI)
                 .setVelocityConversionFactor(Math2.TWO_PI / 60.0)
                 .setInverted(moduleConfig.getEncoderInverted())

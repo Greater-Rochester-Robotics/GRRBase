@@ -1,33 +1,33 @@
 package org.team340.lib.util.config.rev;
 
-import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.SparkAbsoluteEncoder;
 import org.team340.lib.util.Math2;
 
 /**
- * Config builder for {@link AbsoluteEncoder}.
+ * Config builder for {@link SparkAbsoluteEncoder}.
  */
-public final class AbsoluteEncoderConfig extends RevConfigBase<AbsoluteEncoder> {
+public final class SparkAbsoluteEncoderConfig extends RevConfigBase<SparkAbsoluteEncoder> {
 
     /**
      * Creates an empty config.
      */
-    public AbsoluteEncoderConfig() {}
+    public SparkAbsoluteEncoderConfig() {}
 
     /**
      * Creates a config that copies the config steps from the base provided.
      * @param base The config to copy the steps from.
      */
-    private AbsoluteEncoderConfig(RevConfigBase<AbsoluteEncoder> base) {
+    private SparkAbsoluteEncoderConfig(RevConfigBase<SparkAbsoluteEncoder> base) {
         super(base);
     }
 
     /**
      * Clones this config.
      */
-    public AbsoluteEncoderConfig clone() {
-        return new AbsoluteEncoderConfig(this);
+    public SparkAbsoluteEncoderConfig clone() {
+        return new SparkAbsoluteEncoderConfig(this);
     }
 
     /**
@@ -35,17 +35,7 @@ public final class AbsoluteEncoderConfig extends RevConfigBase<AbsoluteEncoder> 
      * @param sparkMax The Spark Max the encoder is attached to.
      * @param absoluteEncoder The absolute encoder.
      */
-    public void apply(CANSparkMax sparkMax, AbsoluteEncoder absoluteEncoder) {
-        addStep(
-            ae -> {
-                RevConfigUtils.burnFlashSleep();
-                return sparkMax.burnFlash();
-            },
-            ae -> true,
-            false,
-            1,
-            "Burn Flash"
-        );
+    public void apply(CANSparkMax sparkMax, SparkAbsoluteEncoder absoluteEncoder) {
         super.applySteps(absoluteEncoder, "Spark Max (ID " + sparkMax.getDeviceId() + ") Absolute Encoder");
     }
 
@@ -54,17 +44,7 @@ public final class AbsoluteEncoderConfig extends RevConfigBase<AbsoluteEncoder> 
      * @param sparkFlex The Spark Flex the encoder is attached to.
      * @param absoluteEncoder The absolute encoder.
      */
-    public void apply(CANSparkFlex sparkFlex, AbsoluteEncoder absoluteEncoder) {
-        addStep(
-            ae -> {
-                RevConfigUtils.burnFlashSleep();
-                return sparkFlex.burnFlash();
-            },
-            ae -> true,
-            false,
-            1,
-            "Burn Flash"
-        );
+    public void apply(CANSparkFlex sparkFlex, SparkAbsoluteEncoder absoluteEncoder) {
         super.applySteps(absoluteEncoder, "Spark Flex (ID " + sparkFlex.getDeviceId() + ") Absolute Encoder");
     }
 
@@ -73,7 +53,7 @@ public final class AbsoluteEncoderConfig extends RevConfigBase<AbsoluteEncoder> 
      * either {@code 1}, {@code 2}, {@code 4}, {@code 8}, {@code 16}, {@code 32}, {@code 64}, or {@code 128}.
      * @param depth The average sampling depth of {@code 1}, {@code 2}, {@code 4}, {@code 8}, {@code 16}, {@code 32}, {@code 64}, or {@code 128}.
      */
-    public AbsoluteEncoderConfig setAverageDepth(int depth) {
+    public SparkAbsoluteEncoderConfig setAverageDepth(int depth) {
         addStep(
             absoluteEncoder -> absoluteEncoder.setAverageDepth(depth),
             absoluteEncoder -> absoluteEncoder.getAverageDepth() == depth,
@@ -86,7 +66,7 @@ public final class AbsoluteEncoderConfig extends RevConfigBase<AbsoluteEncoder> 
      * Sets the phase of the absolute encoder so that it is set to be in phase with the motor itself.
      * @param inverted The phase of the encoder.
      */
-    public AbsoluteEncoderConfig setInverted(boolean inverted) {
+    public SparkAbsoluteEncoderConfig setInverted(boolean inverted) {
         addStep(
             absoluteEncoder -> absoluteEncoder.setInverted(inverted),
             absoluteEncoder -> absoluteEncoder.getInverted() == inverted,
@@ -100,10 +80,10 @@ public final class AbsoluteEncoderConfig extends RevConfigBase<AbsoluteEncoder> 
      * by the native output units to give you position.
      * @param factor The conversion factor to multiply the native units (rotations) by.
      */
-    public AbsoluteEncoderConfig setPositionConversionFactor(double factor) {
+    public SparkAbsoluteEncoderConfig setPositionConversionFactor(double factor) {
         addStep(
             absoluteEncoder -> absoluteEncoder.setPositionConversionFactor(factor),
-            absoluteEncoder -> Math2.epsilonEquals(absoluteEncoder.getPositionConversionFactor(), factor, RevConfigUtils.EPSILON),
+            absoluteEncoder -> Math2.epsilonEquals(absoluteEncoder.getPositionConversionFactor(), factor, RevConfigRegistry.EPSILON),
             "Position Conversion Factor"
         );
         return this;
@@ -114,10 +94,10 @@ public final class AbsoluteEncoderConfig extends RevConfigBase<AbsoluteEncoder> 
      * by the native output units to give you velocity.
      * @param factor The conversion factor to multiply the native units (rotations per minute) by.
      */
-    public AbsoluteEncoderConfig setVelocityConversionFactor(double factor) {
+    public SparkAbsoluteEncoderConfig setVelocityConversionFactor(double factor) {
         addStep(
             absoluteEncoder -> absoluteEncoder.setVelocityConversionFactor(factor),
-            absoluteEncoder -> Math2.epsilonEquals(absoluteEncoder.getVelocityConversionFactor(), factor, RevConfigUtils.EPSILON),
+            absoluteEncoder -> Math2.epsilonEquals(absoluteEncoder.getVelocityConversionFactor(), factor, RevConfigRegistry.EPSILON),
             "Velocity Conversion Factor"
         );
         return this;
@@ -132,10 +112,10 @@ public final class AbsoluteEncoderConfig extends RevConfigBase<AbsoluteEncoder> 
      * before calling this function.
      * @param offset The zero offset with the position conversion factor applied.
      */
-    public AbsoluteEncoderConfig setZeroOffset(double offset) {
+    public SparkAbsoluteEncoderConfig setZeroOffset(double offset) {
         addStep(
             absoluteEncoder -> absoluteEncoder.setZeroOffset(offset),
-            absoluteEncoder -> Math2.epsilonEquals(absoluteEncoder.getZeroOffset(), offset, RevConfigUtils.EPSILON),
+            absoluteEncoder -> Math2.epsilonEquals(absoluteEncoder.getZeroOffset(), offset, RevConfigRegistry.EPSILON),
             "Zero Offset"
         );
         return this;

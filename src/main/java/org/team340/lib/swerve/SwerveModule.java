@@ -134,15 +134,14 @@ public class SwerveModule {
     public void setDesiredState(SwerveModuleState state) {
         double moveSpeed = state.speedMetersPerSecond;
         double angleDiff = state.angle.rotateBy(Rotation2d.fromRadians(getHeading()).times(-1.0)).getRadians();
+        boolean flipped = false;
         if (Math.abs(angleDiff) > (Math2.HALF_PI)) {
             if (angleDiff > 0) angleDiff -= Math.PI; else angleDiff += Math.PI;
             moveSpeed *= -1.0;
+            flipped = true;
         }
 
-        double moveFF = moveFFController.calculate(
-            moveSpeed,
-            controlTimer.get() == 0 ? 0.0 : (moveSpeed - lastMoveSpeed) / controlTimer.get()
-        );
+        double moveFF = moveFFController.calculate(moveSpeed);
         double turnTarget = turnMotor.getPosition() + angleDiff;
 
         moveMotor.setReference(moveSpeed, moveFF);
@@ -157,7 +156,7 @@ public class SwerveModule {
             simVelocity = moveSpeed;
         }
 
-        desiredState = state;
+        desiredState = flipped ? new SwerveModuleState(state.speedMetersPerSecond, state.angle.rotateBy(Math2.ROTATION2D_PI)) : state;
         lastMoveSpeed = moveSpeed;
         controlTimer.restart();
     }

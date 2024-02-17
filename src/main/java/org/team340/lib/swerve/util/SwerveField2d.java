@@ -1,7 +1,6 @@
 package org.team340.lib.swerve.util;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -38,12 +37,6 @@ public class SwerveField2d extends Field2d {
                 );
         }
 
-        setRobotPose(
-            new Pose2d(
-                Math2.toFixed(newPose.getX()),
-                Math2.toFixed(newPose.getY()),
-                Rotation2d.fromDegrees(Math2.toFixed(newPose.getRotation().getDegrees()))
-            )
-        );
+        setRobotPose(newPose);
     }
 }
