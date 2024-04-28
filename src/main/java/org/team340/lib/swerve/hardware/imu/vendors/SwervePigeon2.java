@@ -29,7 +29,7 @@ public class SwervePigeon2 implements SwerveIMU {
         pitchSignal = pigeon2.getPitch();
         rollSignal = pigeon2.getRoll();
 
-        double hz = 1.0 / config.getOdometryPeriod();
+        double hz = 1.0 / config.getPeriod();
         BaseStatusSignal.setUpdateFrequencyForAll(hz, yawSignal, pitchSignal, rollSignal);
         pigeon2.optimizeBusUtilization();
     }

@@ -9,7 +9,6 @@ import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -26,6 +25,7 @@ import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import org.team340.lib.controller.Controller2;
+import org.team340.lib.util.Alliance;
 
 /**
  * Utility class for interfacing with the dashboard.
@@ -400,7 +400,7 @@ public final class GRRDashboard {
 
         @Override
         public void initSendable(SendableBuilder builder) {
-            builder.addBooleanProperty("blueAlliance", () -> DriverStation.getAlliance().orElse(Alliance.Blue).equals(Alliance.Blue), null);
+            builder.addBooleanProperty("blueAlliance", Alliance::isBlue, null);
             builder.addDoubleProperty("cpuTemperature", RobotController::getCPUTemp, null);
             builder.addBooleanProperty("enabled", DriverStation::isEnabled, null);
             builder.addDoubleProperty("matchTime", DriverStation::getMatchTime, null);

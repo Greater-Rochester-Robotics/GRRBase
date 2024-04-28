@@ -52,7 +52,11 @@ public final class SparkLimitSwitchConfig extends RevConfigBase<SparkLimitSwitch
      * @param enable Enable / disable motor shutdown based on the limit switch state. This does not affect the result of the get() command.
      */
     public SparkLimitSwitchConfig enableLimitSwitch(boolean enable) {
-        addStep(limitSwitch -> limitSwitch.enableLimitSwitch(enable), limitSwitch -> limitSwitch.isLimitSwitchEnabled(), "Enabled");
+        addStep(
+            limitSwitch -> limitSwitch.enableLimitSwitch(enable),
+            limitSwitch -> limitSwitch.isLimitSwitchEnabled() == enable,
+            "Enabled"
+        );
         return this;
     }
 }

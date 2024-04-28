@@ -19,6 +19,12 @@ public interface SwerveMotor {
     }
 
     /**
+     * Configures the current limit of the motor.
+     * @param newLimit The new current limit.
+     */
+    public abstract void configCurrentLimit(double newLimit);
+
+    /**
      * Gets the motor's velocity.
      */
     public abstract double getVelocity();
@@ -47,4 +53,11 @@ public interface SwerveMotor {
      * @param voltage The voltage to apply.
      */
     public abstract void setVoltage(double voltage);
+
+    /**
+     * If the device has encountered an error while reading inputs.
+     */
+    public default boolean readError() {
+        return false;
+    }
 }

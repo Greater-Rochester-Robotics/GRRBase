@@ -7,7 +7,6 @@ import com.revrobotics.SparkPIDController;
 import com.revrobotics.SparkPIDController.AccelStrategy;
 import org.team340.lib.util.Math2;
 import org.team340.lib.util.config.PIDConfig;
-import org.team340.lib.util.config.PIDFConfig;
 
 /**
  * Config builder for {@link SparkPIDController}.
@@ -404,27 +403,6 @@ public final class SparkPIDControllerConfig extends RevConfigBase<SparkPIDContro
         setI(iGain, slotId);
         setD(dGain, slotId);
         setFF(ffGain, slotId);
-        return this;
-    }
-
-    /**
-     * Sets PIDF gains on the Spark Max.
-     * @param pidfConfig The PIDF config object to apply.
-     */
-    public SparkPIDControllerConfig setPIDF(PIDFConfig pidfConfig) {
-        setPIDF(pidfConfig.p(), pidfConfig.i(), pidfConfig.d(), pidfConfig.ff());
-        setIZone(pidfConfig.iZone());
-        return this;
-    }
-
-    /**
-     * Sets PIDF gains on the Spark Max.
-     * @param pidfConfig The PIDF config object to apply.
-     * @param slotId The gain schedule slot, the value is a number between {@code 0} and {@code 3}.
-     */
-    public SparkPIDControllerConfig setPIDF(PIDFConfig pidfConfig, int slotId) {
-        setPIDF(pidfConfig.p(), pidfConfig.i(), pidfConfig.d(), pidfConfig.ff(), slotId);
-        setIZone(pidfConfig.iZone(), slotId);
         return this;
     }
 

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.MissingResourceException;
 import java.util.function.Consumer;
+import org.team340.lib.swerve.SwerveBase;
 import org.team340.lib.swerve.hardware.encoders.SwerveEncoder;
 import org.team340.lib.swerve.hardware.imu.SwerveIMU;
 import org.team340.lib.swerve.hardware.motors.SwerveMotor;
@@ -32,6 +33,8 @@ public class SwerveConfig {
     private double rotationalVelocity = -1.0;
     private double acceleration = -1.0;
     private double moduleRotationalVelocity = -1.0;
+    private double trajectoryVelocity = -1.0;
+    private double trajectoryAcceleration = -1.0;
     private double optimalVoltage = -1.0;
     private double moveCurrentLimit = -1.0;
     private double turnCurrentLimit = -1.0;
@@ -41,6 +44,7 @@ public class SwerveConfig {
     private double discretizationLookahead = -1.0;
     private double odometryPeriod = -1.0;
     private double[] odometryStd;
+    private double[] visionStd;
     private Config sysIdConfig = null;
     private double fieldLength = -1.0;
     private double fieldWidth = -1.0;
@@ -304,6 +308,31 @@ public class SwerveConfig {
     }
 
     /**
+     * Sets constraints for trajectory generation.
+     * @param trajectoryVelocity Max trajectory velocity in meters/second.
+     * @param trajectoryAcceleration Max trajectory acceleration in meters/second/second.
+     */
+    public SwerveConfig setTrajectoryConstraints(double trajectoryVelocity, double trajectoryAcceleration) {
+        this.trajectoryVelocity = trajectoryVelocity;
+        this.trajectoryAcceleration = trajectoryAcceleration;
+        return this;
+    }
+
+    /**
+     * Gets the configured maximum trajectory velocity in meters/second.
+     */
+    public double getTrajectoryVelocity() {
+        return trajectoryVelocity;
+    }
+
+    /**
+     * Gets te configured maximum trajectory acceleration in meters/second/second.
+     */
+    public double getTrajectoryAcceleration() {
+        return trajectoryAcceleration;
+    }
+
+    /**
      * Sets power properties.
      * @param optimalVoltage Optimal voltage to run at. Should be {@code 12}.
      * @param moveCurrentLimit A current limit in amps for move motors. This is typically {@code 40}.
@@ -427,6 +456,25 @@ public class SwerveConfig {
     }
 
     /**
+     * Sets the standard deviations for pose estimation from vision.
+     * A good starting configuration is all axis with a magnitude of {@code 0.1}.
+     * @param x The X axis standard deviation in meters.
+     * @param y The Y axis standard deviation in meters.
+     * @param rot The rotational standard deviation in radians.
+     */
+    public SwerveConfig setVisionStd(double x, double y, double rot) {
+        this.visionStd = new double[] { x, y, rot };
+        return this;
+    }
+
+    /**
+     * Gets the configured standard deviations for vision, as an array of {@code [x, y, rot]}.
+     */
+    public double[] getVisionStd() {
+        return visionStd;
+    }
+
+    /**
      * Sets config for SysId.
      */
     public SwerveConfig setSysIdConfig(Config sysIdConfig) {
@@ -502,30 +550,33 @@ public class SwerveConfig {
     public void verify() {
         if (imuType == null) throwMissing("IMU");
         if (imuArgs == null) throwMissing("IMU Args");
-        if (period == -1) throwMissing("Period");
+        if (period == -1.0) throwMissing("Period");
         if (movePID == null) throwMissing("Move PID");
         if (moveFF == null) throwMissing("Move FF");
         if (turnPID == null) throwMissing("Turn PID");
-        if (moveRampRate == -1) throwMissing("MoveRamp Rate");
-        if (turnRampRate == -1) throwMissing("Turn Ramp Rate");
+        if (moveRampRate == -1.0) throwMissing("MoveRamp Rate");
+        if (turnRampRate == -1.0) throwMissing("Turn Ramp Rate");
         if (moveMotorType == null) throwMissing("Move Motor Type");
         if (turnMotorType == null) throwMissing("Turn Motor Type");
-        if (velocity == -1) throwMissing("Velocity");
-        if (rotationalVelocity == -1) throwMissing("Rotational Velocity");
-        if (acceleration == -1) throwMissing("Acceleration");
-        if (moduleRotationalVelocity == -1) throwMissing("Module Rotational Velocity");
-        if (optimalVoltage == -1) throwMissing("Optimal Voltage");
-        if (moveCurrentLimit == -1) throwMissing("Move Current Limit");
-        if (turnCurrentLimit == -1) throwMissing("Turn Current Limit");
-        if (moveGearRatio == -1) throwMissing("Move Gear Ratio");
-        if (turnGearRatio == -1) throwMissing("Turn Gear Ratio");
-        if (wheelDiameterInches == -1) throwMissing("Wheel Diameter");
-        if (discretizationLookahead == -1) throwMissing("Discretization Lookahead");
-        if (odometryPeriod == -1) throwMissing("Odometry Period");
+        if (velocity == -1.0) throwMissing("Velocity");
+        if (rotationalVelocity == -1.0) throwMissing("Rotational Velocity");
+        if (acceleration == -1.0) throwMissing("Acceleration");
+        if (moduleRotationalVelocity == -1.0) throwMissing("Module Rotational Velocity");
+        if (trajectoryVelocity == -1.0) throwMissing("Trajectory Velocity");
+        if (trajectoryAcceleration == -1.0) throwMissing("Trajectory Acceleration");
+        if (optimalVoltage == -1.0) throwMissing("Optimal Voltage");
+        if (moveCurrentLimit == -1.0) throwMissing("Move Current Limit");
+        if (turnCurrentLimit == -1.0) throwMissing("Turn Current Limit");
+        if (moveGearRatio == -1.0) throwMissing("Move Gear Ratio");
+        if (turnGearRatio == -1.0) throwMissing("Turn Gear Ratio");
+        if (wheelDiameterInches == -1.0) throwMissing("Wheel Diameter");
+        if (discretizationLookahead == -1.0) throwMissing("Discretization Lookahead");
+        if (odometryPeriod == -1.0) throwMissing("Odometry Period");
         if (odometryStd == null) throwMissing("Odometry Standard Deviations");
+        if (visionStd == null) throwMissing("Vision Standard Deviations");
         if (sysIdConfig == null) throwMissing("SysId Config");
-        if (fieldLength == -1) throwMissing("Field Length");
-        if (fieldWidth == -1) throwMissing("Field Width");
+        if (fieldLength == -1.0) throwMissing("Field Length");
+        if (fieldWidth == -1.0) throwMissing("Field Width");
         if (modules.size() == 0) throwMissing("Modules");
 
         for (SwerveModuleConfig module : modules) {

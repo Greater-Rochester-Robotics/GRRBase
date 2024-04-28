@@ -155,6 +155,7 @@ final class HardwareSendables {
 
         @Override
         public void initSendable(SendableBuilder builder) {
+            super.initSendable(builder);
             builder.addDoubleProperty(
                 "power",
                 () -> {

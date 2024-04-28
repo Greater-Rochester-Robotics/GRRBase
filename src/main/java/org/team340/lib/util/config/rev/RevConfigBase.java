@@ -13,7 +13,7 @@ import org.team340.lib.util.Sleep;
  */
 abstract class RevConfigBase<T> {
 
-    private static final double CHECK_SLEEP = 25.0;
+    private static final double CHECK_SLEEP = 15.0;
     private static final int DEFAULT_SET_ITERATIONS = 3;
 
     private static final record RevConfigStep<T>(

@@ -39,9 +39,17 @@ public final class Math2 {
      */
     public static final double HALF_PI = Math.PI / 2.0;
     /**
+     * {@code PI / 3}
+     */
+    public static final double THIRD_PI = Math.PI / 3.0;
+    /**
      * {@code PI / 4}
      */
     public static final double QUARTER_PI = Math.PI / 4.0;
+    /**
+     * {@code 2PI / 3}
+     */
+    public static final double TWO_THIRD_PI = 2.0 * Math.PI / 3.0;
 
     /**
      * Identity {@link Translation2d}.
@@ -174,6 +182,31 @@ public final class Math2 {
      */
     public static double toFixed(double value, double precision) {
         return Math.round(value / precision) * precision;
+    }
+
+    /**
+     * Converts radians to degrees and rounds to 3 decimal places.
+     * @param radians The radians to format.
+     */
+    public static double formatRadians(double radians) {
+        return toFixed(Math.toDegrees(radians));
+    }
+
+    /**
+     * Returns a random double from {@code 0.0} to {@code max}.
+     * @param max The maximum value to return.
+     */
+    public static double random(double max) {
+        return Math.random() * max;
+    }
+
+    /**
+     * Returns a random double from {@code min} to {@code max}.
+     * @param min The minimum value to return.
+     * @param max The maximum value to return.
+     */
+    public static double random(double min, double max) {
+        return (Math.random() * (max - min)) + min;
     }
 
     /**

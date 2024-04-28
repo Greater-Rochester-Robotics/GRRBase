@@ -21,6 +21,9 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.trajectory.TrajectoryConfig;
+import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.units.Distance;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.MutableMeasure;
@@ -28,11 +31,15 @@ import edu.wpi.first.units.Velocity;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.ADIS16470_IMU;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Mechanism;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Consumer;
 import org.team340.lib.GRRDashboard;
 import org.team340.lib.GRRSubsystem;
@@ -50,10 +57,9 @@ import org.team340.lib.swerve.hardware.motors.vendors.SwerveSparkFlex;
 import org.team340.lib.swerve.hardware.motors.vendors.SwerveSparkMax;
 import org.team340.lib.swerve.hardware.motors.vendors.SwerveTalonFX;
 import org.team340.lib.swerve.util.SwerveConversions;
-import org.team340.lib.swerve.util.SwerveField2d;
 import org.team340.lib.swerve.util.SwerveOdometryThread;
 import org.team340.lib.swerve.util.SwerveRatelimiter;
-import org.team340.lib.swerve.util.SwerveSerializer;
+import org.team340.lib.swerve.util.SwerveVisualizer;
 import org.team340.lib.util.Math2;
 import org.team340.lib.util.SendableFactory;
 import org.team340.lib.util.StringUtil;
@@ -92,18 +98,18 @@ public abstract class SwerveBase extends GRRSubsystem {
     protected final SwerveModule[] modules;
     protected final SwerveDrivePoseEstimator poseEstimator;
     protected final SysIdRoutine sysIdRoutine;
+    protected final SwerveVisualizer visualizer;
 
     private final Translation2d[] moduleTranslations;
     private final SwerveOdometryThread odometryThread;
     private final SwerveRatelimiter ratelimiter;
-    private final SwerveField2d field;
 
     private final MutableMeasure<Voltage> sysIdAppliedVoltage = mutable(Volts.of(0));
     private final MutableMeasure<Distance> sysIdDistance = mutable(Meters.of(0));
     private final MutableMeasure<Velocity<Distance>> sysIdVelocity = mutable(MetersPerSecond.of(0));
 
     /**
-     * Create the GRRSwerve subsystem.
+     * Create the swerve subsystem.
      * @param label The label for the subsystem. Shown in the dashboard.
      * @param config Swerve config, use {@link SwerveConfig} as a builder for generating configs.
      */
@@ -124,19 +130,20 @@ public abstract class SwerveBase extends GRRSubsystem {
 
         conversions = new SwerveConversions(config);
         kinematics = new SwerveDriveKinematics(moduleTranslations);
-        odometryThread = new SwerveOdometryThread(modules, imu::getYaw, config);
+        odometryThread = new SwerveOdometryThread(modules, imu, config);
         ratelimiter = new SwerveRatelimiter(config, kinematics, getModuleStates());
-        field = new SwerveField2d(config);
+        visualizer = new SwerveVisualizer(this::getPosition, this::getModuleStates, this::getDesiredModuleStates);
 
-        double[] std = config.getOdometryStd();
+        double[] odometryStd = config.getOdometryStd();
+        double[] visionStd = config.getVisionStd();
         poseEstimator =
             new SwerveDrivePoseEstimator(
                 kinematics,
                 imu.getYaw(),
                 getModulePositions(),
-                new Pose2d(),
-                VecBuilder.fill(std[0], std[1], std[2]),
-                VecBuilder.fill(0.0, 0.0, 0.0)
+                Math2.POSE2D_0,
+                VecBuilder.fill(odometryStd[0], odometryStd[1], odometryStd[2]),
+                VecBuilder.fill(visionStd[0], visionStd[1], visionStd[2])
             );
 
         sysIdRoutine =
@@ -163,10 +170,9 @@ public abstract class SwerveBase extends GRRSubsystem {
             );
 
         imu.setZero(Math2.ROTATION2D_0);
-        odometryThread.start();
 
         System.out.println(
-            "\nGRRSwerve Conversions:" +
+            "\nSwerve Conversions:" +
             "\n\tModule Count: " +
             modules.length +
             "\n\tMove Rotations/Meter: " +
@@ -183,18 +189,20 @@ public abstract class SwerveBase extends GRRSubsystem {
         builder.addDoubleProperty("velocityX", () -> getVelocity(true).vxMetersPerSecond, null);
         builder.addDoubleProperty("velocityY", () -> getVelocity(true).vyMetersPerSecond, null);
         builder.addDoubleProperty("velocityRot", () -> getVelocity(true).omegaRadiansPerSecond, null);
-        builder.addDoubleProperty("velocityNorm", () -> SwerveSerializer.chassisSpeedsNorm(getVelocity(true)), null);
+        builder.addDoubleProperty(
+            "velocityNorm",
+            () -> {
+                ChassisSpeeds speeds = getVelocity(true);
+                return Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
+            },
+            null
+        );
 
         builder.addDoubleProperty("odometryX", () -> getPosition().getX(), null);
         builder.addDoubleProperty("odometryY", () -> getPosition().getY(), null);
         builder.addDoubleProperty("odometryRot", () -> getPosition().getRotation().getRadians(), null);
 
-        builder.addDoubleArrayProperty(
-            "desiredModuleStates",
-            () -> SwerveSerializer.moduleStatesDoubleArray(getDesiredModuleStates()),
-            null
-        );
-        builder.addDoubleArrayProperty("moduleStates", () -> SwerveSerializer.moduleStatesDoubleArray(getModuleStates()), null);
+        builder.addIntegerProperty("readErrors", odometryThread::readErrorCount, null);
 
         for (SwerveModule module : modules) {
             GRRDashboard.addSubsystemSendable(
@@ -204,12 +212,14 @@ public abstract class SwerveBase extends GRRSubsystem {
                     moduleBuilder.publishConstString(".label", module.getLabel());
                     moduleBuilder.addDoubleProperty("velocity", module::getVelocity, null);
                     moduleBuilder.addDoubleProperty("distance", module::getDistance, null);
-                    moduleBuilder.addDoubleProperty("angle", module::getHeading, null);
+                    moduleBuilder.addDoubleProperty("heading", module::getHeading, null);
+                    moduleBuilder.addDoubleProperty("desiredVelocity", () -> module.getDesiredState().speedMetersPerSecond, null);
+                    moduleBuilder.addDoubleProperty("desiredHeading", () -> module.getDesiredState().angle.getRadians(), null);
                 })
             );
         }
 
-        GRRDashboard.addSubsystemSendable("Field", this, field);
+        GRRDashboard.addSubsystemSendable("Visualizations", this, visualizer);
     }
 
     /**
@@ -259,6 +269,16 @@ public abstract class SwerveBase extends GRRSubsystem {
     }
 
     /**
+     * Gets an array of the modules' move motor distance in radians.
+     */
+    protected double[] getModuleDistanceRad() {
+        return Arrays
+            .stream(modules)
+            .mapToDouble(module -> module.getDistance() * (conversions.moveRotationsPerMeter() / config.getMoveGearRatio()) * Math2.TWO_PI)
+            .toArray();
+    }
+
+    /**
      * Resets odometry.
      * @param newPose The new pose.
      */
@@ -281,9 +301,45 @@ public abstract class SwerveBase extends GRRSubsystem {
      * @param poseEstimatorConsumer A consumer that accepts the pose estimator. Should be used for applying field-relative poses from vision data. Note that it is expected that standard deviations are specified when using {@link SwerveDrivePoseEstimator#addVisionMeasurement}, as the initial standard deviations are set to {@code 0.0}.
      */
     protected void updateOdometry(Consumer<SwerveDrivePoseEstimator> poseEstimatorConsumer) {
-        odometryThread.update(poseEstimator);
         poseEstimatorConsumer.accept(poseEstimator);
-        field.update(getPosition());
+        odometryThread.update(poseEstimator);
+    }
+
+    /**
+     * Generates a trajectory using the configured constraints of the robot.
+     * Always starts at the robot's position, with a starting velocity of the
+     * robot's velocity, and an ending velocity of {@code 0.0}.
+     * @param points The points in the trajectory.
+     */
+    protected Trajectory generateTrajectory(Pose2d... points) {
+        ChassisSpeeds speeds = getVelocity(true);
+        return generateTrajectory(Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond), 0.0, points);
+    }
+
+    /**
+     * Generates a trajectory using the configured constraints of the robot.
+     * Always starts at the robot's position.
+     * @param startVelocity The start velocity of the trajectory.
+     * @param endVelocity The end velocity of the trajectory.
+     * @param points The points in the trajectory.
+     */
+    protected Trajectory generateTrajectory(double startVelocity, double endVelocity, Pose2d... points) {
+        TrajectoryConfig trajectoryConfig = new TrajectoryConfig(config.getTrajectoryVelocity(), config.getTrajectoryAcceleration());
+        trajectoryConfig.setStartVelocity(startVelocity);
+        trajectoryConfig.setEndVelocity(endVelocity);
+        trajectoryConfig.setKinematics(kinematics);
+        List<Pose2d> pointsList = new ArrayList<>(Arrays.asList(points));
+        Pose2d position = getPosition();
+        pointsList.add(
+            0,
+            new Pose2d(position.getX(), position.getY(), points[0].getTranslation().minus(position.getTranslation()).getAngle())
+        );
+        try {
+            return TrajectoryGenerator.generateTrajectory(pointsList, trajectoryConfig);
+        } catch (Exception e) {
+            DriverStation.reportError(e.getMessage(), true);
+            return new Trajectory();
+        }
     }
 
     /**
@@ -333,46 +389,15 @@ public abstract class SwerveBase extends GRRSubsystem {
     }
 
     /**
-     * Drives the robot using percents of its calculated max velocity while locked pointing at a position on the field.
-     * @param x The desired {@code x} speed from {@code -1.0} to {@code 1.0}.
-     * @param y The desired {@code y} speed from {@code -1.0} to {@code 1.0}.
-     * @param angleOffset The offset to use when determining which side of the robot should face the point. (value in radians)
-     * @param point The desired field relative position to point at (axis values in meters).
-     * @param controller A profiled PID controller to use for translating to and maintaining the angle to the desired point.
-     */
-    protected void driveAroundPoint(double x, double y, double angleOffset, Translation2d point, ProfiledPIDController controller) {
-        driveAroundPointVelocity(x * config.getVelocity(), y * config.getVelocity(), angleOffset, point, controller);
-    }
-
-    /**
-     * Drives the robot using velocity while locked pointing at a position on the field.
-     * @param xV The desired {@code x} velocity in meters/second.
-     * @param yV The desired {@code y} velocity in meters/second.
-     * @param angleOffset The offset to use when determining which side of the robot should face the point. (value in radians)
-     * @param point The desired field relative position to point at (axis values in meters).
-     * @param controller A profiled PID controller to use for translating to and maintaining the angle to the desired point.
-     */
-    protected void driveAroundPointVelocity(
-        double xV,
-        double yV,
-        double angleOffset,
-        Translation2d point,
-        ProfiledPIDController controller
-    ) {
-        Translation2d robotPoint = getPosition().getTranslation();
-        double angle = MathUtil.angleModulus(point.minus(robotPoint).getAngle().getRadians() + angleOffset);
-        driveAngleVelocity(xV, yV, angle, controller);
-    }
-
-    /**
      * Drives the robot using percents of its calculated max velocity while locked at a field relative angle.
      * @param x The desired {@code x} speed from {@code -1.0} to {@code 1.0}.
      * @param y The desired {@code y} speed from {@code -1.0} to {@code 1.0}.
      * @param angle The desired field relative angle to point at in radians.
      * @param controller A profiled PID controller to use for translating to and maintaining the angle.
+     * @param useIMU If the IMU should be used for determining the robot's angle. If {@code false}, the pose estimator is used.
      */
-    protected void driveAngle(double x, double y, double angle, ProfiledPIDController controller) {
-        driveAngleVelocity(x * config.getVelocity(), y * config.getVelocity(), angle, controller);
+    protected void driveAngle(double x, double y, double angle, ProfiledPIDController controller, boolean useIMU) {
+        driveAngleVelocity(x * config.getVelocity(), y * config.getVelocity(), angle, controller, useIMU);
     }
 
     /**
@@ -381,9 +406,10 @@ public abstract class SwerveBase extends GRRSubsystem {
      * @param yV The desired {@code y} velocity in meters/second.
      * @param angle The desired field relative angle to point at in radians.
      * @param controller A profiled PID controller to use for translating to and maintaining the angle.
+     * @param useIMU If the IMU should be used for determining the robot's angle. If {@code false}, the pose estimator is used.
      */
-    protected void driveAngleVelocity(double xV, double yV, double angle, ProfiledPIDController controller) {
-        Rotation2d yaw = imu.getYaw();
+    protected void driveAngleVelocity(double xV, double yV, double angle, ProfiledPIDController controller, boolean useIMU) {
+        Rotation2d yaw = useIMU ? imu.getYaw() : getPosition().getRotation();
         ChassisSpeeds chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
             xV,
             yV,
@@ -400,9 +426,16 @@ public abstract class SwerveBase extends GRRSubsystem {
      * @param xController A PID controller to use for translating to and maintaining pose's {@code x} position.
      * @param yController The PID controller to use for translating to and maintaining pose's {@code y} position.
      * @param rotController The profiled PID controller to use for translating to and maintaining the pose's angle.
+     * @param useIMU If the IMU should be used for determining the robot's angle. If {@code false}, the pose estimator is used.
      */
-    protected void driveToPose(Pose2d pose, PIDController xController, PIDController yController, ProfiledPIDController rotController) {
-        Rotation2d yaw = imu.getYaw();
+    protected void driveToPose(
+        Pose2d pose,
+        PIDController xController,
+        PIDController yController,
+        ProfiledPIDController rotController,
+        boolean useIMU
+    ) {
+        Rotation2d yaw = useIMU ? imu.getYaw() : getPosition().getRotation();
         Pose2d position = getPosition();
         ChassisSpeeds chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
             xController.calculate(position.getX(), pose.getX()),
@@ -559,6 +592,7 @@ public abstract class SwerveBase extends GRRSubsystem {
 
                     encoder =
                         new SwerveSparkEncoder(
+                            turnSparkMax,
                             createSparkMaxAbsoluteEncoder(
                                 moduleConfig.getLabel() + " Absolute Encoder",
                                 turnSparkMax,
@@ -577,6 +611,7 @@ public abstract class SwerveBase extends GRRSubsystem {
 
                     encoder =
                         new SwerveSparkEncoder(
+                            turnSparkFlex,
                             createSparkFlexAbsoluteEncoder(
                                 moduleConfig.getLabel() + " Absolute Encoder",
                                 turnSparkFlex,

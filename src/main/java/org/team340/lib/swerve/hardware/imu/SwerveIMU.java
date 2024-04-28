@@ -34,4 +34,11 @@ public interface SwerveIMU {
      * @param yaw The yaw to zero.
      */
     public void setZero(Rotation2d yaw);
+
+    /**
+     * If the device has encountered an error while reading inputs.
+     */
+    public default boolean readError() {
+        return false;
+    }
 }

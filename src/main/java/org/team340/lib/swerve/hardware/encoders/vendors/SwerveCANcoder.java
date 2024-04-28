@@ -26,7 +26,7 @@ public class SwerveCANcoder implements SwerveEncoder {
     public SwerveCANcoder(CANcoder canCoder, SwerveConfig config, SwerveModuleConfig moduleConfig) {
         absolutePositionSignal = canCoder.getAbsolutePosition();
 
-        double hz = 1.0 / config.getOdometryPeriod();
+        double hz = 1.0 / config.getPeriod();
         absolutePositionSignal.setUpdateFrequency(hz);
         canCoder.optimizeBusUtilization();
 

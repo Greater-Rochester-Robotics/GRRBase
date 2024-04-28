@@ -2,6 +2,7 @@ package org.team340.lib.swerve.hardware.motors.vendors;
 
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkFlex;
+import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkAbsoluteEncoder;
 import com.revrobotics.SparkPIDController;
@@ -55,7 +56,6 @@ public class SwerveSparkFlex implements SwerveMotor {
         SwerveConversions conversions = new SwerveConversions(config);
 
         int periodMs = (int) (config.getPeriod() * 1000.0);
-        int periodOdometryMs = (int) (config.getOdometryPeriod() * 1000.0);
         boolean usingAttachedEncoder = SwerveEncoder.Type.SPARK_ENCODER.equals(moduleConfig.getEncoderType()) && !isMoveMotor;
         double conversionFactor = 1.0 / (isMoveMotor ? conversions.moveRotationsPerMeter() : conversions.turnRotationsPerRadian());
         PIDConfig pidConfig = isMoveMotor ? config.getMovePID() : config.getTurnPID();
@@ -71,11 +71,11 @@ public class SwerveSparkFlex implements SwerveMotor {
             .setOpenLoopRampRate(isMoveMotor ? config.getMoveRampRate() : config.getTurnRampRate())
             .setClosedLoopRampRate(isMoveMotor ? config.getMoveRampRate() : config.getTurnRampRate())
             .setPeriodicFramePeriod(Frame.S0, periodMs)
-            .setPeriodicFramePeriod(Frame.S1, periodOdometryMs)
-            .setPeriodicFramePeriod(Frame.S2, periodOdometryMs)
+            .setPeriodicFramePeriod(Frame.S1, periodMs)
+            .setPeriodicFramePeriod(Frame.S2, periodMs)
             .setPeriodicFramePeriod(Frame.S3, 10000)
-            .setPeriodicFramePeriod(Frame.S4, usingAttachedEncoder ? periodOdometryMs : 10000)
-            .setPeriodicFramePeriod(Frame.S5, usingAttachedEncoder ? periodOdometryMs : 10000)
+            .setPeriodicFramePeriod(Frame.S4, usingAttachedEncoder ? periodMs : 10000)
+            .setPeriodicFramePeriod(Frame.S5, usingAttachedEncoder ? periodMs : 10000)
             .apply(sparkFlex);
 
         new SparkPIDControllerConfig()
@@ -100,6 +100,11 @@ public class SwerveSparkFlex implements SwerveMotor {
 
         sparkFlex.set(0.0);
         relativeEncoder.setPosition(0.0);
+    }
+
+    @Override
+    public void configCurrentLimit(double newLimit) {
+        sparkFlex.setSmartCurrentLimit((int) newLimit);
     }
 
     @Override
@@ -131,5 +136,10 @@ public class SwerveSparkFlex implements SwerveMotor {
     @Override
     public void setVoltage(double voltage) {
         sparkFlex.setVoltage(voltage);
+    }
+
+    @Override
+    public boolean readError() {
+        return !sparkFlex.getLastError().equals(REVLibError.kOk);
     }
 }

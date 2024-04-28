@@ -20,4 +20,11 @@ public interface SwerveEncoder {
      * Clamped from {@code -PI} to {@code PI}.
      */
     public abstract double getPosition();
+
+    /**
+     * If the device has encountered an error while reading inputs.
+     */
+    public default boolean readError() {
+        return false;
+    }
 }

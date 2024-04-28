@@ -9,9 +9,9 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Supplier;
 import org.team340.lib.swerve.SwerveModule;
 import org.team340.lib.swerve.config.SwerveConfig;
+import org.team340.lib.swerve.hardware.imu.SwerveIMU;
 
 /**
  * Samples swerve hardware on a separate thread running at a higher frequency than the main robot loop to provide more accurate odometry.
@@ -19,43 +19,52 @@ import org.team340.lib.swerve.config.SwerveConfig;
  */
 public class SwerveOdometryThread {
 
-    private record ModuleQueues(Deque<Double> distance, Deque<Double> heading) {}
+    private class Sample {
+
+        public double timestamp;
+        public Rotation2d yaw;
+        public SwerveModulePosition[] modulePositions;
+    }
 
     private final SwerveModule[] modules;
-    private final Supplier<Rotation2d> yawSupplier;
+    private final SwerveIMU imu;
 
-    private final ModuleQueues[] moduleQueues;
-    private final Deque<Rotation2d> yawQueue = new ArrayDeque<>();
-    private final Deque<Double> timestampQueue = new ArrayDeque<>();
+    private final Deque<Sample> samples = new ArrayDeque<>();
 
     private final Notifier thread;
     private final double period;
+    private final int moduleCount;
     private final ReentrantLock mutex = new ReentrantLock();
+
+    private int readErrors = 0;
 
     /**
      * Creates the odometry thread.
      * @param modules The robot's swerve modules.
-     * @param yawSupplier A supplier for the robot's yaw.
+     * @param imu The IMU.
+     * @param config The general swerve config.
      */
-    public SwerveOdometryThread(SwerveModule[] modules, Supplier<Rotation2d> yawSupplier, SwerveConfig config) {
+    public SwerveOdometryThread(SwerveModule[] modules, SwerveIMU imu, SwerveConfig config) {
         this.modules = modules;
-        this.yawSupplier = yawSupplier;
+        this.imu = imu;
 
-        moduleQueues = new ModuleQueues[modules.length];
-        for (int i = 0; i < modules.length; i++) {
-            moduleQueues[i] = new ModuleQueues(new ArrayDeque<>(), new ArrayDeque<>());
-        }
-
-        thread = new Notifier(this::sample);
-        thread.setName("Swerve Odometry");
         period = config.getOdometryPeriod();
+        moduleCount = modules.length;
+        if (period != config.getPeriod()) {
+            thread = new Notifier(this::recordSample);
+            thread.setName("Swerve Odometry");
+        } else {
+            thread = null;
+        }
     }
 
     /**
      * Starts the thread.
      */
     public void start() {
-        thread.startPeriodic(period);
+        if (thread != null) {
+            thread.startPeriodic(period);
+        }
     }
 
     /**
@@ -63,61 +72,50 @@ public class SwerveOdometryThread {
      * @param poseEstimator The pose estimator to update.
      */
     public void update(SwerveDrivePoseEstimator poseEstimator) {
+        if (thread == null) recordSample();
+
         try {
             mutex.lock();
-            Iterator<Double> timestampIterator = timestampQueue.iterator();
-            while (timestampIterator.hasNext()) {
-                double timestamp = timestampIterator.next();
-
-                boolean missingModule = false;
-                SwerveModulePosition[] modulePositions = new SwerveModulePosition[moduleQueues.length];
-                for (int i = 0; i < modulePositions.length; i++) {
-                    double distance, heading;
-                    try {
-                        distance = moduleQueues[i].distance().pop();
-                        heading = moduleQueues[i].heading().pop();
-                    } catch (Exception e) {
-                        missingModule = true;
-                        continue;
-                    }
-
-                    modulePositions[i] = new SwerveModulePosition(distance, new Rotation2d(heading));
-                }
-
-                if (missingModule) continue;
-
-                try {
-                    Rotation2d yaw = yawQueue.pop();
-                    poseEstimator.updateWithTime(timestamp, yaw, modulePositions);
-                } catch (Exception e) {
-                    continue;
-                }
+            Iterator<Sample> sampleIterator = samples.iterator();
+            while (sampleIterator.hasNext()) {
+                Sample sample = sampleIterator.next();
+                poseEstimator.updateWithTime(sample.timestamp, sample.yaw, sample.modulePositions);
             }
         } finally {
-            yawQueue.clear();
-            timestampQueue.clear();
-            for (ModuleQueues queues : moduleQueues) {
-                queues.distance().clear();
-                queues.heading().clear();
-            }
-
+            samples.clear();
             mutex.unlock();
         }
     }
 
     /**
-     * Samples hardware.
+     * Returns the number of hardware read errors encountered by the thread.
      */
-    private void sample() {
+    public int readErrorCount() {
+        return readErrors;
+    }
+
+    /**
+     * Records a sample.
+     */
+    private void recordSample() {
         try {
             mutex.lock();
-            timestampQueue.add(MathSharedStore.getTimestamp());
-            yawQueue.add(yawSupplier.get());
-            for (int i = 0; i < modules.length; i++) {
-                SwerveModule module = modules[i];
-                ModuleQueues queues = moduleQueues[i];
-                queues.distance().add(module.getDistance());
-                queues.heading().add(module.getHeading());
+            Sample sample = new Sample();
+            int sampleErrors = 0;
+
+            sample.yaw = imu.getYaw();
+            if (imu.readError()) sampleErrors++;
+
+            sample.modulePositions = new SwerveModulePosition[moduleCount];
+            for (int i = 0; i < moduleCount; i++) {
+                sample.modulePositions[i] = modules[i].getModulePosition();
+                sampleErrors += modules[i].readErrorCount();
+            }
+
+            readErrors += sampleErrors;
+            if (sampleErrors == 0) {
+                sample.timestamp = MathSharedStore.getTimestamp();
+                samples.add(sample);
             }
         } finally {
             mutex.unlock();

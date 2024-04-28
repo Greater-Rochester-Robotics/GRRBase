@@ -22,7 +22,7 @@ public class SwerveModule {
     private final SwerveMotor moveMotor;
     private final SwerveMotor turnMotor;
     private final SwerveEncoder encoder;
-    private final SimpleMotorFeedforward moveFFController;
+    private final SimpleMotorFeedforward moveFF;
     private final Timer controlTimer = new Timer();
 
     private SwerveModuleState desiredState = new SwerveModuleState();
@@ -52,7 +52,23 @@ public class SwerveModule {
         this.turnMotor = turnMotor;
         this.encoder = encoder;
 
-        moveFFController = new SimpleMotorFeedforward(config.getMoveFF().s(), config.getMoveFF().v(), config.getMoveFF().a());
+        moveFF = config.getMoveFF().simpleMotorFeedForward();
+    }
+
+    /**
+     * Configures the current limit of the move motor.
+     * @param newLimit The new current limit.
+     */
+    public void configMoveCurrentLimit(double newLimit) {
+        moveMotor.configCurrentLimit(newLimit);
+    }
+
+    /**
+     * Configures the current limit of the turn motor.
+     * @param newLimit The new current limit.
+     */
+    public void configTurnCurrentLimit(double newLimit) {
+        turnMotor.configCurrentLimit(newLimit);
     }
 
     /**
@@ -141,11 +157,8 @@ public class SwerveModule {
             flipped = true;
         }
 
-        double moveFF = moveFFController.calculate(moveSpeed);
-        double turnTarget = turnMotor.getPosition() + angleDiff;
-
-        moveMotor.setReference(moveSpeed, moveFF);
-        turnMotor.setReference(turnTarget, 0.0);
+        moveMotor.setReference(moveSpeed, moveFF.calculate(moveSpeed));
+        turnMotor.setReference(turnMotor.getPosition() + angleDiff, 0.0);
 
         if (RobotBase.isSimulation()) {
             simDistance += simVelocity * controlTimer.get();
@@ -173,7 +186,7 @@ public class SwerveModule {
         turnMotor.setReference(turnTarget, 0.0);
 
         double expectedVelocity =
-            moveFFController.maxAchievableVelocity(
+            moveFF.maxAchievableVelocity(
                 config.getOptimalVoltage(),
                 controlTimer.get() == 0 ? 0.0 : (simVelocity - lastMoveSpeed) / controlTimer.get()
             ) *
@@ -188,5 +201,17 @@ public class SwerveModule {
         desiredState = new SwerveModuleState(expectedVelocity, heading);
         lastMoveSpeed = RobotBase.isSimulation() ? simVelocity : getVelocity();
         controlTimer.restart();
+    }
+
+    /**
+     * Returns an integer representing the number of devices with a read error.
+     * Minimum of {@code 0}, maximum of {@code 3} (Move Motor, Turn Motor, Encoder).
+     */
+    public int readErrorCount() {
+        int errors = 0;
+        if (moveMotor.readError()) errors++;
+        if (turnMotor.readError()) errors++;
+        if (encoder.readError()) errors++;
+        return errors;
     }
 }

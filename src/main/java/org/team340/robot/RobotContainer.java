@@ -45,7 +45,8 @@ public final class RobotContainer {
         // Set systems check command.
         GRRDashboard.setSystemsCheck(SystemsCheck.command());
 
-        // Print errors from REV hardware initialization.
+        // Complete REV hardware initialization.
+        RevConfigRegistry.burnFlash();
         RevConfigRegistry.printError();
 
         // Configure bindings and autos.
@@ -67,12 +68,6 @@ public final class RobotContainer {
 
         // POV Left => Zero swerve
         driver.povLeft().onTrue(swerve.zeroIMU(Math2.ROTATION2D_0));
-
-        // Left Bumper => Snap 180
-        driver.leftBumper().whileTrue(swerve.driveSnap180(RobotContainer::getDriveX, RobotContainer::getDriveY));
-
-        // Right Bumper => Lock wheels
-        driver.rightBumper().whileTrue(swerve.lock());
 
         /**
          * Co-driver bindings.
