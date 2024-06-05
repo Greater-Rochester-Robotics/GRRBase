@@ -32,6 +32,7 @@ public class SwerveConfig {
     private double velocity = -1.0;
     private double rotationalVelocity = -1.0;
     private double acceleration = -1.0;
+    private double deceleration = -1.0;
     private double moduleRotationalVelocity = -1.0;
     private double trajectoryVelocity = -1.0;
     private double trajectoryAcceleration = -1.0;
@@ -236,8 +237,8 @@ public class SwerveConfig {
      * These are used for constraining the requested velocity commanded to swerve modules, as well as scaling when driving by a percent of max speed.
      *
      * <br><br>
-     * You may find more predictable behavior by setting these values lower than the actual maximum capabilities of your robot.
-     * It is recommended that these values are tested for using an actual robot. An easy way to do so is to set these values to an impossibly high value, then examine the outputs in network tables.
+     * You may find more predictable behavior by setting these values slightly lower than the actual maximum capabilities of your robot.
+     * It is recommended that these values are found empirically using an actual robot. An easy way to do so is to configure infeasible ratelimits, then analyze telemetry.
      * Initial theoretical values can be estimated using the following formulas:
      *
      * <br><br>
@@ -273,22 +274,16 @@ public class SwerveConfig {
      * Sets constraints for the ratelimiter.
      *
      * <br><br>
-     * You may find more predictable behavior by setting these values lower than the actual maximum capabilities of your robot.
-     * It is recommended that these values are tested for using an actual robot. An easy way to do so is to set these values to an impossibly high value, then examine the outputs in network tables.
-     * Initial theoretical values can be estimated using the following formulas:
-     *
-     * <br><br>
-     * <b>Max Robot Acceleration:</b> {@code <Max Robot Velocity> * 2} (VERY much an estimate, typical ballpark acceleration for robots weighing ~120 pounds)
-     * Can also be pulled from Choreo.
-     *
-     * <br><br>
-     * <b>Max Module Rotational Velocity:</b> {@code (<Turn Motor Free Speed RPM> / 60) / (<Turn Gear Ratio> / (PI * 2)) * 0.7}
+     * You may find more predictable behavior by setting these values slightly lower than the actual maximum capabilities of your robot.
+     * It is recommended that these values are found empirically using an actual robot. An easy way to do so is to configure infeasible ratelimits, then analyze telemetry.
      *
      * @param acceleration The maximum acceleration the robot is capable of in meters/second/second.
+     * @param deceleration The maximum deceleration the robot is capable of in meters/second/second (positive).
      * @param moduleRotationalVelocity The maximum module rotational velocity the robot is capable of in radians/second.
      */
-    public SwerveConfig setRatelimits(double acceleration, double moduleRotationalVelocity) {
+    public SwerveConfig setRatelimits(double acceleration, double deceleration, double moduleRotationalVelocity) {
         this.acceleration = acceleration;
+        this.deceleration = deceleration;
         this.moduleRotationalVelocity = moduleRotationalVelocity;
         return this;
     }
@@ -298,6 +293,13 @@ public class SwerveConfig {
      */
     public double getAcceleration() {
         return acceleration;
+    }
+
+    /**
+     * Gets the configured maximum robot deceleration in meters/second/second.
+     */
+    public double getDeceleration() {
+        return deceleration;
     }
 
     /**
@@ -561,6 +563,7 @@ public class SwerveConfig {
         if (velocity == -1.0) throwMissing("Velocity");
         if (rotationalVelocity == -1.0) throwMissing("Rotational Velocity");
         if (acceleration == -1.0) throwMissing("Acceleration");
+        if (deceleration == -1.0) throwMissing("Deceleration");
         if (moduleRotationalVelocity == -1.0) throwMissing("Module Rotational Velocity");
         if (trajectoryVelocity == -1.0) throwMissing("Trajectory Velocity");
         if (trajectoryAcceleration == -1.0) throwMissing("Trajectory Acceleration");

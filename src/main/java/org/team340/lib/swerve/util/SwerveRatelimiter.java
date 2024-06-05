@@ -27,6 +27,10 @@ public class SwerveRatelimiter {
     private final SwerveConfig config;
     private final SwerveDriveKinematics kinematics;
     private final int moduleCount;
+    private final double maxHeadingDelta;
+    private final double maxAccel;
+    private final double maxDecel;
+
     private SwerveState lastState;
 
     /**
@@ -38,8 +42,12 @@ public class SwerveRatelimiter {
     public SwerveRatelimiter(SwerveConfig config, SwerveDriveKinematics kinematics, SwerveModuleState[] initialModuleStates) {
         this.config = config;
         this.kinematics = kinematics;
-        this.lastState = new SwerveState(kinematics.toChassisSpeeds(initialModuleStates), initialModuleStates);
         moduleCount = initialModuleStates.length;
+        maxHeadingDelta = config.getModuleRotationalVelocity() * config.getPeriod();
+        maxAccel = config.getAcceleration() * config.getPeriod();
+        maxDecel = config.getDeceleration() * config.getPeriod();
+
+        this.lastState = new SwerveState(kinematics.toChassisSpeeds(initialModuleStates), initialModuleStates);
     }
 
     /**
@@ -242,14 +250,13 @@ public class SwerveRatelimiter {
                 if (dvScalar == 0.0) continue;
 
                 // - Find the module's velocity delta scalar from its heading delta (refer to the method below on how this is derived).
-                double moduleDvScalar = getModuleHeadingVDS(
+                double moduleDvScalar = getHeadingS(
                     modulesLastVx[i],
                     modulesLastVy[i],
                     modulesLastHeading[i].getRadians(),
                     modulesDesiredVx[i],
                     modulesDesiredVy[i],
-                    modulesDesiredHeading[i].getRadians(),
-                    maxHeadingDelta
+                    modulesDesiredHeading[i].getRadians()
                 );
 
                 // - Set the scalar to the minimum of its current value and the
@@ -275,15 +282,7 @@ public class SwerveRatelimiter {
                 : ((modulesDesiredVy[i] - modulesLastVy[i]) * dvScalar) + modulesLastVy[i];
 
             // - Find the module's velocity delta scalar from its velocity delta (refer to the method below on how this is derived).
-            double moduleDvScalar =
-                dvScalar *
-                getModuleVelocityVDS(
-                    modulesLastVx[i],
-                    modulesLastVy[i],
-                    desiredModuleVx,
-                    desiredModuleVy,
-                    config.getPeriod() * config.getAcceleration()
-                );
+            double moduleDvScalar = dvScalar * getVelocityS(modulesLastVx[i], modulesLastVy[i], desiredModuleVx, desiredModuleVy);
 
             // - Set the scalar to the minimum of its current value and the
             //   calculated maximum feasible scalar from the module.
@@ -359,16 +358,14 @@ public class SwerveRatelimiter {
      * @param desiredVx Desired {@code x} velocity.
      * @param desiredVy Desired {@code y} velocity.
      * @param desiredHeading Desired heading.
-     * @param maxRotationalVelocityStep The maximum allowed difference in rotational velocity in a periodic loop iteration.
      */
-    private double getModuleHeadingVDS(
+    private double getHeadingS(
         double lastVx,
         double lastVy,
         double lastHeading,
         double desiredVx,
         double desiredVy,
-        double desiredHeading,
-        double maxRotationalVelocityStep
+        double desiredHeading
     ) {
         // - Make sure the headings are optimized.
         desiredHeading = Math2.wrapAbout(lastHeading, desiredHeading);
@@ -378,10 +375,10 @@ public class SwerveRatelimiter {
 
         // - If the last and desired heading is achievable in one
         //   periodic loop, return 1 as no interpolation is needed.
-        if (Math.abs(diff) <= maxRotationalVelocityStep) return 1.0;
+        if (Math.abs(diff) <= maxHeadingDelta) return 1.0;
 
         // - Find an achievable heading.
-        double achievableHeading = lastHeading + Math.signum(diff) * maxRotationalVelocityStep;
+        double achievableHeading = lastHeading + (Math.signum(diff) * maxHeadingDelta);
 
         // - Describes the following function:
         //     - x is the module's X velocity relative to the robot.
@@ -411,13 +408,12 @@ public class SwerveRatelimiter {
 
     /**
      * Calculates the velocity delta scalar (percent of difference between last and desired state) from a module's velocity.
-     * @param lastVx Last state {@code x} velocity.
-     * @param lastVy Last state {@code y} velocity.
-     * @param desiredVx Desired {@code x} velocity.
-     * @param desiredVy Desired {@code y} velocity.
-     * @param maxVelocityStep The maximum allowed difference in velocity in a periodic loop iteration.
+     * @param lastVx Last module {@code x} velocity.
+     * @param lastVy Last module {@code y} velocity.
+     * @param desiredVx Desired module {@code x} velocity.
+     * @param desiredVy Desired module {@code y} velocity.
      */
-    private double getModuleVelocityVDS(double lastVx, double lastVy, double desiredVx, double desiredVy, double maxVelocityStep) {
+    private double getVelocityS(double lastVx, double lastVy, double desiredVx, double desiredVy) {
         // - Compute the last and desired translational velocities.
         double lastNorm = Math.hypot(lastVx, lastVy);
         double desiredNorm = Math.hypot(desiredVx, desiredVy);
@@ -427,10 +423,10 @@ public class SwerveRatelimiter {
 
         // - If the last and desired velocity is achievable in one
         //   periodic loop, return 1 as no interpolation is needed.
-        if (Math.abs(diff) <= maxVelocityStep) return 1.0;
+        if (diff > -maxDecel && diff < maxAccel) return 1.0;
 
         // - Find an achievable velocity.
-        double achievableVelocity = lastNorm + Math.signum(diff) * maxVelocityStep;
+        double achievableVelocity = lastNorm + (diff < 0.0 ? -maxDecel : maxAccel);
 
         // - Describes the following function:
         //     - x is the module's X velocity relative to the robot.

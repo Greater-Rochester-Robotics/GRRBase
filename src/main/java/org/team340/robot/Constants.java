@@ -31,28 +31,28 @@ public final class Constants {
      */
     public static final class ControllerConstants {
 
-        public static final double DRIVE_EXP = 1.0;
+        public static final double DRIVE_EXP = 2.0;
         public static final double DRIVE_MULTIPLIER = 0.9;
         public static final double DRIVE_MULTIPLIER_MODIFIED = 1.0;
 
-        public static final double DRIVE_ROT_EXP = 2.0;
+        public static final double DRIVE_ROT_EXP = 3.0;
         public static final double DRIVE_ROT_MULTIPLIER = 0.4;
 
         public static final Controller2Config DRIVER = new Controller2Config()
             .setLabel("Driver")
             .setPort(0)
-            .setJoystickDeadband(0.15)
-            .setJoystickThreshold(0.7)
-            .setTriggerDeadband(0.1)
-            .setTriggerThreshold(0.1);
+            .setJoystickDeadband(0.1)
+            .setJoystickThreshold(0.5)
+            .setTriggerDeadband(0.05)
+            .setTriggerThreshold(0.05);
 
         public static final Controller2Config CO_DRIVER = new Controller2Config()
             .setLabel("CoDriver")
             .setPort(1)
-            .setJoystickDeadband(0.15)
-            .setJoystickThreshold(0.7)
-            .setTriggerDeadband(0.1)
-            .setTriggerThreshold(0.1);
+            .setJoystickDeadband(0.1)
+            .setJoystickThreshold(0.5)
+            .setTriggerDeadband(0.05)
+            .setTriggerThreshold(0.05);
     }
 
     /**
@@ -112,7 +112,7 @@ public final class Constants {
             .setRampRate(0.03, 0.03)
             .setMotorTypes(SwerveMotor.Type.SPARK_FLEX_BRUSHLESS, SwerveMotor.Type.SPARK_FLEX_BRUSHLESS)
             .setMaxSpeeds(5.0, 12.0)
-            .setRatelimits(11.0, 30.0)
+            .setRatelimits(10.0, 18.0, 50.0)
             .setTrajectoryConstraints(4.0, 8.0)
             .setPowerProperties(VOLTAGE, 80.0, 40.0)
             .setMechanicalProperties(6.75, 150.0 / 7.0, 4.0)

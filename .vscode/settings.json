@@ -41,6 +41,7 @@
     "Cnfg",
     "CTRE",
     "Deadband",
+    "Decel",
     "DeltAng",
     "DeltVel",
     "Desaturate",
