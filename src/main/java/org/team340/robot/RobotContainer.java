@@ -4,11 +4,8 @@ import static edu.wpi.first.wpilibj2.command.Commands.*;
 
 import org.team340.lib.GRRDashboard;
 import org.team340.lib.controller.Controller2;
-import org.team340.lib.util.Math2;
 import org.team340.lib.util.config.rev.RevConfigRegistry;
 import org.team340.robot.Constants.ControllerConstants;
-import org.team340.robot.commands.SystemsCheck;
-import org.team340.robot.subsystems.Swerve;
 
 /**
  * This class is used to declare subsystems, commands, and trigger mappings.
@@ -22,8 +19,6 @@ public final class RobotContainer {
     private static Controller2 driver;
     private static Controller2 coDriver;
 
-    public static Swerve swerve;
-
     /**
      * Entry to initializing subsystems and command execution.
      */
@@ -31,19 +26,6 @@ public final class RobotContainer {
         // Initialize controllers.
         driver = new Controller2(ControllerConstants.DRIVER);
         coDriver = new Controller2(ControllerConstants.CO_DRIVER);
-
-        // Add controllers to the dashboard.
-        driver.addToDashboard();
-        coDriver.addToDashboard();
-
-        // Initialize subsystems.
-        swerve = new Swerve();
-
-        // Add subsystems to the dashboard.
-        swerve.addToDashboard();
-
-        // Set systems check command.
-        GRRDashboard.setSystemsCheck(SystemsCheck.command());
 
         // Complete REV hardware initialization.
         RevConfigRegistry.burnFlash();
@@ -60,14 +42,13 @@ public final class RobotContainer {
      */
     private static void configBindings() {
         // Set default commands.
-        swerve.setDefaultCommand(swerve.drive(RobotContainer::getDriveX, RobotContainer::getDriveY, RobotContainer::getDriveRotate, true));
 
         /**
          * Driver bindings.
          */
 
-        // POV Left => Zero swerve
-        driver.povLeft().onTrue(swerve.zeroIMU(Math2.ROTATION2D_0));
+        // A => Do nothing
+        driver.a().onTrue(none());
 
         /**
          * Co-driver bindings.
@@ -89,7 +70,7 @@ public final class RobotContainer {
     private static double getDriveX() {
         double multiplier =
             ((driver.getHID().getLeftStickButton()) ? ControllerConstants.DRIVE_MULTIPLIER_MODIFIED : ControllerConstants.DRIVE_MULTIPLIER);
-        return -driver.getLeftY(multiplier, ControllerConstants.DRIVE_EXP);
+        return -multiplier * driver.getLeftY();
     }
 
     /**
@@ -98,13 +79,14 @@ public final class RobotContainer {
     private static double getDriveY() {
         double multiplier =
             ((driver.getHID().getLeftStickButton()) ? ControllerConstants.DRIVE_MULTIPLIER_MODIFIED : ControllerConstants.DRIVE_MULTIPLIER);
-        return -driver.getLeftX(multiplier, ControllerConstants.DRIVE_EXP);
+        return -multiplier * driver.getLeftX();
     }
 
     /**
      * Gets the rotational drive speed from the driver's controller.
      */
     private static double getDriveRotate() {
-        return driver.getTriggerDifference(ControllerConstants.DRIVE_ROT_MULTIPLIER, ControllerConstants.DRIVE_ROT_EXP);
+        double raw = driver.getTriggerDifference();
+        return Math.copySign(Math.pow(raw * ControllerConstants.DRIVE_ROT_MULTIPLIER, ControllerConstants.DRIVE_ROT_EXP), raw);
     }
 }

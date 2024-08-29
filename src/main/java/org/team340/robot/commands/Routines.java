@@ -18,6 +18,6 @@ public class Routines {
      * An example routine.
      */
     public static Command example() {
-        return sequence(swerve.drive(() -> 0.1, () -> 0.0, () -> 0.0, true).withTimeout(1.0));
+        return none();
     }
 }

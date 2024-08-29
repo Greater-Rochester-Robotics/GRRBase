@@ -1,16 +1,6 @@
 package org.team340.robot;
 
-import static edu.wpi.first.units.Units.Seconds;
-import static edu.wpi.first.units.Units.Volts;
-
-import edu.wpi.first.wpilibj.ADIS16470_IMU.CalibrationTime;
-import edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis;
-import edu.wpi.first.wpilibj.SPI.Port;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import org.team340.lib.controller.Controller2Config;
-import org.team340.lib.swerve.config.SwerveConfig;
-import org.team340.lib.swerve.config.SwerveModuleConfig;
-import org.team340.lib.swerve.hardware.motors.SwerveMotor;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -58,73 +48,5 @@ public final class Constants {
     /**
      * Map of hardware device IDs.
      */
-    public static final class RobotMap {
-
-        public static final int FRONT_LEFT_MOVE = 2;
-        public static final int FRONT_LEFT_TURN = 3;
-        public static final int BACK_LEFT_MOVE = 4;
-        public static final int BACK_LEFT_TURN = 5;
-        public static final int BACK_RIGHT_MOVE = 6;
-        public static final int BACK_RIGHT_TURN = 7;
-        public static final int FRONT_RIGHT_MOVE = 8;
-        public static final int FRONT_RIGHT_TURN = 9;
-    }
-
-    /**
-     * Constants for the swerve subsystem.
-     */
-    public static final class SwerveConstants {
-
-        private static final SwerveModuleConfig FRONT_LEFT = new SwerveModuleConfig()
-            .setLabel("Front Left")
-            .useSparkAttachedEncoder(2.389, true)
-            .setPosition(0.288925, 0.288925)
-            .setMoveMotor(RobotMap.FRONT_LEFT_MOVE, true, true)
-            .setTurnMotor(RobotMap.FRONT_LEFT_TURN, false, true);
-
-        private static final SwerveModuleConfig BACK_LEFT = new SwerveModuleConfig()
-            .setLabel("Back Left")
-            .useSparkAttachedEncoder(1.999, true)
-            .setPosition(-0.288925, 0.288925)
-            .setMoveMotor(RobotMap.BACK_LEFT_MOVE, true, true)
-            .setTurnMotor(RobotMap.BACK_LEFT_TURN, false, true);
-
-        private static final SwerveModuleConfig BACK_RIGHT = new SwerveModuleConfig()
-            .setLabel("Back Right")
-            .useSparkAttachedEncoder(4.194, true)
-            .setPosition(-0.288925, -0.288925)
-            .setMoveMotor(RobotMap.BACK_RIGHT_MOVE, true, true)
-            .setTurnMotor(RobotMap.BACK_RIGHT_TURN, false, true);
-
-        private static final SwerveModuleConfig FRONT_RIGHT = new SwerveModuleConfig()
-            .setLabel("Front Right")
-            .useSparkAttachedEncoder(5.566, true)
-            .setPosition(0.288925, -0.288925)
-            .setMoveMotor(RobotMap.FRONT_RIGHT_MOVE, true, true)
-            .setTurnMotor(RobotMap.FRONT_RIGHT_TURN, false, true);
-
-        public static final SwerveConfig CONFIG = new SwerveConfig()
-            .useADIS16470(IMUAxis.kZ, IMUAxis.kX, IMUAxis.kY, Port.kOnboardCS0, CalibrationTime._4s)
-            .setPeriod(PERIOD)
-            .setMovePID(0.3, 0.0, 0.0, 0.0)
-            .setMoveFF(0.1, 2.5, 0.0)
-            .setTurnPID(0.65, 0.001, 3.0, 0.01)
-            .setRampRate(0.03, 0.03)
-            .setMotorTypes(SwerveMotor.Type.SPARK_FLEX_BRUSHLESS, SwerveMotor.Type.SPARK_FLEX_BRUSHLESS)
-            .setMaxSpeeds(5.0, 12.0)
-            .setRatelimits(10.0, 18.0, 50.0)
-            .setTrajectoryConstraints(4.0, 8.0)
-            .setPowerProperties(VOLTAGE, 80.0, 40.0)
-            .setMechanicalProperties(6.75, 150.0 / 7.0, 4.0)
-            .setDiscretizationLookahead(PERIOD)
-            .setOdometryPeriod(PERIOD)
-            .setOdometryStd(0.003, 0.003, 0.0012)
-            .setVisionStd(0.0, 0.0, 0.0)
-            .setSysIdConfig(new SysIdRoutine.Config(Volts.of(1.0).per(Seconds.of(0.4)), Volts.of(7.0), Seconds.of(5.5)))
-            .setFieldSize(FIELD_LENGTH, FIELD_WIDTH)
-            .addModule(FRONT_LEFT)
-            .addModule(BACK_LEFT)
-            .addModule(BACK_RIGHT)
-            .addModule(FRONT_RIGHT);
-    }
+    public static final class RobotMap {}
 }

@@ -1,5 +1,9 @@
 package org.team340.lib.util;
 
+import static edu.wpi.first.units.Units.Milliseconds;
+
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.Time;
 import edu.wpi.first.wpilibj.RobotBase;
 
 /**
@@ -9,6 +13,14 @@ public final class Sleep {
 
     private Sleep() {
         throw new UnsupportedOperationException("This is a utility class!");
+    }
+
+    /**
+     * Sleeps the thread for the specified duration.
+     * @param time The time to sleep for.
+     */
+    public static void measure(Measure<Time> time) {
+        ms(time.in(Milliseconds));
     }
 
     /**
