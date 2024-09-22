@@ -1,16 +1,9 @@
 package org.team340.lib.util;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.geometry.Twist2d;
-import edu.wpi.first.math.geometry.Twist3d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 
 /**
  * Math utilities.
@@ -25,92 +18,39 @@ public final class Math2 {
     /**
      * Shared maximum accuracy floating point.
      */
-    public static final double DEFAULT_EPSILON = 1e-9;
+    public static final double EPSILON = 1e-8;
     /**
-     * Default precision used in {@link Math2#toFixed(double)}.
+     * {@code PI/6} (30deg)
      */
-    public static final double DEFAULT_TO_FIXED_PRECISION = 1e-3;
+    public static final double SIXTH_PI = Math.PI / 6.0;
     /**
-     * {@code PI * 2}
-     */
-    public static final double TWO_PI = Math.PI * 2.0;
-    /**
-     * {@code PI / 2}
-     */
-    public static final double HALF_PI = Math.PI / 2.0;
-    /**
-     * {@code PI / 3}
-     */
-    public static final double THIRD_PI = Math.PI / 3.0;
-    /**
-     * {@code PI / 4}
+     * {@code PI/4} (45deg)
      */
     public static final double QUARTER_PI = Math.PI / 4.0;
     /**
-     * {@code 2PI / 3}
+     * {@code PI/3} (60deg)
      */
-    public static final double TWO_THIRD_PI = 2.0 * Math.PI / 3.0;
-
+    public static final double THIRD_PI = Math.PI / 3.0;
     /**
-     * Identity {@link Translation2d}.
+     * {@code PI/2} (90deg)
      */
-    public static final Translation2d TRANSLATION2D_0 = new Translation2d();
+    public static final double HALF_PI = Math.PI / 2.0;
     /**
-     * Identity {@link Translation3d}.
+     * {@code 2PI/3} (120deg)
      */
-    public static final Translation3d TRANSLATION3D_0 = new Translation3d();
+    public static final double TWO_THIRDS_PI = 2.0 * Math.PI / 3.0;
     /**
-     * Identity {@link Rotation2d}.
+     * {@code 3PI/4} (135deg)
      */
-    public static final Rotation2d ROTATION2D_0 = new Rotation2d();
+    public static final double THREE_QUARTERS_PI = 3.0 * Math.PI / 4.0;
     /**
-     * A {@link Rotation2d} with a value of {@code 1/2 PI}.
+     * {@code 5PI/6} (150deg)
      */
-    public static final Rotation2d ROTATION2D_HALF_PI = new Rotation2d(HALF_PI);
+    public static final double FIVE_SIXTHS_PI = 5.0 * Math.PI / 6.0;
     /**
-     * A {@link Rotation2d} with a value of {@code PI}.
+     * {@code PI*2} (360deg)
      */
-    public static final Rotation2d ROTATION2D_PI = new Rotation2d(Math.PI);
-    /**
-     * A {@link Rotation2d} with a value of {@code -1/2 PI}.
-     */
-    public static final Rotation2d ROTATION2D_NEG_HALF_PI = new Rotation2d(-HALF_PI);
-    /**
-     * A {@link Rotation2d} with a value of {@code -PI}.
-     */
-    public static final Rotation2d ROTATION2D_NEG_PI = new Rotation2d(-Math.PI);
-    /**
-     * Identity {@link Rotation3d}.
-     */
-    public static final Rotation3d ROTATION3D_0 = new Rotation3d();
-    /**
-     * Identity {@link Transform2d}.
-     */
-    public static final Transform2d TRANSFORM2D_0 = new Transform2d();
-    /**
-     * Identity {@link Transform3d}.
-     */
-    public static final Transform3d TRANSFORM3D_0 = new Transform3d();
-    /**
-     * Identity {@link Twist2d}.
-     */
-    public static final Twist2d TWIST2D_0 = new Twist2d();
-    /**
-     * Identity {@link Twist3d}.
-     */
-    public static final Twist3d TWIST3D_0 = new Twist3d();
-    /**
-     * Identity {@link Pose2d}.
-     */
-    public static final Pose2d POSE2D_0 = new Pose2d();
-    /**
-     * Identity {@link Pose3d}.
-     */
-    public static final Pose3d POSE3D_0 = new Pose3d();
-    /**
-     * Identity {@link ChassisSpeeds}.
-     */
-    public static final ChassisSpeeds CHASSIS_SPEEDS_0 = new ChassisSpeeds();
+    public static final double TWO_PI = Math.PI * 2.0;
 
     /**
      * Wraps an angle within {@code +-PI} of a reference.
@@ -121,75 +61,6 @@ public final class Math2 {
     public static double wrapAbout(double ref, double angle) {
         double diff = angle - ref;
         if (diff > Math.PI) return angle - (Math2.TWO_PI); else if (diff < -Math.PI) return angle + (Math2.TWO_PI); else return angle;
-    }
-
-    /**
-     * Check if two values are equal within the accuracy of the default epsilon.
-     * @param a The first value to compare.
-     * @param b The second value to compare.
-     * @return {@code true} if the values are equal.
-     */
-    public static boolean epsilonEquals(double a, double b) {
-        return epsilonEquals(a, b, DEFAULT_EPSILON);
-    }
-
-    /**
-     * Check if two values are equal within the accuracy of a provided epsilon.
-     * @param a The first value to compare.
-     * @param b The second value to compare.
-     * @param epsilon Epsilon value to compare with.
-     * @return {@code true} if the values are equal.
-     */
-    public static boolean epsilonEquals(double a, double b, double epsilon) {
-        return (a - epsilon <= b) && (a + epsilon >= b);
-    }
-
-    /**
-     * Checks if two {@link Twist2d}s are equal within the accuracy of the default epsilon.
-     * @param a The first value to compare.
-     * @param b The second value to compare.
-     * @return {@code true} if the values are equal.
-     */
-    public static boolean twist2dEpsilonEquals(Twist2d a, Twist2d b) {
-        return twist2dEpsilonEquals(a, b, DEFAULT_EPSILON);
-    }
-
-    /**
-     * Checks if two {@link Twist2d}s are equal within the accuracy of a provided epsilon.
-     * @param a The first value to compare.
-     * @param b The second value to compare.
-     * @param epsilon Epsilon value to compare with.
-     * @return {@code true} if the values are equal.
-     */
-    public static boolean twist2dEpsilonEquals(Twist2d a, Twist2d b, double epsilon) {
-        return epsilonEquals(a.dx, b.dx, epsilon) && epsilonEquals(a.dy, b.dy, epsilon) && epsilonEquals(a.dtheta, b.dtheta, epsilon);
-    }
-
-    /**
-     * Rounds a value to a fixed point of 3 decimal places.
-     * @param value The value to round.
-     * @return The rounded value.
-     */
-    public static double toFixed(double value) {
-        return toFixed(value, DEFAULT_TO_FIXED_PRECISION);
-    }
-
-    /**
-     * Rounds a value to a fixed point.
-     * @param value The value to round.
-     * @param precision The fixed point precision to round to as a decimal. For example, {@code 1e-3} rounds to 3 decimal places. This must be a power of {@code 10}.
-     * @return The rounded value.
-     */
-    public static double toFixed(double value, double precision) {
-        return Math.round(value / precision) * precision;
-    }
-
-    /**
-     * Converts radians to degrees and rounds to 3 decimal places.
-     * @param radians The radians to format.
-     */
-    public static double formatRadians(double radians) {
-        return toFixed(Math.toDegrees(radians));
     }
 
     /**
@@ -243,5 +114,118 @@ public final class Math2 {
         } else {
             return sGuess * findRoot(func, x0, y0, f0, xGuess, yGuess, fGuess, iterationsLeft);
         }
+    }
+
+    /**
+     * Check if two values are equal within the accuracy of the default epsilon.
+     * @param a The first value to compare.
+     * @param b The second value to compare.
+     * @return {@code true} if the values are equal.
+     */
+    public static boolean epsilonEquals(double a, double b) {
+        return epsilonEquals(a, b, EPSILON);
+    }
+
+    /**
+     * Check if two values are equal within the accuracy of a provided epsilon.
+     * @param a The first value to compare.
+     * @param b The second value to compare.
+     * @param epsilon Epsilon value to compare with.
+     * @return {@code true} if the values are equal.
+     */
+    public static boolean epsilonEquals(double a, double b, double epsilon) {
+        return (a - epsilon <= b) && (a + epsilon >= b);
+    }
+
+    /**
+     * Checks if two {@link Translation2d}s are equal within the accuracy of the default epsilon.
+     * @param a The first value to compare.
+     * @param b The second value to compare.
+     * @return {@code true} if the values are equal.
+     */
+    public static boolean translationEpsilonEquals(Translation2d a, Translation2d b) {
+        return translationEpsilonEquals(a, b, EPSILON);
+    }
+
+    /**
+     * Checks if two {@link Translation2d}s are equal within the accuracy of a provided epsilon.
+     * @param a The first value to compare.
+     * @param b The second value to compare.
+     * @param epsilon Epsilon value to compare with.
+     * @return {@code true} if the values are equal.
+     */
+    public static boolean translationEpsilonEquals(Translation2d a, Translation2d b, double epsilon) {
+        return epsilonEquals(a.getX(), b.getX(), epsilon) && epsilonEquals(a.getY(), b.getY(), epsilon);
+    }
+
+    /**
+     * Checks if two {@link Transform2d}s are equal within the accuracy of the default epsilon.
+     * @param a The first value to compare.
+     * @param b The second value to compare.
+     * @return {@code true} if the values are equal.
+     */
+    public static boolean transformEpsilonEquals(Transform2d a, Transform2d b) {
+        return transformEpsilonEquals(a, b, EPSILON);
+    }
+
+    /**
+     * Checks if two {@link Transform2d}s are equal within the accuracy of a provided epsilon.
+     * @param a The first value to compare.
+     * @param b The second value to compare.
+     * @param epsilon Epsilon value to compare with.
+     * @return {@code true} if the values are equal.
+     */
+    public static boolean transformEpsilonEquals(Transform2d a, Transform2d b, double epsilon) {
+        return (
+            epsilonEquals(a.getX(), b.getX(), epsilon) &&
+            epsilonEquals(a.getY(), b.getY(), epsilon) &&
+            epsilonEquals(a.getRotation().getRadians(), b.getRotation().getRadians(), epsilon)
+        );
+    }
+
+    /**
+     * Checks if two {@link Pose2d}s are equal within the accuracy of the default epsilon.
+     * @param a The first value to compare.
+     * @param b The second value to compare.
+     * @return {@code true} if the values are equal.
+     */
+    public static boolean poseEpsilonEquals(Pose2d a, Pose2d b) {
+        return poseEpsilonEquals(a, b, EPSILON);
+    }
+
+    /**
+     * Checks if two {@link Pose2d}s are equal within the accuracy of a provided epsilon.
+     * @param a The first value to compare.
+     * @param b The second value to compare.
+     * @param epsilon Epsilon value to compare with.
+     * @return {@code true} if the values are equal.
+     */
+    public static boolean poseEpsilonEquals(Pose2d a, Pose2d b, double epsilon) {
+        return (
+            epsilonEquals(a.getX(), b.getX(), epsilon) &&
+            epsilonEquals(a.getY(), b.getY(), epsilon) &&
+            epsilonEquals(a.getRotation().getRadians(), b.getRotation().getRadians(), epsilon)
+        );
+    }
+
+    /**
+     * Checks if two {@link Twist2d}s are equal within the accuracy of the default epsilon.
+     * @param a The first value to compare.
+     * @param b The second value to compare.
+     * @return {@code true} if the values are equal.
+     */
+    public static boolean twistEpsilonEquals(Twist2d a, Twist2d b) {
+        return twistEpsilonEquals(a, b, EPSILON);
+    }
+
+    /**
+     * Checks if two {@link Twist2d}s are equal within the accuracy of a provided epsilon.
+     * @param a The first value to compare.
+     * @param b The second value to compare.
+     * @param epsilon Epsilon value to compare with.
+     * @return {@code true} if the values are equal.
+     */
+    public static boolean twistEpsilonEquals(Twist2d a, Twist2d b, double epsilon) {
+        return epsilonEquals(a.dx, b.dx, epsilon) && epsilonEquals(a.dy, b.dy, epsilon) && epsilonEquals(a.dtheta, b.dtheta, epsilon);
     }
 }

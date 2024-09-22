@@ -1,6 +1,6 @@
 package org.team340.robot;
 
-import org.team340.lib.controller.Controller2Config;
+import org.team340.lib.controller.ControllerConfig;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -10,43 +10,46 @@ import org.team340.lib.controller.Controller2Config;
 public final class Constants {
 
     public static final double PERIOD = 0.020;
-    public static final double TELEMETRY_PERIOD = 0.020;
-    public static final double POWER_USAGE_PERIOD = 0.020;
     public static final double VOLTAGE = 12.0;
     public static final double FIELD_LENGTH = 16.541;
     public static final double FIELD_WIDTH = 8.211;
 
+    public static final ControllerConfig DRIVER = new ControllerConfig()
+        .setPort(0)
+        .setJoystickDeadband(0.1)
+        .setJoystickThreshold(0.5)
+        .setTriggerDeadband(0.05)
+        .setTriggerThreshold(0.05);
+
+    public static final ControllerConfig CO_DRIVER = new ControllerConfig()
+        .setPort(1)
+        .setJoystickDeadband(0.1)
+        .setJoystickThreshold(0.5)
+        .setTriggerDeadband(0.05)
+        .setTriggerThreshold(0.05);
+
     /**
-     * Driver and co-driver controller constants.
+     * The RobotMap class defines CAN IDs, DIO/PWM/PH/PCM channel IDs, CAN bus
+     * names, and other relevant identifiers for addressing robot hardware.
      */
-    public static final class ControllerConstants {
+    public static final class RobotMap {
 
-        public static final double DRIVE_EXP = 2.0;
-        public static final double DRIVE_MULTIPLIER = 0.9;
-        public static final double DRIVE_MULTIPLIER_MODIFIED = 1.0;
+        public static final String CANBUS = "*";
 
-        public static final double DRIVE_ROT_EXP = 3.0;
-        public static final double DRIVE_ROT_MULTIPLIER = 0.4;
+        public static final int FL_MOVE = 2;
+        public static final int FL_TURN = 3;
+        public static final int FR_MOVE = 4;
+        public static final int FR_TURN = 5;
+        public static final int BL_MOVE = 6;
+        public static final int BL_TURN = 7;
+        public static final int BR_MOVE = 8;
+        public static final int BR_TURN = 9;
 
-        public static final Controller2Config DRIVER = new Controller2Config()
-            .setLabel("Driver")
-            .setPort(0)
-            .setJoystickDeadband(0.1)
-            .setJoystickThreshold(0.5)
-            .setTriggerDeadband(0.05)
-            .setTriggerThreshold(0.05);
+        public static final int FL_ENCODER = 10;
+        public static final int FR_ENCODER = 11;
+        public static final int BL_ENCODER = 12;
+        public static final int BR_ENCODER = 13;
 
-        public static final Controller2Config CO_DRIVER = new Controller2Config()
-            .setLabel("CoDriver")
-            .setPort(1)
-            .setJoystickDeadband(0.1)
-            .setJoystickThreshold(0.5)
-            .setTriggerDeadband(0.05)
-            .setTriggerThreshold(0.05);
+        public static final int PIGEON = 14;
     }
-
-    /**
-     * Map of hardware device IDs.
-     */
-    public static final class RobotMap {}
 }

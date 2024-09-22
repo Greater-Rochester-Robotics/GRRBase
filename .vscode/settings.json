@@ -1,7 +1,27 @@
 {
   "java.configuration.updateBuildConfiguration": "automatic",
   "java.debug.settings.onBuildFailureProceed": true,
+  "java.inlayHints.parameterNames.enabled": "literals",
+  "java.inlayHints.parameterNames.exclusions": [
+    "edu.wpi.first.math.util.Units.*",
+    "(initialValue)",
+    "(magnitude)",
+    "(value)"
+  ],
   "java.server.launchMode": "Standard",
+  "java.test.config": [
+    {
+      "name": "WPIlibUnitTests",
+      "workingDirectory": "${workspaceFolder}/build/jni/release",
+      "vmargs": [ "-Djava.library.path=${workspaceFolder}/build/jni/release" ],
+      "env": {
+        "LD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release" ,
+        "DYLD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release"
+      }
+    },
+  ],
+  "java.test.defaultConfig": "WPIlibUnitTests",
+  "svelte.enable-ts-plugin": true,
   "files.exclude": {
     "**/.git": true,
     "**/.svn": true,
@@ -15,18 +35,6 @@
     "**/.factorypath": true,
     "**/*~": true
   },
-  "java.test.config": [
-    {
-      "name": "WPIlibUnitTests",
-      "workingDirectory": "${workspaceFolder}/build/jni/release",
-      "vmargs": [ "-Djava.library.path=${workspaceFolder}/build/jni/release" ],
-      "env": {
-        "LD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release" ,
-        "DYLD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release"
-      }
-    },
-  ],
-  "java.test.defaultConfig": "WPIlibUnitTests",
   "cSpell.words": [
     "Accl",
     "Accum",
@@ -35,12 +43,14 @@
     "Botpose",
     "Brushless",
     "CANandCoder",
+    "Canbus",
     "CANcoder",
     "Checkstyle",
     "Choreo",
     "Cnfg",
     "CTRE",
     "Deadband",
+    "Deadbands",
     "Decel",
     "DeltAng",
     "DeltVel",
@@ -50,15 +60,18 @@
     "Devs",
     "Discretization",
     "Discretize",
+    "Discretizing",
     "DTheta",
     "Falsi",
     "Feedforward",
+    "Fullscreen",
     "Gradlew",
     "Grav",
     "GRRDashboard",
     "Holonomic",
     "Integ",
     "Interpolatable",
+    "Itor",
     "JoystickProfiles",
     "Keepalive",
     "Lerp",
@@ -86,12 +99,15 @@
     "TalonSRX",
     "Tauri",
     "Teleop",
+    "Timesync",
     "Topicsonly",
     "Traj",
+    "Tunables",
     "Unannounce",
     "Unsub",
     "Unsubscriber",
     "Unsubscribers",
+    "URCL",
     "Vbat",
     "WPIBlue",
     "WPILib",

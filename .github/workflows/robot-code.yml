@@ -1,9 +1,12 @@
 name: Robot Code
 on: [pull_request, push]
 
+env:
+  NODE_VERSION: 20
+
 jobs:
   format:
-    name: Format
+    name: Check Format
     runs-on: ubuntu-latest
     container: wpilib/ubuntu-base:22.04
 
@@ -19,7 +22,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
           registry-url: https://registry.npmjs.org/
 
       - name: Grant execute permission for gradlew
@@ -45,7 +48,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
           registry-url: https://registry.npmjs.org/
 
       - name: Grant execute permission for gradlew
