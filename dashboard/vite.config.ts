@@ -5,7 +5,7 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 export default defineConfig({
     build: {
         minify: !process.env.TAURI_DEBUG ? "esbuild" : false,
-        outDir: `./dist`,
+        outDir: `./build`,
         sourcemap: !!process.env.TAURI_DEBUG,
         target: process.env.TAURI_PLATFORM == "windows" ? "chrome105" : "safari13",
     },

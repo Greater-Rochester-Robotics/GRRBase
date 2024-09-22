@@ -1,60 +1,73 @@
 package org.team340.robot.subsystems;
 
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import java.util.function.Supplier;
-import org.team340.lib.swerve.SwerveBase;
-import org.team340.robot.Constants.SwerveConstants;
+import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.math.util.Units;
+import org.team340.lib.swerve.SwerveAPI;
+import org.team340.lib.swerve.config.SwerveConfig;
+import org.team340.lib.swerve.config.SwerveModuleConfig;
+import org.team340.lib.swerve.hardware.SwerveEncoders;
+import org.team340.lib.swerve.hardware.SwerveIMUs;
+import org.team340.lib.swerve.hardware.SwerveMotors;
+import org.team340.lib.util.GRRSubsystem;
+import org.team340.robot.Constants;
+import org.team340.robot.Constants.RobotMap;
 
-/**
- * The swerve subsystem.
- */
-public class Swerve extends SwerveBase {
+@Logged
+public class Swerve extends GRRSubsystem {
 
-    /**
-     * Create the swerve subsystem.
-     */
+    private static final SwerveModuleConfig FRONT_LEFT = new SwerveModuleConfig()
+        .setName("frontLeft")
+        .setLocation(0.28, 0.28)
+        .setMoveMotor(SwerveMotors.talonFX(RobotMap.FL_MOVE, false))
+        .setTurnMotor(SwerveMotors.talonFX(RobotMap.FL_TURN, false))
+        .setEncoder(SwerveEncoders.canCoder(RobotMap.FL_ENCODER, 0.0, false));
+
+    private static final SwerveModuleConfig FRONT_RIGHT = new SwerveModuleConfig()
+        .setName("frontRight")
+        .setLocation(0.28, -0.28)
+        .setMoveMotor(SwerveMotors.talonFX(RobotMap.FR_MOVE, false))
+        .setTurnMotor(SwerveMotors.talonFX(RobotMap.FR_TURN, false))
+        .setEncoder(SwerveEncoders.canCoder(RobotMap.FR_ENCODER, 0.0, false));
+
+    private static final SwerveModuleConfig BACK_LEFT = new SwerveModuleConfig()
+        .setName("backLeft")
+        .setLocation(-0.28, 0.28)
+        .setMoveMotor(SwerveMotors.talonFX(RobotMap.BL_MOVE, false))
+        .setTurnMotor(SwerveMotors.talonFX(RobotMap.BL_TURN, false))
+        .setEncoder(SwerveEncoders.canCoder(RobotMap.BL_ENCODER, 0.0, false));
+
+    private static final SwerveModuleConfig BACK_RIGHT = new SwerveModuleConfig()
+        .setName("backRight")
+        .setLocation(-0.28, -0.28)
+        .setMoveMotor(SwerveMotors.talonFX(RobotMap.BR_MOVE, false))
+        .setTurnMotor(SwerveMotors.talonFX(RobotMap.BR_TURN, false))
+        .setEncoder(SwerveEncoders.canCoder(RobotMap.BR_ENCODER, 0.0, false));
+
+    private static final SwerveConfig CONFIG = new SwerveConfig()
+        .setTimings(Constants.PERIOD, 0.005, 0.025)
+        .setFieldSize(Constants.FIELD_LENGTH, Constants.FIELD_WIDTH)
+        .setMovePID(0.1, 0.0, 0.0, 0.0)
+        .setMoveFF(0.0, 2.4, 0.0)
+        .setTurnPID(0.5, 0.0, 0.0, 0.0)
+        .setBrakeMode(false, true)
+        .setMaxSpeeds(5.0, 10.0)
+        .setRatelimits(15.0, 30.0)
+        .setPowerProperties(Constants.VOLTAGE, 80.0, 40.0)
+        .setMechanicalProperties(75.0 / 14.0, 18.75, 0.0, Units.inchesToMeters(4.0))
+        .setOdometryStd(0.1, 0.1, 0.1)
+        .setVisionStd(0.0, 0.0, 0.0)
+        .setIMU(SwerveIMUs.pigeon2(RobotMap.PIGEON))
+        .setPhoenixFeatures(RobotMap.CANBUS, true, true, true)
+        .setModules(FRONT_LEFT, FRONT_RIGHT, BACK_LEFT, BACK_RIGHT);
+
+    private final SwerveAPI api;
+
     public Swerve() {
-        super("Swerve Drive", SwerveConstants.CONFIG);
+        api = new SwerveAPI(CONFIG);
     }
 
     @Override
     public void periodic() {
-        updateOdometry();
-    }
-
-    /**
-     * Zeroes the IMU to a specified yaw.
-     */
-    public Command zeroIMU(Rotation2d yaw) {
-        return runOnce(() -> imu.setZero(yaw)).withName("swerve.zero(" + yaw.toString() + ")");
-    }
-
-    /**
-     * Drives the robot.
-     * @param x The desired {@code x} speed from {@code -1.0} to {@code 1.0}.
-     * @param y The desired {@code x} speed from {@code -1.0} to {@code 1.0}.
-     * @param rot The desired rotational speed from {@code -1.0} to {@code 1.0}.
-     * @param fieldRelative If the robot should drive field relative.
-     */
-    public Command drive(Supplier<Double> x, Supplier<Double> y, Supplier<Double> rot, boolean fieldRelative) {
-        return commandBuilder("swerve.drive()").onExecute(() -> drive(x.get(), y.get(), rot.get(), fieldRelative));
-    }
-
-    /**
-     * Runs a SysId quasistatic test.
-     * @param direction The direction to run the test in.
-     */
-    public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-        return sysIdRoutine.quasistatic(direction);
-    }
-
-    /**
-     * Runs a SysId dynamic test.
-     * @param direction The direction to run the test in.
-     */
-    public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-        return sysIdRoutine.dynamic(direction);
+        api.refresh();
     }
 }

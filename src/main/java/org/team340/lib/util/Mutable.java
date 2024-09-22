@@ -1,5 +1,8 @@
 package org.team340.lib.util;
 
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
 /**
  * A simple mutable object that stores a value.
  *
@@ -13,7 +16,7 @@ package org.team340.lib.util;
  * to provide stateful behavior does not suffer from aforementioned race
  * conditions as commands are invoked synchronously.
  */
-public class Mutable<T> {
+public class Mutable<T> implements Supplier<T>, Consumer<T> {
 
     private T value;
 
@@ -27,9 +30,20 @@ public class Mutable<T> {
 
     /**
      * Gets the current value.
+     * @return The current value.
      */
+    @Override
     public T get() {
         return value;
+    }
+
+    /**
+     * Sets a new value.
+     * @param value The new value.
+     */
+    @Override
+    public void accept(T value) {
+        set(value);
     }
 
     /**
