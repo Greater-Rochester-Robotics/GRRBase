@@ -18,30 +18,30 @@ import org.team340.lib.util.Math2;
 /**
  * An encapsulation of all hardware for a swerve module.
  */
-public class SwerveModule implements AutoCloseable {
+class SwerveModule implements AutoCloseable {
+
+    public final SwerveMotor moveMotor;
+    public final SwerveMotor turnMotor;
+    public final SwerveEncoder encoder;
 
     private final SwerveConfig config;
     private final SwerveModuleConfig moduleConfig;
-    final SwerveMotor moveMotor;
-    final SwerveMotor turnMotor;
-    final SwerveEncoder encoder;
-
     private final double moveRotationsPerMeter;
     private final boolean hookStatus;
 
-    private final SwerveModuleState targetState = new SwerveModuleState();
-
     private final ReadWriteLock cacheMutex = new ReentrantReadWriteLock();
-    private SwerveModulePosition cachedPosition = new SwerveModulePosition();
-    private SwerveModuleState cachedState = new SwerveModuleState();
+    private final SwerveModulePosition cachedPosition = new SwerveModulePosition();
+    private final SwerveModuleState cachedState = new SwerveModuleState();
     private double cachedTurnMotorPosition = 0.0;
+
+    private final SwerveModuleState targetState = new SwerveModuleState();
 
     /**
      * Create the swerve module.
      * @param config The general swerve API configuration.
      * @param moduleConfig The module's configuration.
      */
-    SwerveModule(SwerveConfig config, SwerveModuleConfig moduleConfig) {
+    public SwerveModule(SwerveConfig config, SwerveModuleConfig moduleConfig) {
         this.config = config;
         this.moduleConfig = moduleConfig;
 
@@ -54,10 +54,28 @@ public class SwerveModule implements AutoCloseable {
     }
 
     /**
+     * Gets the module's configured name.
+     */
+    public String getName() {
+        return moduleConfig.getName();
+    }
+
+    /**
+     * Returns all Phoenix status signals in use by the module.
+     */
+    public List<BaseStatusSignal> getSignals() {
+        List<BaseStatusSignal> signals = new ArrayList<>();
+        signals.addAll(moveMotor.getSignals());
+        signals.addAll(turnMotor.getSignals());
+        signals.addAll(encoder.getSignals());
+        return signals;
+    }
+
+    /**
      * Refreshes the cached position and state of the module.
      * @return {@code true} on success, {@code false} if a read error ocurred.
      */
-    boolean refresh() {
+    public boolean refresh() {
         try {
             cacheMutex.writeLock().lock();
 
@@ -65,8 +83,12 @@ public class SwerveModule implements AutoCloseable {
             double movePosition = moveMotor.getPosition() - (turnPosition * config.getCouplingRatio());
             Rotation2d angle = Rotation2d.fromRotations(hookStatus ? turnPosition : encoder.getPosition());
 
-            cachedPosition = new SwerveModulePosition(movePosition / moveRotationsPerMeter, angle);
-            cachedState = new SwerveModuleState(moveMotor.getVelocity() / moveRotationsPerMeter, angle);
+            cachedPosition.distanceMeters = movePosition / moveRotationsPerMeter;
+            cachedPosition.angle = angle;
+
+            cachedState.speedMetersPerSecond = moveMotor.getVelocity() / moveRotationsPerMeter;
+            cachedState.angle = angle;
+
             cachedTurnMotorPosition = turnPosition;
 
             return moveMotor.readError() || turnMotor.readError() || encoder.readError();
@@ -76,49 +98,24 @@ public class SwerveModule implements AutoCloseable {
     }
 
     /**
-     * Returns all Phoenix status signals in use by the module.
-     */
-    List<BaseStatusSignal> getSignals() {
-        List<BaseStatusSignal> signals = new ArrayList<>();
-        signals.addAll(moveMotor.getSignals());
-        signals.addAll(turnMotor.getSignals());
-        signals.addAll(encoder.getSignals());
-        return signals;
-    }
-
-    /**
-     * Gets the module's configured name.
-     */
-    public String getName() {
-        return moduleConfig.getName();
-    }
-
-    /**
-     * Gets the module's position.
+     * Gets the module's position. The returned {@link SwerveModulePosition}
+     * object is final and can be cached, but is volatile.
      */
     public SwerveModulePosition getPosition() {
-        try {
-            cacheMutex.readLock().lock();
-            return cachedPosition;
-        } finally {
-            cacheMutex.readLock().unlock();
-        }
+        return cachedPosition;
     }
 
     /**
-     * Gets the module's state.
+     * Gets the module's state. The returned {@link SwerveModuleState}
+     * object is final and can be cached, but is volatile.
      */
     public SwerveModuleState getState() {
-        try {
-            cacheMutex.readLock().lock();
-            return cachedState;
-        } finally {
-            cacheMutex.readLock().unlock();
-        }
+        return cachedState;
     }
 
     /**
-     * Gets the module's target state.
+     * Gets the module's target state. The returned {@link SwerveModuleState}
+     * object is final and can be cached, and is <i>not</i> volatile.
      */
     public SwerveModuleState getTargetState() {
         return targetState;
@@ -128,7 +125,7 @@ public class SwerveModule implements AutoCloseable {
      * Sets the target state of the swerve module.
      * @param state The state to apply to the module.
      */
-    public void setState(SwerveModuleState state) {
+    public void applyState(SwerveModuleState state) {
         try {
             cacheMutex.readLock().lock();
             boolean flipped = false;
@@ -156,11 +153,11 @@ public class SwerveModule implements AutoCloseable {
     }
 
     /**
-     * Drives the swerve module using voltage. Intended for characterization.
+     * Drives the swerve module using open-loop voltage. Intended for characterization.
      * @param voltage The voltage to apply to the move motor.
      * @param angle The angle to apply to the turn motor.
      */
-    public void setVoltage(double voltage, Rotation2d angle) {
+    public void applyVoltage(double voltage, Rotation2d angle) {
         try {
             cacheMutex.readLock().lock();
             moveMotor.setVoltage(voltage);

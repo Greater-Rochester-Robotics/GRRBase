@@ -50,7 +50,7 @@ public final class SwerveEncoders {
 
         /**
          * Some motor controllers can be configured to use external encoders
-         * as a feedback device for closed loop control. This method returns
+         * as a feedback device for closed-loop control. This method returns
          * {@code true} if the encoder's corresponding turn motor has been
          * configured to accept an absolute position when setting its closed
          * loop position target, as well as return an absolute position via

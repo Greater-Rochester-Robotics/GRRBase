@@ -231,7 +231,7 @@ public class SwerveConfig {
      * It is recommended that these values are found empirically using an actual robot. An easy way to do so is to configure infeasible ratelimits, then analyze telemetry.
      *
      * @param acceleration The maximum acceleration the robot is capable of in meters/second/second.
-     * @param moduleRotVel The maximum module rotational velocity the robot is capable of in radians/second.
+     * @param moduleRotVel The maximum module rotational velocity the robot's modules are capable of in radians/second.
      */
     public SwerveConfig setRatelimits(double acceleration, double moduleRotVel) {
         this.acceleration = acceleration;
@@ -289,8 +289,8 @@ public class SwerveConfig {
 
     /**
      * Sets swerve gearing properties.
-     * @param moveRatio The move gear ratio (inverse of the gearing reduction).
-     * @param turnRatio The turn gear ratio (inverse of the gearing reduction).
+     * @param moveRatio The move gear ratio - motor rotations / wheel rotation.
+     * @param turnRatio The turn gear ratio - motor rotations / module rotation.
      * @param couplingRatio The ratio between the wheel and the module's angle. Used as a compensation factor, set to {@code 0.0} to disable.
      * @param wheelDiameter The wheel diameter in meters.
      */

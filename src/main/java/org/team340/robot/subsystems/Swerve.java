@@ -65,4 +65,9 @@ public class Swerve extends GRRSubsystem {
     public Swerve() {
         api = new SwerveAPI(CONFIG);
     }
+
+    @Override
+    public void periodic() {
+        api.refresh();
+    }
 }

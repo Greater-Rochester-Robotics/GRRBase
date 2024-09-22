@@ -86,6 +86,7 @@
     "Protobuf",
     "Pubuid",
     "Quasistatic",
+    "Ratelimit",
     "Ratelimiter",
     "Ratelimits",
     "Regula",

@@ -37,7 +37,7 @@ public class SwerveAPILogger extends ClassSpecificLogger<SwerveAPI> {
 
         ErrorHandler errorHandler = Epilogue.getConfig().errorHandler;
         swerveAPI.imu.log(logger.getSubLogger("imu"), errorHandler);
-        for (var module : swerveAPI.getModules()) {
+        for (var module : swerveAPI.modules) {
             DataLogger moduleLogger = logger.getSubLogger(module.getName());
             module.moveMotor.log(moduleLogger.getSubLogger("moveMotor"), errorHandler);
             module.turnMotor.log(moduleLogger.getSubLogger("turnMotor"), errorHandler);

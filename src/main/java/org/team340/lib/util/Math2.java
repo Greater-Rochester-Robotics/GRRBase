@@ -4,6 +4,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 
 /**
  * Math utilities.
@@ -15,42 +16,28 @@ public final class Math2 {
         throw new UnsupportedOperationException("This is a utility class!");
     }
 
-    /**
-     * Shared maximum accuracy floating point.
-     */
+    /** Shared maximum accuracy floating point. */
     public static final double EPSILON = 1e-8;
-    /**
-     * {@code PI/6} (30deg)
-     */
+    /** {@code PI/6} (30deg) */
     public static final double SIXTH_PI = Math.PI / 6.0;
-    /**
-     * {@code PI/4} (45deg)
-     */
+    /** {@code PI/4} (45deg) */
     public static final double QUARTER_PI = Math.PI / 4.0;
-    /**
-     * {@code PI/3} (60deg)
-     */
+    /** {@code PI/3} (60deg) */
     public static final double THIRD_PI = Math.PI / 3.0;
-    /**
-     * {@code PI/2} (90deg)
-     */
+    /** {@code PI/2} (90deg) */
     public static final double HALF_PI = Math.PI / 2.0;
-    /**
-     * {@code 2PI/3} (120deg)
-     */
+    /** {@code 2PI/3} (120deg) */
     public static final double TWO_THIRDS_PI = 2.0 * Math.PI / 3.0;
-    /**
-     * {@code 3PI/4} (135deg)
-     */
+    /** {@code 3PI/4} (135deg) */
     public static final double THREE_QUARTERS_PI = 3.0 * Math.PI / 4.0;
-    /**
-     * {@code 5PI/6} (150deg)
-     */
+    /** {@code 5PI/6} (150deg) */
     public static final double FIVE_SIXTHS_PI = 5.0 * Math.PI / 6.0;
-    /**
-     * {@code PI*2} (360deg)
-     */
+    /** {@code PI*2} (360deg) */
     public static final double TWO_PI = Math.PI * 2.0;
+    /** Identity {@link Twist2d} */
+    public static final Twist2d TWIST2D_0 = new Twist2d();
+    /** Identity {@link ChassisSpeeds} */
+    public static final ChassisSpeeds CHASSIS_SPEEDS_0 = new ChassisSpeeds();
 
     /**
      * Wraps an angle within {@code +-PI} of a reference.

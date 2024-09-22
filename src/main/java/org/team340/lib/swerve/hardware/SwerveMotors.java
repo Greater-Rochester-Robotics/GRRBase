@@ -55,7 +55,7 @@ public final class SwerveMotors {
         public abstract double getPosition();
 
         /**
-         * Sets the motor's closed loop position target.
+         * Sets the motor's closed-loop position target.
          * @param position The target position in rotations.
          */
         public abstract void setPosition(double position);
@@ -66,7 +66,7 @@ public final class SwerveMotors {
         public abstract double getVelocity();
 
         /**
-         * Sets the motor's closed loop velocity target.
+         * Sets the motor's closed-loop velocity target.
          * @param velocity The target velocity in rotations/second.
          */
         public abstract void setVelocity(double velocity);
