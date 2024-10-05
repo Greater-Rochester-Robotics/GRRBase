@@ -1,4 +1,4 @@
-package org.team340.lib.rev;
+package org.team340.lib.util.rev;
 
 import com.revrobotics.REVLibError;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -6,12 +6,10 @@ import edu.wpi.first.wpilibj.Notifier;
 import java.text.Collator;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeSet;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import org.team340.lib.util.Sleep;
 
@@ -30,31 +28,13 @@ public final class RevConfigRegistry {
     private static final double BURN_FLASH_DELAY = 1.0;
     private static final double BURN_FLASH_INTERVAL = 0.075;
 
-    private static final Lock frameMutex = new ReentrantLock();
-    private static final Map<Object, Runnable> frameRefreshers = new HashMap<>();
-    private static final Map<String, Supplier<REVLibError>> burnFlashCallbacks = new LinkedHashMap<>();
     private static final Collection<String> errors = new TreeSet<>(ErrorComparator.getInstance());
+    private static final Map<String, Runnable> frameRefreshers = new ConcurrentHashMap<>();
+    private static final Map<String, Supplier<REVLibError>> burnFlash = new LinkedHashMap<>();
     private static Notifier notifier;
 
     static {
         enableFrameRefreshing();
-    }
-
-    /**
-     * Saves a callback to be called periodically to refresh a device's CAN frame period setting.
-     * All refreshers should be associated with a unique identifier, that is relevant to the device
-     * and specific frame being refreshed, to ensure if a device has a frame configured twice only
-     * the last configured period is utilized while refreshing.
-     * @param identifier An identifier for the refresher.
-     * @param refresher A {@link Runnable} to invoke.
-     */
-    static void addFrameRefresher(Object identifier, Runnable refresher) {
-        try {
-            frameMutex.lock();
-            frameRefreshers.put(identifier, refresher);
-        } finally {
-            frameMutex.unlock();
-        }
     }
 
     /**
@@ -66,12 +46,24 @@ public final class RevConfigRegistry {
     }
 
     /**
+     * Saves a callback to be called periodically to refresh a device's CAN frame period setting.
+     * All refreshers should be associated with a unique identifier, that is relevant to the device
+     * and specific frame being refreshed, to ensure if a device has a frame configured twice only
+     * the last configured period is utilized while refreshing.
+     * @param identifier An identifier for the refresher.
+     * @param refresher A {@link Runnable} to invoke.
+     */
+    static void addFrameRefresher(String identifier, Runnable refresher) {
+        frameRefreshers.put(identifier, refresher);
+    }
+
+    /**
      * Saves a callback to burn flash to REV hardware.
      * @param identifier An readable identifier for the hardware. Must be unique.
      * @param callback A callback that burns flash and returns the result.
      */
     static void addBurnFlash(String identifier, Supplier<REVLibError> callback) {
-        burnFlashCallbacks.put(identifier, callback);
+        burnFlash.put(identifier, callback);
     }
 
     /**
@@ -80,15 +72,15 @@ public final class RevConfigRegistry {
      * be printed to stdout. Note that this is a blocking operation.
      */
     public static void burnFlashAll() {
-        Sleep.seconds(BURN_FLASH_DELAY);
+        Sleep.seconds(BURN_FLASH_DELAY, true);
 
-        for (var entry : burnFlashCallbacks.entrySet()) {
+        for (var entry : burnFlash.entrySet()) {
             String result;
             try {
                 result = entry.getValue().get().name();
-                Sleep.seconds(BURN_FLASH_INTERVAL);
+                Sleep.seconds(BURN_FLASH_INTERVAL, true);
             } catch (Exception e) {
-                DriverStation.reportError(e.getMessage(), true);
+                DriverStation.reportError(e.getMessage(), e.getStackTrace());
                 result = e.getClass().getSimpleName();
             }
 
@@ -96,14 +88,13 @@ public final class RevConfigRegistry {
         }
 
         if (errors.size() <= 0) {
-            System.out.println("\nAll REV hardware configured successfully\n");
+            System.out.println("\n[RevConfigRegistry] All REV hardware configured successfully\n");
         } else {
-            DriverStation.reportWarning("\n" + errors.size() + " errors while configuring REV hardware:", false);
-
+            String error = "[RevConfigRegistry] " + errors.size() + " errors while configuring REV hardware:";
             for (String errorString : errors) {
-                DriverStation.reportWarning("\t" + errorString, false);
+                error += "\n\t" + errorString;
             }
-            DriverStation.reportWarning("\n", false);
+            DriverStation.reportError(error, false);
             errors.clear();
         }
     }
@@ -116,12 +107,7 @@ public final class RevConfigRegistry {
         if (notifier == null) {
             notifier =
                 new Notifier(() -> {
-                    try {
-                        frameMutex.lock();
-                        for (Runnable callback : frameRefreshers.values()) callback.run();
-                    } finally {
-                        frameMutex.unlock();
-                    }
+                    for (Runnable callback : frameRefreshers.values()) callback.run();
                 });
             notifier.setName("RevConfigRegistry");
             notifier.startPeriodic(PERIODIC_INTERVAL);

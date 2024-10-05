@@ -1,46 +1,36 @@
-package org.team340.lib.rev;
+package org.team340.lib.util.rev;
 
+import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkLowLevel.PeriodicFrame;
-import com.revrobotics.CANSparkMax;
 import com.revrobotics.REVLibError;
 import org.team340.lib.util.Math2;
 import org.team340.lib.util.Sleep;
 
 /**
- * Config builder for {@link CANSparkMax}.
+ * Config builder for {@link CANSparkFlex}.
  */
-public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
+public class SparkFlexConfig extends RevConfigBase<CANSparkFlex> {
 
-    private static final double kFactoryDefaultsSleep = 0.050;
-
-    /**
-     * Creates an empty config.
-     */
-    public SparkMaxConfig() {}
-
-    /**
-     * Creates a config that copies the config steps from the base provided.
-     * @param base The config to copy the steps from.
-     */
-    private SparkMaxConfig(RevConfigBase<CANSparkMax> base) {
-        super(base);
-    }
+    private static final double FACTORY_DEFAULTS_SLEEP = 0.025;
 
     /**
      * Clones this config.
      */
-    public SparkMaxConfig clone() {
-        return new SparkMaxConfig(this);
+    public SparkFlexConfig clone() {
+        var config = new SparkFlexConfig();
+        config.configSteps.addAll(configSteps);
+        return config;
     }
 
     /**
-     * Applies the config.
-     * @param sparkMax The Spark Max to apply the config to.
+     * Applies the config. Note that this is a blocking operation. Errors
+     * are printed when calling {@link RevConfigRegistry#burnFlashAll()}.
+     * @param sparkFlex The Spark Flex to apply the config to.
      */
-    public void apply(CANSparkMax sparkMax) {
-        String identifier = "Spark Max (ID " + sparkMax.getDeviceId() + ")";
-        applySteps(sparkMax, identifier);
-        RevConfigRegistry.addBurnFlash(identifier, () -> sparkMax.burnFlash());
+    public void apply(CANSparkFlex sparkFlex) {
+        String identifier = "Spark Flex (ID " + sparkFlex.getDeviceId() + ")";
+        applySteps(sparkFlex, identifier);
+        RevConfigRegistry.addBurnFlash(identifier, () -> sparkFlex.burnFlash());
     }
 
     /**
@@ -259,18 +249,18 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
     /**
      * Clears all sticky faults.
      */
-    public SparkMaxConfig clearFaults() {
-        addStep(sparkMax -> sparkMax.clearFaults(), "Clear Faults");
+    public SparkFlexConfig clearFaults() {
+        addStep(sparkFlex -> sparkFlex.clearFaults(), "Clear Faults");
         return this;
     }
 
     /**
      * Disables the voltage compensation setting for all modes.
      */
-    public SparkMaxConfig disableVoltageCompensation() {
+    public SparkFlexConfig disableVoltageCompensation() {
         addStep(
-            sparkMax -> sparkMax.disableVoltageCompensation(),
-            sparkMax -> Math2.epsilonEquals(sparkMax.getVoltageCompensationNominalVoltage(), 0.0, RevConfigRegistry.EPSILON),
+            sparkFlex -> sparkFlex.disableVoltageCompensation(),
+            sparkFlex -> Math2.epsilonEquals(sparkFlex.getVoltageCompensationNominalVoltage(), 0.0, RevConfigRegistry.EPSILON),
             "Disable Voltage Compensation"
         );
         return this;
@@ -281,23 +271,23 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * @param direction The direction of motion to restrict.
      * @param enable Set {@code true} to enable soft limits.
      */
-    public SparkMaxConfig enableSoftLimit(CANSparkMax.SoftLimitDirection direction, boolean enable) {
+    public SparkFlexConfig enableSoftLimit(CANSparkFlex.SoftLimitDirection direction, boolean enable) {
         addStep(
-            sparkMax -> sparkMax.enableSoftLimit(direction, enable),
-            sparkMax -> sparkMax.isSoftLimitEnabled(direction) == enable,
+            sparkFlex -> sparkFlex.enableSoftLimit(direction, enable),
+            sparkFlex -> sparkFlex.isSoftLimitEnabled(direction) == enable,
             "Enable Soft Limit"
         );
         return this;
     }
 
     /**
-     * Sets the voltage compensation setting for all modes on the Spark Max and enables voltage compensation.
+     * Sets the voltage compensation setting for all modes on the Spark Flex and enables voltage compensation.
      * @param nominalVoltage Nominal voltage to compensate output to.
      */
-    public SparkMaxConfig enableVoltageCompensation(double nominalVoltage) {
+    public SparkFlexConfig enableVoltageCompensation(double nominalVoltage) {
         addStep(
-            sparkMax -> sparkMax.enableVoltageCompensation(nominalVoltage),
-            sparkMax -> Math2.epsilonEquals(sparkMax.getVoltageCompensationNominalVoltage(), nominalVoltage, RevConfigRegistry.EPSILON),
+            sparkFlex -> sparkFlex.enableVoltageCompensation(nominalVoltage),
+            sparkFlex -> Math2.epsilonEquals(sparkFlex.getVoltageCompensationNominalVoltage(), nominalVoltage, RevConfigRegistry.EPSILON),
             "Enable Voltage Compensation"
         );
         return this;
@@ -309,8 +299,8 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * The motor will spin in the same direction as the leader. This can be changed by passing a {@code true} constant after the leader parameter.
      * @param leader The motor controller to follow.
      */
-    public SparkMaxConfig follow(CANSparkMax leader) {
-        addStep(sparkMax -> sparkMax.follow(leader), sparkMax -> sparkMax.isFollower(), false, "Follow");
+    public SparkFlexConfig follow(CANSparkFlex leader) {
+        addStep(sparkFlex -> sparkFlex.follow(leader), sparkFlex -> sparkFlex.isFollower(), false, "Follow");
         return this;
     }
 
@@ -320,8 +310,8 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * @param leader The motor controller to follow.
      * @param invert Set the follower to output opposite of the leader.
      */
-    public SparkMaxConfig follow(CANSparkMax leader, boolean invert) {
-        addStep(sparkMax -> sparkMax.follow(leader, invert), sparkMax -> sparkMax.isFollower(), false, "Follow");
+    public SparkFlexConfig follow(CANSparkFlex leader, boolean invert) {
+        addStep(sparkFlex -> sparkFlex.follow(leader, invert), sparkFlex -> sparkFlex.isFollower(), false, "Follow");
         return this;
     }
 
@@ -332,8 +322,8 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * @param leader The type of motor controller to follow (Talon SRX, SPARK MAX, etc.).
      * @param deviceId The CAN ID of the device to follow.
      */
-    public SparkMaxConfig follow(CANSparkMax.ExternalFollower leader, int deviceId) {
-        addStep(sparkMax -> sparkMax.follow(leader, deviceId), sparkMax -> sparkMax.isFollower(), false, "Follow");
+    public SparkFlexConfig follow(CANSparkFlex.ExternalFollower leader, int deviceId) {
+        addStep(sparkFlex -> sparkFlex.follow(leader, deviceId), sparkFlex -> sparkFlex.isFollower(), false, "Follow");
         return this;
     }
 
@@ -344,8 +334,8 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * @param deviceId The CAN ID of the device to follow.
      * @param invert Set the follower to output opposite of the leader.
      */
-    public SparkMaxConfig follow(CANSparkMax.ExternalFollower leader, int deviceId, boolean invert) {
-        addStep(sparkMax -> sparkMax.follow(leader, deviceId, invert), sparkMax -> sparkMax.isFollower(), false, "Follow");
+    public SparkFlexConfig follow(CANSparkFlex.ExternalFollower leader, int deviceId, boolean invert) {
+        addStep(sparkFlex -> sparkFlex.follow(leader, deviceId, invert), sparkFlex -> sparkFlex.isFollower(), false, "Follow");
         return this;
     }
 
@@ -357,8 +347,8 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * appear on the driver station but will not be returned by the {@code getLastError()} call.
      * @param milliseconds The timeout in milliseconds.
      */
-    public SparkMaxConfig setCANTimeout(int milliseconds) {
-        addStep(sparkMax -> sparkMax.setCANTimeout(milliseconds), "CAN Timeout");
+    public SparkFlexConfig setCANTimeout(int milliseconds) {
+        addStep(sparkFlex -> sparkFlex.setCANTimeout(milliseconds), "CAN Timeout");
         return this;
     }
 
@@ -367,10 +357,10 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * This is the maximum rate at which the motor controller's output is allowed to change.
      * @param rate Time in seconds to go from {@code 0.0} to full throttle.
      */
-    public SparkMaxConfig setClosedLoopRampRate(double rate) {
+    public SparkFlexConfig setClosedLoopRampRate(double rate) {
         addStep(
-            sparkMax -> sparkMax.setClosedLoopRampRate(rate),
-            sparkMax -> Math2.epsilonEquals(sparkMax.getClosedLoopRampRate(), rate, RevConfigRegistry.EPSILON),
+            sparkFlex -> sparkFlex.setClosedLoopRampRate(rate),
+            sparkFlex -> Math2.epsilonEquals(sparkFlex.getClosedLoopRampRate(), rate, RevConfigRegistry.EPSILON),
             "Closed Loop Ramp Rate"
         );
         return this;
@@ -380,8 +370,8 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * Sets the idle mode setting for the SPARK MAX.
      * @param mode Idle mode (coast or brake).
      */
-    public SparkMaxConfig setIdleMode(CANSparkMax.IdleMode mode) {
-        addStep(sparkMax -> sparkMax.setIdleMode(mode), sparkMax -> sparkMax.getIdleMode().equals(mode), "Idle Mode");
+    public SparkFlexConfig setIdleMode(CANSparkFlex.IdleMode mode) {
+        addStep(sparkFlex -> sparkFlex.setIdleMode(mode), sparkFlex -> sparkFlex.getIdleMode().equals(mode), "Idle Mode");
         return this;
     }
 
@@ -390,13 +380,13 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * This call has no effect if the controller is a follower. To invert a follower, see the {@code follow()} method.
      * @param isInverted The state of inversion, true is inverted.
      */
-    public SparkMaxConfig setInverted(boolean isInverted) {
+    public SparkFlexConfig setInverted(boolean isInverted) {
         addStep(
-            sparkMax -> {
-                sparkMax.setInverted(isInverted);
+            sparkFlex -> {
+                sparkFlex.setInverted(isInverted);
                 return REVLibError.kOk;
             },
-            sparkMax -> sparkMax.getInverted() == isInverted,
+            sparkFlex -> sparkFlex.getInverted() == isInverted,
             "Inverted"
         );
         return this;
@@ -407,10 +397,10 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * This is the maximum rate at which the motor controller's output is allowed to change.
      * @param rate Time in seconds to go from {@code 0.0} to full throttle.
      */
-    public SparkMaxConfig setOpenLoopRampRate(double rate) {
+    public SparkFlexConfig setOpenLoopRampRate(double rate) {
         addStep(
-            sparkMax -> sparkMax.setOpenLoopRampRate(rate),
-            sparkMax -> Math2.epsilonEquals(sparkMax.getOpenLoopRampRate(), rate, RevConfigRegistry.EPSILON),
+            sparkFlex -> sparkFlex.setOpenLoopRampRate(rate),
+            sparkFlex -> Math2.epsilonEquals(sparkFlex.getOpenLoopRampRate(), rate, RevConfigRegistry.EPSILON),
             "Open Loop Ramp Rate"
         );
         return this;
@@ -423,14 +413,14 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * @param frame The status frame to configure.
      * @param periodMs The rate the controller sends the frame in milliseconds.
      */
-    public SparkMaxConfig setPeriodicFramePeriod(Frame frame, int periodMs) {
+    public SparkFlexConfig setPeriodicFramePeriod(Frame frame, int periodMs) {
         addStep(
-            sparkMax -> {
+            sparkFlex -> {
                 RevConfigRegistry.addFrameRefresher(
-                    sparkMax.hashCode() + "." + frame.name(),
-                    () -> sparkMax.setPeriodicFramePeriod(frame.frame, periodMs)
+                    sparkFlex.hashCode() + "." + frame.name(),
+                    () -> sparkFlex.setPeriodicFramePeriod(frame.frame, periodMs)
                 );
-                return sparkMax.setPeriodicFramePeriod(frame.frame, periodMs);
+                return sparkFlex.setPeriodicFramePeriod(frame.frame, periodMs);
             },
             "Periodic Frame Status " + frame.ordinal()
         );
@@ -449,8 +439,8 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * This allows the controller to regulate the current close to the limit value.
      * @param limit The current limit in amps.
      */
-    public SparkMaxConfig setSecondaryCurrentLimit(double limit) {
-        addStep(sparkMax -> sparkMax.setSecondaryCurrentLimit(limit), "Secondary Current Limit");
+    public SparkFlexConfig setSecondaryCurrentLimit(double limit) {
+        addStep(sparkFlex -> sparkFlex.setSecondaryCurrentLimit(limit), "Secondary Current Limit");
         return this;
     }
 
@@ -467,8 +457,8 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * @param limit The current limit in amps.
      * @param chopCycles The number of additional PWM cycles to turn the driver off after overcurrent is detected.
      */
-    public SparkMaxConfig setSecondaryCurrentLimit(double limit, int chopCycles) {
-        addStep(sparkMax -> sparkMax.setSecondaryCurrentLimit(limit, chopCycles), "Secondary Current Limit");
+    public SparkFlexConfig setSecondaryCurrentLimit(double limit, int chopCycles) {
+        addStep(sparkFlex -> sparkFlex.setSecondaryCurrentLimit(limit, chopCycles), "Secondary Current Limit");
         return this;
     }
 
@@ -483,8 +473,8 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * operating in a safe region.
      * @param limit The current limit in amps.
      */
-    public SparkMaxConfig setSmartCurrentLimit(int limit) {
-        addStep(sparkMax -> sparkMax.setSmartCurrentLimit(limit), "Smart Current Limit");
+    public SparkFlexConfig setSmartCurrentLimit(int limit) {
+        addStep(sparkFlex -> sparkFlex.setSmartCurrentLimit(limit), "Smart Current Limit");
         return this;
     }
 
@@ -502,8 +492,8 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * @param stallLimit The current limit in amps at {@code 0} RPM.
      * @param freeLimit The current limit at free speed ({@code 5700} RPM for NEO).
      */
-    public SparkMaxConfig setSmartCurrentLimit(int stallLimit, int freeLimit) {
-        addStep(sparkMax -> sparkMax.setSmartCurrentLimit(stallLimit, freeLimit), "Smart Current Limit");
+    public SparkFlexConfig setSmartCurrentLimit(int stallLimit, int freeLimit) {
+        addStep(sparkFlex -> sparkFlex.setSmartCurrentLimit(stallLimit, freeLimit), "Smart Current Limit");
         return this;
     }
 
@@ -522,8 +512,8 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * @param freeLimit The current limit at free speed ({@code 5700} RPM for NEO).
      * @param limitRPM RPM less than this value will be set to the stallLimit, RPM values greater than limitRPM will scale linearly to freeLimit.
      */
-    public SparkMaxConfig setSmartCurrentLimit(int stallLimit, int freeLimit, int limitRPM) {
-        addStep(sparkMax -> sparkMax.setSmartCurrentLimit(stallLimit, freeLimit, limitRPM), "Smart Current Limit");
+    public SparkFlexConfig setSmartCurrentLimit(int stallLimit, int freeLimit, int limitRPM) {
+        addStep(sparkFlex -> sparkFlex.setSmartCurrentLimit(stallLimit, freeLimit, limitRPM), "Smart Current Limit");
         return this;
     }
 
@@ -534,10 +524,10 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * @param direction The direction of motion to restrict.
      * @param limit Position soft limit of the controller.
      */
-    public SparkMaxConfig setSoftLimit(CANSparkMax.SoftLimitDirection direction, double limit) {
+    public SparkFlexConfig setSoftLimit(CANSparkFlex.SoftLimitDirection direction, double limit) {
         addStep(
-            sparkMax -> sparkMax.setSoftLimit(direction, (float) limit),
-            sparkMax -> Math2.epsilonEquals(sparkMax.getSoftLimit(direction), limit, RevConfigRegistry.EPSILON),
+            sparkFlex -> sparkFlex.setSoftLimit(direction, (float) limit),
+            sparkFlex -> Math2.epsilonEquals(sparkFlex.getSoftLimit(direction), limit, RevConfigRegistry.EPSILON),
             "Soft Limit"
         );
         return this;
@@ -547,11 +537,11 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * Restores motor controller parameters to factory defaults.
      * <p><b>This option should be declared first, to ensure all other configuration options aren't overwritten.</b></p>
      */
-    public SparkMaxConfig restoreFactoryDefaults() {
+    public SparkFlexConfig restoreFactoryDefaults() {
         addStep(
-            sparkMax -> {
-                REVLibError res = sparkMax.restoreFactoryDefaults();
-                Sleep.seconds(kFactoryDefaultsSleep);
+            sparkFlex -> {
+                REVLibError res = sparkFlex.restoreFactoryDefaults();
+                Sleep.seconds(FACTORY_DEFAULTS_SLEEP, true);
                 return res;
             },
             "Restore Factory Defaults"
@@ -564,11 +554,11 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * @param persist If {@code true}, burn the flash with the factory default parameters.
      * <p><b>This option should be declared first, to ensure all other configuration options aren't overwritten.</b></p>
      */
-    public SparkMaxConfig restoreFactoryDefaults(boolean persist) {
+    public SparkFlexConfig restoreFactoryDefaults(boolean persist) {
         addStep(
-            sparkMax -> {
-                REVLibError res = sparkMax.restoreFactoryDefaults(persist);
-                Sleep.seconds(kFactoryDefaultsSleep);
+            sparkFlex -> {
+                REVLibError res = sparkFlex.restoreFactoryDefaults(persist);
+                Sleep.seconds(FACTORY_DEFAULTS_SLEEP, true);
                 return res;
             },
             "Restore Factory Defaults"

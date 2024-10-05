@@ -4,14 +4,12 @@ import com.choreo.lib.ChoreoTrajectory;
 import com.choreo.lib.ChoreoTrajectoryState;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.wpi.first.math.Pair;
-import edu.wpi.first.networktables.BooleanPublisher;
 import edu.wpi.first.networktables.BooleanSubscriber;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringArrayPublisher;
 import edu.wpi.first.networktables.StringPublisher;
 import edu.wpi.first.networktables.StringSubscriber;
-import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.event.EventLoop;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -37,18 +35,13 @@ public final class GRRDashboard {
     private static final NetworkTable nt = NetworkTableInstance.getDefault().getTable("GRRDashboard");
     private static final EventLoop periodic = new EventLoop();
 
-    private static final BooleanPublisher robotEnabledPub = nt.getBooleanTopic("Robot/enabled").publish();
-    private static final BooleanPublisher robotIsBluePub = nt.getBooleanTopic("Robot/isBlue").publish();
-    private static final BooleanSubscriber allianceOverrideActiveSub = nt.getBooleanTopic("Robot/AllianceOverride/active").subscribe(false);
-    private static final BooleanSubscriber allianceOverrideIsBlueSub = nt.getBooleanTopic("Robot/AllianceOverride/isBlue").subscribe(false);
+    private static final BooleanSubscriber allianceOverrideActiveSub = nt.getBooleanTopic("AllianceOverride/active").subscribe(false);
+    private static final BooleanSubscriber allianceOverrideIsBlueSub = nt.getBooleanTopic("AllianceOverride/isBlue").subscribe(false);
 
     private static final Map<String, Pair<String, Command>> autoOptions = new LinkedHashMap<>(); // { id: [json, command] }
     private static final StringArrayPublisher autoOptionsPub = nt.getStringArrayTopic("Autos/options").publish();
     private static final StringPublisher activeAutoPub = nt.getStringTopic("Autos/active").publish();
     private static final StringSubscriber selectedAutoSub;
-
-    private static final NetworkTable tunables = nt.getSubTable("Tunables");
-    private static final List<StringPublisher> tunablePubs = new ArrayList<>();
 
     private static Command selectedAuto = Commands.none();
 
@@ -149,45 +142,11 @@ public final class GRRDashboard {
     }
 
     /**
-     * Adds a {@link Tunable} to the dashboard.
-     * @param tunable The {@link Tunable} to add.
+     * Binds an action to the dashboard's update loop.
+     * @param action The action to bind.
      */
-    public static void addTunable(Tunable tunable) {
-        List<HashMap<String, ?>> fields = new ArrayList<>();
-        for (var field : tunable.fields) {
-            periodic.bind(field.init().apply(tunables));
-            fields.add(
-                new HashMap<>() {
-                    {
-                        put("name", field.name());
-                        put("type", field.type().getValueStr());
-                        put("default", field.defaultValue());
-                    }
-                }
-            );
-        }
-
-        String json = "";
-        try {
-            json =
-                new ObjectMapper()
-                    .writeValueAsString(
-                        new HashMap<>() {
-                            {
-                                put("devOnly", tunable.devOnly);
-                                put("fields", fields);
-                            }
-                        }
-                    );
-        } catch (Exception e) {
-            e.printStackTrace();
-            json = "";
-        }
-
-        if (json.isEmpty()) return;
-        StringPublisher pub = tunables.getStringTopic(tunable.name).publish();
-        tunablePubs.add(pub);
-        pub.set(json);
+    static void bind(Runnable action) {
+        periodic.bind(action);
     }
 
     /**
@@ -195,15 +154,11 @@ public final class GRRDashboard {
      * periodically in order for this class to function.
      */
     public static void update() {
-        robotEnabledPub.set(RobotState.isEnabled());
-
         if (allianceOverrideActiveSub.get()) {
             Alliance.enableOverride(allianceOverrideIsBlueSub.get());
         } else {
             Alliance.disableOverride();
         }
-
-        robotIsBluePub.set(Alliance.isBlue());
 
         for (String id : selectedAutoSub.readQueueValues()) {
             var entry = autoOptions.get(id);

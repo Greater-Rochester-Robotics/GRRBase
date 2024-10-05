@@ -1,4 +1,4 @@
-package org.team340.lib.rev;
+package org.team340.lib.util.rev;
 
 import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkMax;
@@ -10,27 +10,17 @@ import com.revrobotics.SparkLimitSwitch;
 public class SparkLimitSwitchConfig extends RevConfigBase<SparkLimitSwitch> {
 
     /**
-     * Creates an empty config.
-     */
-    public SparkLimitSwitchConfig() {}
-
-    /**
-     * Creates a config that copies the config steps from the base provided.
-     * @param base The config to copy the steps from.
-     */
-    private SparkLimitSwitchConfig(RevConfigBase<SparkLimitSwitch> base) {
-        super(base);
-    }
-
-    /**
      * Clones this config.
      */
     public SparkLimitSwitchConfig clone() {
-        return new SparkLimitSwitchConfig(this);
+        var config = new SparkLimitSwitchConfig();
+        config.configSteps.addAll(configSteps);
+        return config;
     }
 
     /**
-     * Applies the config to a Spark Max attached limit switch.
+     * Applies the config to a Spark Max attached limit switch. Note that this is a blocking
+     * operation. Errors are printed when calling {@link RevConfigRegistry#burnFlashAll()}.
      * @param sparkMax The Spark Max the limit switch is attached to.
      * @param limitSwitch The limit switch.
      */
@@ -39,7 +29,8 @@ public class SparkLimitSwitchConfig extends RevConfigBase<SparkLimitSwitch> {
     }
 
     /**
-     * Applies the config to a Spark Flex limit switch.
+     * Applies the config to a Spark Flex limit switch. Note that this is a blocking operation.
+     * Errors are printed when calling {@link RevConfigRegistry#burnFlashAll()}.
      * @param sparkFlex The Spark Flex the limit switch is attached to.
      * @param limitSwitch The limit switch.
      */

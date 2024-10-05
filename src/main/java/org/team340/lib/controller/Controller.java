@@ -7,7 +7,6 @@ import edu.wpi.first.wpilibj.event.EventLoop;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import org.team340.lib.util.Profiler;
 
 /**
  * A modified {@link CommandXboxController}.
@@ -17,8 +16,18 @@ import org.team340.lib.util.Profiler;
  */
 public class Controller extends CommandXboxController {
 
+    private static final EventLoop loop = new EventLoop();
+
+    static {
+        CommandScheduler
+            .getInstance()
+            .getDefaultButtonLoop()
+            .bind(() -> {
+                if (!RobotState.isAutonomous()) loop.poll();
+            });
+    }
+
     private final ControllerConfig config;
-    private final EventLoop loop = new EventLoop();
 
     /**
      * Create the controller.
@@ -27,16 +36,13 @@ public class Controller extends CommandXboxController {
     public Controller(ControllerConfig config) {
         super(config.port);
         this.config = config;
+    }
 
-        CommandScheduler
-            .getInstance()
-            .getDefaultButtonLoop()
-            .bind(() -> {
-                boolean profile = Profiler.isRunning();
-                if (profile) Profiler.start("Controller" + config.port);
-                if (!RobotState.isAutonomous()) loop.poll();
-                if (profile) Profiler.end();
-            });
+    /**
+     * Get the default button poll for controllers.
+     */
+    public static EventLoop getDefaultButtonLoop() {
+        return loop;
     }
 
     @Override
@@ -154,13 +160,23 @@ public class Controller extends CommandXboxController {
         return rightStick(loop);
     }
 
+    @Override
+    public Trigger leftTrigger(double threshold) {
+        return leftTrigger(threshold, loop);
+    }
+
+    @Override
+    public Trigger rightTrigger(double threshold) {
+        return rightTrigger(threshold, loop);
+    }
+
     /**
      * Constructs a Trigger instance around the axis value of the left trigger.
      * @return A {@link Trigger} instance.
      */
     @Override
     public Trigger leftTrigger() {
-        return super.leftTrigger(config.triggerThreshold);
+        return leftTrigger(config.triggerThreshold);
     }
 
     /**
@@ -169,7 +185,7 @@ public class Controller extends CommandXboxController {
      */
     @Override
     public Trigger rightTrigger() {
-        return super.rightTrigger(config.triggerThreshold);
+        return rightTrigger(config.triggerThreshold);
     }
 
     /**

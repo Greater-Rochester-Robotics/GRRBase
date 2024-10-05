@@ -6,7 +6,8 @@ import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.RobotBase;
 
 /**
- * Utility class for sleeping the current thread, unless in simulation.
+ * Utility class for sleeping the current thread,
+ * with the option to skip if in simulation.
  */
 public final class Sleep {
 
@@ -16,6 +17,7 @@ public final class Sleep {
 
     /**
      * Sleeps the thread for the specified duration.
+     * Will always run, even if in simulation.
      * @param time The time to sleep for.
      */
     public static void of(Time time) {
@@ -25,14 +27,15 @@ public final class Sleep {
     /**
      * Sleeps the thread for the specified duration.
      * @param time The time to sleep for.
-     * @param force If the thread should always sleep, even if the robot is in simulation.
+     * @param skipSim If the thread should skip sleeping if in simulation.
      */
-    public static void of(Time time, boolean force) {
-        ms(time.in(Milliseconds), force);
+    public static void of(Time time, boolean skipSim) {
+        ms(time.in(Milliseconds), skipSim);
     }
 
     /**
      * Sleeps the thread for the specified duration in seconds.
+     * Will always run, even if in simulation.
      * @param seconds The time to sleep for in seconds.
      */
     public static void seconds(double seconds) {
@@ -42,14 +45,15 @@ public final class Sleep {
     /**
      * Sleeps the thread for the specified duration in seconds.
      * @param seconds The time to sleep for in seconds.
-     * @param force If the thread should always sleep, even if the robot is in simulation.
+     * @param skipSim If the thread should skip sleeping if in simulation.
      */
-    public static void seconds(double seconds, boolean force) {
-        ms(seconds * 1000.0, force);
+    public static void seconds(double seconds, boolean skipSim) {
+        ms(seconds * 1000.0, skipSim);
     }
 
     /**
      * Sleeps the thread for the specified duration in milliseconds.
+     * Will always run, even if in simulation.
      * @param ms The time to sleep for in milliseconds.
      */
     public static void ms(double ms) {
@@ -59,10 +63,10 @@ public final class Sleep {
     /**
      * Sleeps the thread for the specified duration in milliseconds.
      * @param ms The time to sleep for in milliseconds.
-     * @param force If the thread should always sleep, even if the robot is in simulation.
+     * @param skipSim If the thread should skip sleeping if in simulation.
      */
-    public static void ms(double ms, boolean force) {
-        if (force || !RobotBase.isSimulation()) {
+    public static void ms(double ms, boolean skipSim) {
+        if (!(skipSim && RobotBase.isSimulation())) {
             try {
                 Thread.sleep((long) ms);
             } catch (Exception e) {}

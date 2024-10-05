@@ -11,8 +11,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import org.team340.lib.controller.Controller;
 import org.team340.lib.dashboard.GRRDashboard;
-import org.team340.lib.rev.RevConfigRegistry;
 import org.team340.lib.util.Profiler;
+import org.team340.lib.util.rev.RevConfigRegistry;
 import org.team340.robot.subsystems.Swerve;
 
 /**
@@ -55,10 +55,16 @@ public final class Robot extends TimedRobot {
         // Configure Autos
         GRRDashboard.addAuto("Example", none());
 
-        // A => Do nothing
+        // Configure Default Commands
+        swerve.setDefaultCommand(swerve.drive(driver::getLeftX, driver::getLeftY, driver::getTriggerDifference));
+
+        // Driver A => Do nothing
         driver.a().onTrue(none());
 
-        // A => Do nothing
+        // Driver POV Left => Tare rotation
+        driver.povLeft().onTrue(swerve.tareRotation());
+
+        // Co-Driver A => Do nothing
         coDriver.a().onTrue(none());
     }
 
@@ -66,8 +72,8 @@ public final class Robot extends TimedRobot {
     public void robotPeriodic() {
         Profiler.start("RobotPeriodic");
         Profiler.run("CommandScheduler", () -> CommandScheduler.getInstance().run());
-        Profiler.run("GRRDashboard", GRRDashboard::update);
         Profiler.run("Epilogue", () -> Epilogue.update(this));
+        Profiler.run("GRRDashboard", GRRDashboard::update);
         Profiler.end();
     }
 
@@ -93,12 +99,12 @@ public final class Robot extends TimedRobot {
     public void autonomousPeriodic() {}
 
     @Override
-    public void autonomousExit() {}
-
-    @Override
-    public void teleopInit() {
+    public void autonomousExit() {
         if (autoCommand != null) autoCommand.cancel();
     }
+
+    @Override
+    public void teleopInit() {}
 
     @Override
     public void teleopPeriodic() {}

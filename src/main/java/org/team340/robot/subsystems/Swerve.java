@@ -2,7 +2,10 @@ package org.team340.robot.subsystems;
 
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj2.command.Command;
+import java.util.function.Supplier;
 import org.team340.lib.swerve.SwerveAPI;
+import org.team340.lib.swerve.SwerveAPI.ForwardPerspective;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.config.SwerveModuleConfig;
 import org.team340.lib.swerve.hardware.SwerveEncoders;
@@ -44,20 +47,18 @@ public class Swerve extends GRRSubsystem {
         .setEncoder(SwerveEncoders.canCoder(RobotMap.BR_ENCODER, 0.0, false));
 
     private static final SwerveConfig CONFIG = new SwerveConfig()
-        .setTimings(Constants.PERIOD, 0.005, 0.025)
-        .setFieldSize(Constants.FIELD_LENGTH, Constants.FIELD_WIDTH)
+        .setTimings(Constants.PERIOD, 0.004, 0.02)
         .setMovePID(0.1, 0.0, 0.0, 0.0)
-        .setMoveFF(0.0, 2.4, 0.0)
+        .setMoveFF(0.0, 2.4)
         .setTurnPID(0.5, 0.0, 0.0, 0.0)
         .setBrakeMode(false, true)
-        .setMaxSpeeds(5.0, 10.0)
-        .setRatelimits(15.0, 30.0)
-        .setPowerProperties(Constants.VOLTAGE, 80.0, 40.0)
+        .setLimits(5.0, 15.0, 10.0)
+        .setDriverProfile(4.5, 1.0, 1.5, 2.0)
+        .setPowerProperties(Constants.VOLTAGE, 80.0, 60.0)
         .setMechanicalProperties(75.0 / 14.0, 18.75, 0.0, Units.inchesToMeters(4.0))
         .setOdometryStd(0.1, 0.1, 0.1)
-        .setVisionStd(0.0, 0.0, 0.0)
         .setIMU(SwerveIMUs.pigeon2(RobotMap.PIGEON))
-        .setPhoenixFeatures(RobotMap.CANBUS, true, true, true)
+        .setPhoenixFeatures(RobotMap.CANBUS, false, true, true)
         .setModules(FRONT_LEFT, FRONT_RIGHT, BACK_LEFT, BACK_RIGHT);
 
     private final SwerveAPI api;
@@ -69,5 +70,24 @@ public class Swerve extends GRRSubsystem {
     @Override
     public void periodic() {
         api.refresh();
+    }
+
+    /**
+     * Drives the robot using driver input.
+     * @param x The X value from the driver's joystick.
+     * @param y The Y value from the driver's joystick.
+     * @param angular The CCW+ angular speed to apply, from {@code [-1.0, 1.0]}.
+     */
+    public Command drive(Supplier<Double> x, Supplier<Double> y, Supplier<Double> angular) {
+        return commandBuilder("Swerve.drive()")
+            .onExecute(() -> api.applyDriverInput(x.get(), y.get(), angular.get(), ForwardPerspective.OPERATOR, true, true));
+    }
+
+    /**
+     * Tares the rotation of the robot. Useful for
+     * fixing an out of sync or drifting IMU.
+     */
+    public Command tareRotation() {
+        return commandBuilder("Swerve.tareRotation()").onInitialize(() -> api.tareRotation(ForwardPerspective.OPERATOR)).isFinished(true);
     }
 }

@@ -5,6 +5,8 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 /**
  * Math utilities.
@@ -34,21 +36,6 @@ public final class Math2 {
     public static final double FIVE_SIXTHS_PI = 5.0 * Math.PI / 6.0;
     /** {@code PI*2} (360deg) */
     public static final double TWO_PI = Math.PI * 2.0;
-    /** Identity {@link Twist2d} */
-    public static final Twist2d TWIST2D_0 = new Twist2d();
-    /** Identity {@link ChassisSpeeds} */
-    public static final ChassisSpeeds CHASSIS_SPEEDS_0 = new ChassisSpeeds();
-
-    /**
-     * Wraps an angle within {@code +-PI} of a reference.
-     * @param ref The reference angle in radians.
-     * @param angle The angle to wrap in radians.
-     * @return The wrapped angle in radians.
-     */
-    public static double wrapAbout(double ref, double angle) {
-        double diff = angle - ref;
-        if (diff > Math.PI) return angle - (Math2.TWO_PI); else if (diff < -Math.PI) return angle + (Math2.TWO_PI); else return angle;
-    }
 
     /**
      * Returns a random double from {@code 0.0} to {@code max}.
@@ -65,42 +52,6 @@ public final class Math2 {
      */
     public static double random(double min, double max) {
         return (Math.random() * (max - min)) + min;
-    }
-
-    /**
-     * Definition of a 2D parametric function.
-     */
-    @FunctionalInterface
-    public static interface Parametric {
-        public double f(double x, double y);
-    }
-
-    /**
-     * Finds the root of a 2D parametric function with the false position method (regula falsi).
-     * @param func The function to take the root of.
-     * @param x0 {@code x} value of the lower bracket.
-     * @param y0 {@code y} value of the lower bracket.
-     * @param f0 value of {@code func} at {@code x0}, {@code y0}.
-     * @param x1 {@code x} value of the upper bracket.
-     * @param y1 {@code y} value of the upper bracket.
-     * @param f1 value of {@code func} at {@code x1}, {@code y1}.
-     * @param iterationsLeft Number of iterations of root finding remaining.
-     * @return The parameter value {@code s} that interpolating between {@code 0.0} and {@code 1.0} that corresponds with the approximate root.
-     */
-    public static double findRoot(Parametric func, double x0, double y0, double f0, double x1, double y1, double f1, int iterationsLeft) {
-        if (iterationsLeft < 0 || epsilonEquals(f0, f1)) return 1.0;
-        iterationsLeft--;
-
-        double sGuess = Math.max(0.0, Math.min(1.0, -f0 / (f1 - f0)));
-        double xGuess = (x1 - x0) * sGuess + x0;
-        double yGuess = (y1 - y0) * sGuess + y0;
-        double fGuess = func.f(xGuess, yGuess);
-
-        if (Math.signum(f0) == Math.signum(fGuess)) {
-            return sGuess + (1.0 - sGuess) * findRoot(func, xGuess, yGuess, fGuess, x1, y1, f1, iterationsLeft);
-        } else {
-            return sGuess * findRoot(func, x0, y0, f0, xGuess, yGuess, fGuess, iterationsLeft);
-        }
     }
 
     /**
@@ -213,6 +164,43 @@ public final class Math2 {
      * @return {@code true} if the values are equal.
      */
     public static boolean twistEpsilonEquals(Twist2d a, Twist2d b, double epsilon) {
-        return epsilonEquals(a.dx, b.dx, epsilon) && epsilonEquals(a.dy, b.dy, epsilon) && epsilonEquals(a.dtheta, b.dtheta, epsilon);
+        return (epsilonEquals(a.dx, b.dx, epsilon) && epsilonEquals(a.dy, b.dy, epsilon) && epsilonEquals(a.dtheta, b.dtheta, epsilon));
+    }
+
+    /**
+     * Copies values from a source {@link ChassisSpeeds} object to another.
+     * @param source The speeds to copy from.
+     * @param output The speeds to copy into.
+     * @return The output speeds.
+     */
+    public static ChassisSpeeds copyInto(ChassisSpeeds source, ChassisSpeeds output) {
+        output.vxMetersPerSecond = source.vxMetersPerSecond;
+        output.vyMetersPerSecond = source.vyMetersPerSecond;
+        output.omegaRadiansPerSecond = source.omegaRadiansPerSecond;
+        return output;
+    }
+
+    /**
+     * Copies values from a source {@link SwerveModulePosition} object to another.
+     * @param source The swerve module position to copy from.
+     * @param output The swerve module position to copy into.
+     * @return The output position.
+     */
+    public static SwerveModulePosition copyInto(SwerveModulePosition source, SwerveModulePosition output) {
+        output.distanceMeters = source.distanceMeters;
+        output.angle = source.angle;
+        return output;
+    }
+
+    /**
+     * Copies values from a source {@link SwerveModuleState} object to another.
+     * @param source The swerve module state to copy from.
+     * @param output The swerve module state to copy into.
+     * @return The output state.
+     */
+    public static SwerveModuleState copyInto(SwerveModuleState source, SwerveModuleState output) {
+        output.speedMetersPerSecond = source.speedMetersPerSecond;
+        output.angle = source.angle;
+        return output;
     }
 }

@@ -1,4 +1,4 @@
-package org.team340.lib.rev;
+package org.team340.lib.util.rev;
 
 import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkMax;
@@ -11,27 +11,17 @@ import org.team340.lib.util.Math2;
 public class SparkAbsoluteEncoderConfig extends RevConfigBase<SparkAbsoluteEncoder> {
 
     /**
-     * Creates an empty config.
-     */
-    public SparkAbsoluteEncoderConfig() {}
-
-    /**
-     * Creates a config that copies the config steps from the base provided.
-     * @param base The config to copy the steps from.
-     */
-    private SparkAbsoluteEncoderConfig(RevConfigBase<SparkAbsoluteEncoder> base) {
-        super(base);
-    }
-
-    /**
      * Clones this config.
      */
     public SparkAbsoluteEncoderConfig clone() {
-        return new SparkAbsoluteEncoderConfig(this);
+        var config = new SparkAbsoluteEncoderConfig();
+        config.configSteps.addAll(configSteps);
+        return config;
     }
 
     /**
-     * Applies the config to a Spark Max attached encoder..
+     * Applies the config to a Spark Max attached encoder. Note that this is a blocking operation.
+     * Errors are printed when calling {@link RevConfigRegistry#burnFlashAll()}.
      * @param sparkMax The Spark Max the encoder is attached to.
      * @param absoluteEncoder The absolute encoder.
      */
@@ -40,7 +30,8 @@ public class SparkAbsoluteEncoderConfig extends RevConfigBase<SparkAbsoluteEncod
     }
 
     /**
-     * Applies the config to a Spark Flex attached encoder..
+     * Applies the config to a Spark Flex attached encoder. Note that this is a blocking operation.
+     * Errors are printed when calling {@link RevConfigRegistry#burnFlashAll()}.
      * @param sparkFlex The Spark Flex the encoder is attached to.
      * @param absoluteEncoder The absolute encoder.
      */

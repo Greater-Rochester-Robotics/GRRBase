@@ -32,7 +32,9 @@ interface SwerveBaseHardware extends AutoCloseable {
      * odometry thread to register signals to be refreshed automatically.
      * Because signals are not thread safe, all returned signals should
      * also be cloned in their initialization as to not interfere with
-     * telemetry, which is invoked synchronously.
+     * telemetry, which is invoked on the main thread. The exception to
+     * this rule is IMU pitch and roll values, as they are only measured
+     * synchronously when calling {@link SwerveAPI#refresh()}.
      */
     public default List<BaseStatusSignal> getSignals() {
         return List.of();

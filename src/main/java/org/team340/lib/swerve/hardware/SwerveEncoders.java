@@ -14,16 +14,18 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkAbsoluteEncoder;
 import edu.wpi.first.epilogue.logging.DataLogger;
 import edu.wpi.first.epilogue.logging.errors.ErrorHandler;
+import edu.wpi.first.wpilibj.RobotBase;
 import java.util.List;
 import java.util.function.BiFunction;
 import org.team340.lib.logging.CANcoderLogger;
 import org.team340.lib.logging.SparkAbsoluteEncoderLogger;
-import org.team340.lib.rev.SparkAbsoluteEncoderConfig;
-import org.team340.lib.rev.SparkFlexConfig;
-import org.team340.lib.rev.SparkMaxConfig;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.hardware.SwerveMotors.SwerveMotor;
 import org.team340.lib.util.Mutable;
+import org.team340.lib.util.ctre.PhoenixUtil;
+import org.team340.lib.util.rev.SparkAbsoluteEncoderConfig;
+import org.team340.lib.util.rev.SparkFlexConfig;
+import org.team340.lib.util.rev.SparkMaxConfig;
 
 public final class SwerveEncoders {
 
@@ -62,6 +64,68 @@ public final class SwerveEncoders {
     }
 
     /**
+     * Constructs a swerve encoder. Wraps to support simulation if applicable.
+     * @param ctor The encoder's constructor.
+     * @param config The general swerve API configuration.
+     * @param turnMotor The turn motor associated with the encoder's module.
+     */
+    public static SwerveEncoder construct(SwerveEncoder.Ctor ctor, SwerveConfig config, SwerveMotor turnMotor) {
+        SwerveEncoder encoder = ctor.apply(config, turnMotor);
+        if (RobotBase.isSimulation()) encoder = simulate(encoder, config, turnMotor);
+        return encoder;
+    }
+
+    /**
+     * Rudimentary encoder simulation wrapper. Follows the position of the turn motor.
+     * @param encoder The encoder to wrap.
+     * @param config The general swerve API configuration.
+     * @param turnMotor The turn motor associated with the encoder's module.
+     */
+    private static SwerveEncoder simulate(SwerveEncoder encoder, SwerveConfig config, SwerveMotor turnMotor) {
+        return new SwerveEncoder() {
+            @Override
+            public double getPosition() {
+                return turnMotor.getPosition() / (hookStatus() ? 1.0 : config.turnGearRatio);
+            }
+
+            @Override
+            public boolean hookStatus() {
+                return encoder.hookStatus();
+            }
+
+            @Override
+            public Object getAPI() {
+                return encoder;
+            }
+
+            @Override
+            public void log(DataLogger logger, ErrorHandler errorHandler) {
+                encoder.log(logger, errorHandler);
+                var simLogger = logger.getSubLogger(".sim");
+                simLogger.log("position", getPosition());
+                simLogger.log("hookStatus", hookStatus());
+            }
+
+            @Override
+            public List<BaseStatusSignal> getSignals() {
+                return encoder.getSignals();
+            }
+
+            @Override
+            public boolean readError() {
+                return encoder.readError();
+            }
+
+            @Override
+            public void close() {
+                try {
+                    encoder.close();
+                } catch (Exception e) {}
+            }
+        };
+    }
+
+    /**
      * Configures a Spark Max attached duty cycle absolute encoder.
      * @param offset Offset of the magnet in rotations.
      * @param inverted If the encoder is inverted.
@@ -77,7 +141,7 @@ public final class SwerveEncoders {
             SparkAbsoluteEncoder encoder = sparkMax.getAbsoluteEncoder();
 
             new SparkMaxConfig()
-                .setPeriodicFramePeriod(SparkMaxConfig.Frame.S5, (int) (config.getOdometryPeriod() * 1000.0))
+                .setPeriodicFramePeriod(SparkMaxConfig.Frame.S5, (int) (config.odometryPeriod * 1000.0))
                 .setPeriodicFramePeriod(SparkMaxConfig.Frame.S6, (int) (SwerveBaseHardware.TELEMETRY_CAN_PERIOD * 1000.0))
                 .apply(sparkMax);
 
@@ -126,7 +190,7 @@ public final class SwerveEncoders {
             SparkAbsoluteEncoder encoder = sparkFlex.getAbsoluteEncoder();
 
             new SparkFlexConfig()
-                .setPeriodicFramePeriod(SparkFlexConfig.Frame.S5, (int) (config.getOdometryPeriod() * 1000.0))
+                .setPeriodicFramePeriod(SparkFlexConfig.Frame.S5, (int) (config.odometryPeriod * 1000.0))
                 .setPeriodicFramePeriod(SparkFlexConfig.Frame.S6, (int) (SwerveBaseHardware.TELEMETRY_CAN_PERIOD * 1000.0))
                 .apply(sparkFlex);
 
@@ -168,7 +232,7 @@ public final class SwerveEncoders {
     public static SwerveEncoder.Ctor canCoder(int id, double offset, boolean inverted) {
         return (config, turnMotor) -> {
             var deviceLogger = new CANcoderLogger();
-            CANcoder canCoder = new CANcoder(id, config.getPhoenixCanBus());
+            CANcoder canCoder = new CANcoder(id, config.phoenixCanBus);
             Mutable<Boolean> hookStatus = new Mutable<>(false);
 
             StatusSignal<Double> position = canCoder.getPosition().clone();
@@ -179,9 +243,9 @@ public final class SwerveEncoders {
             canCoderConfig.MagnetSensor.SensorDirection =
                 inverted ? SensorDirectionValue.Clockwise_Positive : SensorDirectionValue.CounterClockwise_Positive;
 
-            canCoder.getConfigurator().apply(canCoderConfig);
+            PhoenixUtil.run(canCoder, "Apply CANcoderConfiguration", () -> canCoder.getConfigurator().apply(canCoderConfig));
 
-            BaseStatusSignal.setUpdateFrequencyForAll(1.0 / config.getOdometryPeriod(), position, velocity);
+            BaseStatusSignal.setUpdateFrequencyForAll(1.0 / config.odometryPeriod, position, velocity);
             canCoder.optimizeBusUtilization(1.0 / SwerveBaseHardware.TELEMETRY_CAN_PERIOD, 0.05);
 
             if (turnMotor.getAPI() instanceof TalonFX) {
@@ -189,17 +253,17 @@ public final class SwerveEncoders {
 
                 var feedbackConfig = new FeedbackConfigs();
                 feedbackConfig.FeedbackRemoteSensorID = id;
-                feedbackConfig.RotorToSensorRatio = config.getTurnGearRatio();
+                feedbackConfig.RotorToSensorRatio = config.turnGearRatio;
                 feedbackConfig.FeedbackSensorSource =
-                    config.getPhoenixPro() ? FeedbackSensorSourceValue.FusedCANcoder : FeedbackSensorSourceValue.RemoteCANcoder;
+                    config.phoenixPro ? FeedbackSensorSourceValue.FusedCANcoder : FeedbackSensorSourceValue.RemoteCANcoder;
 
                 var closedLoopConfig = new ClosedLoopGeneralConfigs();
                 closedLoopConfig.ContinuousWrap = true;
 
-                talonFX.getConfigurator().apply(feedbackConfig);
-                talonFX.getConfigurator().apply(closedLoopConfig);
+                PhoenixUtil.run(talonFX, "Apply FeedbackConfigs", () -> talonFX.getConfigurator().apply(feedbackConfig));
+                PhoenixUtil.run(talonFX, "Apply ClosedLoopGeneralConfigs", () -> talonFX.getConfigurator().apply(closedLoopConfig));
 
-                hookStatus.set(true);
+                hookStatus.value = true;
             }
 
             return new SwerveEncoder() {

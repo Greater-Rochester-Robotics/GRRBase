@@ -7,11 +7,13 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.config.SwerveModuleConfig;
+import org.team340.lib.swerve.hardware.SwerveEncoders;
 import org.team340.lib.swerve.hardware.SwerveEncoders.SwerveEncoder;
+import org.team340.lib.swerve.hardware.SwerveMotors;
 import org.team340.lib.swerve.hardware.SwerveMotors.SwerveMotor;
 import org.team340.lib.util.Math2;
 
@@ -29,12 +31,13 @@ class SwerveModule implements AutoCloseable {
     private final double moveRotationsPerMeter;
     private final boolean hookStatus;
 
-    private final ReadWriteLock cacheMutex = new ReentrantReadWriteLock();
+    private final Lock cacheMutex = new ReentrantLock();
     private final SwerveModulePosition cachedPosition = new SwerveModulePosition();
     private final SwerveModuleState cachedState = new SwerveModuleState();
     private double cachedTurnMotorPosition = 0.0;
 
-    private final SwerveModuleState targetState = new SwerveModuleState();
+    private final SwerveModuleState nextTarget = new SwerveModuleState();
+    private final SwerveModuleState lastTarget = new SwerveModuleState();
 
     /**
      * Create the swerve module.
@@ -45,11 +48,11 @@ class SwerveModule implements AutoCloseable {
         this.config = config;
         this.moduleConfig = moduleConfig;
 
-        moveMotor = moduleConfig.getMoveMotor().apply(config, true);
-        turnMotor = moduleConfig.getTurnMotor().apply(config, false);
-        encoder = moduleConfig.getEncoder().apply(config, turnMotor);
+        moveMotor = SwerveMotors.construct(moduleConfig.moveMotor, config, true);
+        turnMotor = SwerveMotors.construct(moduleConfig.turnMotor, config, false);
+        encoder = SwerveEncoders.construct(moduleConfig.encoder, config, turnMotor);
 
-        moveRotationsPerMeter = config.getMoveGearRatio() / (config.getWheelDiameter() * Math.PI);
+        moveRotationsPerMeter = config.moveGearRatio / (config.wheelDiameter * Math.PI);
         hookStatus = encoder.hookStatus();
     }
 
@@ -57,7 +60,7 @@ class SwerveModule implements AutoCloseable {
      * Gets the module's configured name.
      */
     public String getName() {
-        return moduleConfig.getName();
+        return moduleConfig.name;
     }
 
     /**
@@ -76,11 +79,10 @@ class SwerveModule implements AutoCloseable {
      * @return {@code true} on success, {@code false} if a read error ocurred.
      */
     public boolean refresh() {
+        cacheMutex.lock();
         try {
-            cacheMutex.writeLock().lock();
-
             double turnPosition = turnMotor.getPosition();
-            double movePosition = moveMotor.getPosition() - (turnPosition * config.getCouplingRatio());
+            double movePosition = moveMotor.getPosition() - (turnPosition * config.couplingRatio);
             Rotation2d angle = Rotation2d.fromRotations(hookStatus ? turnPosition : encoder.getPosition());
 
             cachedPosition.distanceMeters = movePosition / moveRotationsPerMeter;
@@ -91,15 +93,16 @@ class SwerveModule implements AutoCloseable {
 
             cachedTurnMotorPosition = turnPosition;
 
-            return moveMotor.readError() || turnMotor.readError() || encoder.readError();
+            return !moveMotor.readError() && !turnMotor.readError() && !encoder.readError();
         } finally {
-            cacheMutex.writeLock().unlock();
+            cacheMutex.unlock();
         }
     }
 
     /**
      * Gets the module's position. The returned {@link SwerveModulePosition}
-     * object is final and can be cached, but is volatile.
+     * object is final and can be cached, but is volatile, as it may be
+     * asynchronously refreshed by the odometry thread.
      */
     public SwerveModulePosition getPosition() {
         return cachedPosition;
@@ -107,18 +110,27 @@ class SwerveModule implements AutoCloseable {
 
     /**
      * Gets the module's state. The returned {@link SwerveModuleState}
-     * object is final and can be cached, but is volatile.
+     * object is final and can be cached, but is volatile, as it may
+     * be asynchronously refreshed by the odometry thread.
      */
     public SwerveModuleState getState() {
         return cachedState;
     }
 
     /**
-     * Gets the module's target state. The returned {@link SwerveModuleState}
+     * Gets the module's next target state. The returned {@link SwerveModuleState}
      * object is final and can be cached, and is <i>not</i> volatile.
      */
-    public SwerveModuleState getTargetState() {
-        return targetState;
+    public SwerveModuleState getNextTarget() {
+        return nextTarget;
+    }
+
+    /**
+     * Gets the module's last target state. The returned {@link SwerveModuleState}
+     * object is final and can be cached, and is <i>not</i> volatile.
+     */
+    public SwerveModuleState getLastTarget() {
+        return lastTarget;
     }
 
     /**
@@ -126,8 +138,8 @@ class SwerveModule implements AutoCloseable {
      * @param state The state to apply to the module.
      */
     public void applyState(SwerveModuleState state) {
+        cacheMutex.lock();
         try {
-            cacheMutex.readLock().lock();
             boolean flipped = false;
             Rotation2d angleDelta = state.angle.minus(getState().angle);
             if (Math.abs(angleDelta.getRadians()) > Math2.HALF_PI) {
@@ -142,13 +154,13 @@ class SwerveModule implements AutoCloseable {
                 turnMotor.setPosition(state.angle.getRotations());
             } else {
                 double optimizedDelta = angleDelta.getRadians() - (flipped ? Math.copySign(Math.PI, angleDelta.getRadians()) : 0.0);
-                turnMotor.setPosition(cachedTurnMotorPosition + (Units.radiansToRotations(optimizedDelta) * config.getTurnGearRatio()));
+                turnMotor.setPosition(cachedTurnMotorPosition + (Units.radiansToRotations(optimizedDelta) * config.turnGearRatio));
             }
 
-            targetState.speedMetersPerSecond = state.speedMetersPerSecond;
-            targetState.angle = state.angle;
+            Math2.copyInto(nextTarget, lastTarget);
+            Math2.copyInto(state, nextTarget);
         } finally {
-            cacheMutex.readLock().unlock();
+            cacheMutex.unlock();
         }
     }
 
@@ -158,16 +170,16 @@ class SwerveModule implements AutoCloseable {
      * @param angle The angle to apply to the turn motor.
      */
     public void applyVoltage(double voltage, Rotation2d angle) {
+        cacheMutex.lock();
         try {
-            cacheMutex.readLock().lock();
             moveMotor.setVoltage(voltage);
             if (hookStatus) {
                 turnMotor.setPosition(angle.getRotations());
             } else {
-                turnMotor.setPosition(cachedTurnMotorPosition + (angle.minus(getState().angle).getRotations() * config.getTurnGearRatio()));
+                turnMotor.setPosition(cachedTurnMotorPosition + (angle.minus(getState().angle).getRotations() * config.turnGearRatio));
             }
         } finally {
-            cacheMutex.readLock().unlock();
+            cacheMutex.unlock();
         }
     }
 

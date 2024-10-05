@@ -11,26 +11,14 @@ public final class Constants {
 
     public static final double PERIOD = 0.020;
     public static final double VOLTAGE = 12.0;
-    public static final double FIELD_LENGTH = 16.541;
-    public static final double FIELD_WIDTH = 8.211;
 
-    public static final ControllerConfig DRIVER = new ControllerConfig()
-        .setPort(0)
-        .setJoystickDeadband(0.1)
-        .setJoystickThreshold(0.5)
-        .setTriggerDeadband(0.05)
-        .setTriggerThreshold(0.05);
+    public static final ControllerConfig DRIVER = new ControllerConfig().setPort(0).setDeadbands(0.05, 0.05).setThresholds(0.5, 0.05);
 
-    public static final ControllerConfig CO_DRIVER = new ControllerConfig()
-        .setPort(1)
-        .setJoystickDeadband(0.1)
-        .setJoystickThreshold(0.5)
-        .setTriggerDeadband(0.05)
-        .setTriggerThreshold(0.05);
+    public static final ControllerConfig CO_DRIVER = new ControllerConfig().setPort(1).setDeadbands(0.05, 0.05).setThresholds(0.5, 0.05);
 
     /**
-     * The RobotMap class defines CAN IDs, DIO/PWM/PH/PCM channel IDs, CAN bus
-     * names, and other relevant identifiers for addressing robot hardware.
+     * The RobotMap class defines CAN IDs, CAN bus names, DIO/PWM/PH/PCM channel
+     * IDs, and other relevant identifiers for addressing robot hardware.
      */
     public static final class RobotMap {
 

@@ -1,4 +1,4 @@
-package org.team340.lib.rev;
+package org.team340.lib.util.rev;
 
 import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkMax;
@@ -13,27 +13,17 @@ import org.team340.lib.util.Math2;
 public class SparkPIDControllerConfig extends RevConfigBase<SparkPIDController> {
 
     /**
-     * Creates an empty config.
-     */
-    public SparkPIDControllerConfig() {}
-
-    /**
-     * Creates a config that copies the config steps from the base provided.
-     * @param base The config to copy the steps from.
-     */
-    private SparkPIDControllerConfig(RevConfigBase<SparkPIDController> base) {
-        super(base);
-    }
-
-    /**
      * Clones this config.
      */
     public SparkPIDControllerConfig clone() {
-        return new SparkPIDControllerConfig(this);
+        var config = new SparkPIDControllerConfig();
+        config.configSteps.addAll(configSteps);
+        return config;
     }
 
     /**
-     * Applies the config.
+     * Applies the config. Note that this is a blocking operation. Errors
+     * are printed when calling {@link RevConfigRegistry#burnFlashAll()}.
      * @param sparkMax The Spark Max to apply the config to.
      * @param pidController The PID controller.
      */
@@ -42,7 +32,8 @@ public class SparkPIDControllerConfig extends RevConfigBase<SparkPIDController> 
     }
 
     /**
-     * Applies the config.
+     * Applies the config. Note that this is a blocking operation. Errors
+     * are printed when calling {@link RevConfigRegistry#burnFlashAll()}.
      * @param sparkFlex The Spark Flex to apply the config to.
      * @param pidController The PID controller.
      */

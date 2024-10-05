@@ -6,10 +6,10 @@ import java.util.function.Supplier;
 /**
  * A simple mutable object that stores a value.
  *
- * <p>Useful for declaring primitives in an enclosing scope to be accessed
+ * <p>Useful for declaring primitives in an enclosing scope to be mutated
  * inside a lambda, as lambdas prohibit capturing non final variables,
  * with the exception of instance variables. This use case however should
- * be performed with caution, as a race condition may occur if the lambda
+ * be executed with caution, as a race condition may occur if the lambda
  * escapes its capturing thread.
  *
  * <p>Fortunately for our purposes, using this class in a command factory
@@ -18,7 +18,7 @@ import java.util.function.Supplier;
  */
 public class Mutable<T> implements Supplier<T>, Consumer<T> {
 
-    private T value;
+    public T value;
 
     /**
      * Create the mutable object.
@@ -43,14 +43,6 @@ public class Mutable<T> implements Supplier<T>, Consumer<T> {
      */
     @Override
     public void accept(T value) {
-        set(value);
-    }
-
-    /**
-     * Sets a new value.
-     * @param value The new value.
-     */
-    public void set(T value) {
         this.value = value;
     }
 }

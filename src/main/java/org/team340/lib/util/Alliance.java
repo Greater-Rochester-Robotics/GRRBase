@@ -4,7 +4,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 
 /**
  * Utility class for getting the robot's alliance.
- * Can optionally be overridden using {@link Alliance#enableOverride(boolean isBlue) Alliance.enableOverride()}
+ * Can optionally be overridden using {@link Alliance#enableOverride(boolean)}.
  */
 public final class Alliance {
 
