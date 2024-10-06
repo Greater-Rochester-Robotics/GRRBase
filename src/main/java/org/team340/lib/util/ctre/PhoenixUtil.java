@@ -43,7 +43,14 @@ public final class PhoenixUtil {
         }
 
         DriverStation.reportError(
-            "[PhoenixUtil] " + device.getClass().getSimpleName() + " (ID " + device.getDeviceID() + ") \"" + name + "\": " + results,
+            "[PhoenixUtil] " +
+            device.getClass().getSimpleName() +
+            " (ID " +
+            device.getDeviceID() +
+            ") \"" +
+            name +
+            "\": " +
+            results,
             false
         );
         return false;

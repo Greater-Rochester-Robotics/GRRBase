@@ -162,7 +162,10 @@ public class Choreo {
             timer::restart,
             () -> {
                 outputChassisSpeeds.accept(
-                    controller.apply(poseSupplier.get(), trajectory.sample(timer.get(), mirrorTrajectory.getAsBoolean()))
+                    controller.apply(
+                        poseSupplier.get(),
+                        trajectory.sample(timer.get(), mirrorTrajectory.getAsBoolean())
+                    )
                 );
             },
             interrupted -> {
@@ -204,7 +207,10 @@ public class Choreo {
 
             double xFeedback = xController.calculate(pose.getX(), referenceState.x);
             double yFeedback = yController.calculate(pose.getY(), referenceState.y);
-            double rotationFeedback = rotationController.calculate(pose.getRotation().getRadians(), referenceState.heading);
+            double rotationFeedback = rotationController.calculate(
+                pose.getRotation().getRadians(),
+                referenceState.heading
+            );
 
             return ChassisSpeeds.fromFieldRelativeSpeeds(
                 xFF + xFeedback,

@@ -93,7 +93,8 @@ public class RelativeEncoderConfig extends RevConfigBase<RelativeEncoder> {
     public RelativeEncoderConfig setPositionConversionFactor(double factor) {
         addStep(
             relativeEncoder -> relativeEncoder.setPositionConversionFactor(factor),
-            relativeEncoder -> Math2.epsilonEquals(relativeEncoder.getPositionConversionFactor(), factor, RevConfigRegistry.EPSILON),
+            relativeEncoder ->
+                Math2.epsilonEquals(relativeEncoder.getPositionConversionFactor(), factor, RevConfigRegistry.EPSILON),
             "Position Conversion Factor"
         );
         return this;
@@ -107,7 +108,8 @@ public class RelativeEncoderConfig extends RevConfigBase<RelativeEncoder> {
     public RelativeEncoderConfig setVelocityConversionFactor(double factor) {
         addStep(
             relativeEncoder -> relativeEncoder.setVelocityConversionFactor(factor),
-            relativeEncoder -> Math2.epsilonEquals(relativeEncoder.getVelocityConversionFactor(), factor, RevConfigRegistry.EPSILON),
+            relativeEncoder ->
+                Math2.epsilonEquals(relativeEncoder.getVelocityConversionFactor(), factor, RevConfigRegistry.EPSILON),
             "Velocity Conversion Factor"
         );
         return this;

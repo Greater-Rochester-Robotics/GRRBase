@@ -19,8 +19,7 @@ public class Controller extends CommandXboxController {
     private static final EventLoop loop = new EventLoop();
 
     static {
-        CommandScheduler
-            .getInstance()
+        CommandScheduler.getInstance()
             .getDefaultButtonLoop()
             .bind(() -> {
                 if (!RobotState.isAutonomous()) loop.poll();

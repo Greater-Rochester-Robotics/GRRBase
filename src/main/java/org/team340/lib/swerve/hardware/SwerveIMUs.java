@@ -58,7 +58,11 @@ public final class SwerveIMUs {
      * @param config The general swerve API configuration.
      * @param speedsSupplier A supplier for the robot's current chassis speeds. Used only for simulation.
      */
-    public static SwerveIMU construct(SwerveIMU.Ctor ctor, SwerveConfig config, Supplier<ChassisSpeeds> speedsSupplier) {
+    public static SwerveIMU construct(
+        SwerveIMU.Ctor ctor,
+        SwerveConfig config,
+        Supplier<ChassisSpeeds> speedsSupplier
+    ) {
         SwerveIMU imu = ctor.apply(config);
         if (RobotBase.isSimulation()) imu = simulate(imu, config, speedsSupplier);
         return imu;
@@ -204,12 +208,16 @@ public final class SwerveIMUs {
 
                 @Override
                 public Rotation2d getPitch() {
-                    return Rotation2d.fromDegrees(BaseStatusSignal.getLatencyCompensatedValue(pitch.refresh(), pitchVelocity.refresh()));
+                    return Rotation2d.fromDegrees(
+                        BaseStatusSignal.getLatencyCompensatedValue(pitch.refresh(), pitchVelocity.refresh())
+                    );
                 }
 
                 @Override
                 public Rotation2d getRoll() {
-                    return Rotation2d.fromDegrees(BaseStatusSignal.getLatencyCompensatedValue(roll.refresh(), rollVelocity.refresh()));
+                    return Rotation2d.fromDegrees(
+                        BaseStatusSignal.getLatencyCompensatedValue(roll.refresh(), rollVelocity.refresh())
+                    );
                 }
 
                 @Override

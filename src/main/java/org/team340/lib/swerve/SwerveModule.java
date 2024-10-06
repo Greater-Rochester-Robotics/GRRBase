@@ -153,8 +153,11 @@ class SwerveModule implements AutoCloseable {
             if (hookStatus) {
                 turnMotor.setPosition(state.angle.getRotations());
             } else {
-                double optimizedDelta = angleDelta.getRadians() - (flipped ? Math.copySign(Math.PI, angleDelta.getRadians()) : 0.0);
-                turnMotor.setPosition(cachedTurnMotorPosition + (Units.radiansToRotations(optimizedDelta) * config.turnGearRatio));
+                double optimizedDelta =
+                    angleDelta.getRadians() - (flipped ? Math.copySign(Math.PI, angleDelta.getRadians()) : 0.0);
+                turnMotor.setPosition(
+                    cachedTurnMotorPosition + (Units.radiansToRotations(optimizedDelta) * config.turnGearRatio)
+                );
             }
 
             Math2.copyInto(nextTarget, lastTarget);
@@ -176,7 +179,9 @@ class SwerveModule implements AutoCloseable {
             if (hookStatus) {
                 turnMotor.setPosition(angle.getRotations());
             } else {
-                turnMotor.setPosition(cachedTurnMotorPosition + (angle.minus(getState().angle).getRotations() * config.turnGearRatio));
+                turnMotor.setPosition(
+                    cachedTurnMotorPosition + (angle.minus(getState().angle).getRotations() * config.turnGearRatio)
+                );
             }
         } finally {
             cacheMutex.unlock();

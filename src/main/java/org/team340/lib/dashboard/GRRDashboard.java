@@ -35,8 +35,12 @@ public final class GRRDashboard {
     private static final NetworkTable nt = NetworkTableInstance.getDefault().getTable("GRRDashboard");
     private static final EventLoop periodic = new EventLoop();
 
-    private static final BooleanSubscriber allianceOverrideActiveSub = nt.getBooleanTopic("AllianceOverride/active").subscribe(false);
-    private static final BooleanSubscriber allianceOverrideIsBlueSub = nt.getBooleanTopic("AllianceOverride/isBlue").subscribe(false);
+    private static final BooleanSubscriber allianceOverrideActiveSub = nt
+        .getBooleanTopic("AllianceOverride/active")
+        .subscribe(false);
+    private static final BooleanSubscriber allianceOverrideIsBlueSub = nt
+        .getBooleanTopic("AllianceOverride/isBlue")
+        .subscribe(false);
 
     private static final Map<String, Pair<String, Command>> autoOptions = new LinkedHashMap<>(); // { id: [json, command] }
     private static final StringArrayPublisher autoOptionsPub = nt.getStringArrayTopic("Autos/options").publish();
@@ -93,36 +97,39 @@ public final class GRRDashboard {
         double lastTimestamp = 0.0;
         for (int i = 0; i < trajectories.length; i++) {
             ChoreoTrajectoryState[] states = trajectories[i].getStates();
-            if (i > 0 && trajectories[i - 1].getStates().length > 0) lastTimestamp += trajectories[i - 1].getFinalState().timestamp;
+            if (i > 0 && trajectories[i - 1].getStates().length > 0) lastTimestamp +=
+            trajectories[i - 1].getFinalState().timestamp;
             for (ChoreoTrajectoryState state : states) {
                 points.add(
                     new BigDecimal[] {
                         new BigDecimal(state.x).setScale(3, RoundingMode.HALF_UP),
                         new BigDecimal(state.y).setScale(3, RoundingMode.HALF_UP),
                         new BigDecimal(state.heading).setScale(2, RoundingMode.HALF_UP),
-                        new BigDecimal(state.timestamp + lastTimestamp).setScale(3, RoundingMode.HALF_UP),
+                        new BigDecimal(state.timestamp + lastTimestamp).setScale(3, RoundingMode.HALF_UP)
                     }
                 );
             }
         }
 
-        ChoreoTrajectory lastTrajectory = trajectories.length > 0 ? trajectories[trajectories.length - 1] : new ChoreoTrajectory();
-        double time = lastTimestamp + (lastTrajectory.getStates().length > 0 ? lastTrajectory.getFinalState().timestamp : 0.0);
+        ChoreoTrajectory lastTrajectory = trajectories.length > 0
+            ? trajectories[trajectories.length - 1]
+            : new ChoreoTrajectory();
+        double time =
+            lastTimestamp + (lastTrajectory.getStates().length > 0 ? lastTrajectory.getFinalState().timestamp : 0.0);
 
         String json = "";
         try {
-            json =
-                new ObjectMapper()
-                    .writeValueAsString(
-                        new HashMap<>() {
-                            {
-                                put("id", id);
-                                put("label", label);
-                                put("points", points);
-                                put("time", time);
-                            }
+            json = new ObjectMapper()
+                .writeValueAsString(
+                    new HashMap<>() {
+                        {
+                            put("id", id);
+                            put("label", label);
+                            put("points", points);
+                            put("time", time);
                         }
-                    );
+                    }
+                );
         } catch (Exception e) {
             e.printStackTrace();
             json = "";

@@ -1,7 +1,7 @@
 plugins {
     id "java"
     id "edu.wpi.first.GradleRIO" version "2025.0.0-alpha-2"
-    id "com.diffplug.spotless" version "6.23.3"
+    id "com.diffplug.spotless" version "6.25.0"
 }
 
 wpi.maven.useLocal = false
@@ -92,8 +92,15 @@ spotless {
         endWithNewline()
         removeUnusedImports()
         trimTrailingWhitespace()
-        prettier(['prettier': '2.8.8', 'prettier-plugin-java': '2.2.0'])
-            .config(['parser': 'java', tabWidth: 4, useTabs: false, printWidth: 140 ])
+        prettier(['prettier': '3.3.3', 'prettier-plugin-java': '2.6.4'])
+            .config([
+                'parser': 'java',
+                'plugins': ['prettier-plugin-java'],
+                printWidth: 120,
+                tabWidth: 4,
+                useTabs: false,
+                trailingComma: "none"
+            ])
     }
 }
 

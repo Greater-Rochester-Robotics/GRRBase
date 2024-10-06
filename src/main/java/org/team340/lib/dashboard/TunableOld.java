@@ -22,7 +22,12 @@ import java.util.function.Function;
  */
 public final class TunableOld {
 
-    static final record TunableField<T>(String name, NetworkTableType type, T defaultValue, Function<NetworkTable, Runnable> init) {}
+    static final record TunableField<T>(
+        String name,
+        NetworkTableType type,
+        T defaultValue,
+        Function<NetworkTable, Runnable> init
+    ) {}
 
     final List<TunableField<?>> fields = new ArrayList<>();
     final String name;
@@ -55,19 +60,14 @@ public final class TunableOld {
      */
     public TunableOld addInteger(String name, int defaultValue, Consumer<Integer> setter) {
         fields.add(
-            new TunableField<Integer>(
-                name,
-                NetworkTableType.kInteger,
-                defaultValue,
-                nt -> {
-                    var sub = nt.getIntegerTopic(name).subscribe(defaultValue);
-                    return () -> {
-                        for (long v : sub.readQueueValues()) {
-                            setter.accept((int) v);
-                        }
-                    };
-                }
-            )
+            new TunableField<Integer>(name, NetworkTableType.kInteger, defaultValue, nt -> {
+                var sub = nt.getIntegerTopic(name).subscribe(defaultValue);
+                return () -> {
+                    for (long v : sub.readQueueValues()) {
+                        setter.accept((int) v);
+                    }
+                };
+            })
         );
         return this;
     }
@@ -80,19 +80,14 @@ public final class TunableOld {
      */
     public TunableOld addFloat(String name, float defaultValue, Consumer<Float> setter) {
         fields.add(
-            new TunableField<Float>(
-                name,
-                NetworkTableType.kFloat,
-                defaultValue,
-                nt -> {
-                    var sub = nt.getFloatTopic(name).subscribe(defaultValue);
-                    return () -> {
-                        for (float v : sub.readQueueValues()) {
-                            setter.accept(v);
-                        }
-                    };
-                }
-            )
+            new TunableField<Float>(name, NetworkTableType.kFloat, defaultValue, nt -> {
+                var sub = nt.getFloatTopic(name).subscribe(defaultValue);
+                return () -> {
+                    for (float v : sub.readQueueValues()) {
+                        setter.accept(v);
+                    }
+                };
+            })
         );
         return this;
     }
@@ -105,19 +100,14 @@ public final class TunableOld {
      */
     public TunableOld addDouble(String name, double defaultValue, Consumer<Double> setter) {
         fields.add(
-            new TunableField<Double>(
-                name,
-                NetworkTableType.kDouble,
-                defaultValue,
-                nt -> {
-                    var sub = nt.getDoubleTopic(name).subscribe(defaultValue);
-                    return () -> {
-                        for (double v : sub.readQueueValues()) {
-                            setter.accept(v);
-                        }
-                    };
-                }
-            )
+            new TunableField<Double>(name, NetworkTableType.kDouble, defaultValue, nt -> {
+                var sub = nt.getDoubleTopic(name).subscribe(defaultValue);
+                return () -> {
+                    for (double v : sub.readQueueValues()) {
+                        setter.accept(v);
+                    }
+                };
+            })
         );
         return this;
     }
@@ -130,19 +120,14 @@ public final class TunableOld {
      */
     public TunableOld addBoolean(String name, boolean defaultValue, Consumer<Boolean> setter) {
         fields.add(
-            new TunableField<Boolean>(
-                name,
-                NetworkTableType.kBoolean,
-                defaultValue,
-                nt -> {
-                    var sub = nt.getBooleanTopic(name).subscribe(defaultValue);
-                    return () -> {
-                        for (boolean v : sub.readQueueValues()) {
-                            setter.accept(v);
-                        }
-                    };
-                }
-            )
+            new TunableField<Boolean>(name, NetworkTableType.kBoolean, defaultValue, nt -> {
+                var sub = nt.getBooleanTopic(name).subscribe(defaultValue);
+                return () -> {
+                    for (boolean v : sub.readQueueValues()) {
+                        setter.accept(v);
+                    }
+                };
+            })
         );
         return this;
     }
@@ -155,19 +140,14 @@ public final class TunableOld {
      */
     public TunableOld addString(String name, String defaultValue, Consumer<String> setter) {
         fields.add(
-            new TunableField<String>(
-                name,
-                NetworkTableType.kString,
-                defaultValue,
-                nt -> {
-                    var sub = nt.getStringTopic(name).subscribe(defaultValue);
-                    return () -> {
-                        for (String v : sub.readQueueValues()) {
-                            setter.accept(v);
-                        }
-                    };
-                }
-            )
+            new TunableField<String>(name, NetworkTableType.kString, defaultValue, nt -> {
+                var sub = nt.getStringTopic(name).subscribe(defaultValue);
+                return () -> {
+                    for (String v : sub.readQueueValues()) {
+                        setter.accept(v);
+                    }
+                };
+            })
         );
         return this;
     }
@@ -198,15 +178,13 @@ public final class TunableOld {
             .addDouble("-kI", controller.getI(), v -> controller.setI(v))
             .addDouble("-kD", controller.getD(), v -> controller.setD(v))
             .addDouble("-iZone", controller.getIZone(), v -> controller.setIZone(v))
-            .addDouble(
-                "-maxV",
-                controller.getConstraints().maxVelocity,
-                v -> controller.setConstraints(new TrapezoidProfile.Constraints(v, controller.getConstraints().maxAcceleration))
+            .addDouble("-maxV", controller.getConstraints().maxVelocity, v ->
+                controller.setConstraints(
+                    new TrapezoidProfile.Constraints(v, controller.getConstraints().maxAcceleration)
+                )
             )
-            .addDouble(
-                "-maxA",
-                controller.getConstraints().maxAcceleration,
-                v -> controller.setConstraints(new TrapezoidProfile.Constraints(controller.getConstraints().maxVelocity, v))
+            .addDouble("-maxA", controller.getConstraints().maxAcceleration, v ->
+                controller.setConstraints(new TrapezoidProfile.Constraints(controller.getConstraints().maxVelocity, v))
             );
     }
 
@@ -246,61 +224,33 @@ public final class TunableOld {
 
         return new TunableOld(name)
             .devOnly(true)
-            .addDouble(
-                "-kP",
-                config.kP,
-                v -> {
-                    config.kP = v;
-                    controller.getConfigurator().apply(config);
-                }
-            )
-            .addDouble(
-                "-kI",
-                config.kI,
-                v -> {
-                    config.kI = v;
-                    controller.getConfigurator().apply(config);
-                }
-            )
-            .addDouble(
-                "-kD",
-                config.kD,
-                v -> {
-                    config.kD = v;
-                    controller.getConfigurator().apply(config);
-                }
-            )
-            .addDouble(
-                "-kS",
-                config.kS,
-                v -> {
-                    config.kS = v;
-                    controller.getConfigurator().apply(config);
-                }
-            )
-            .addDouble(
-                "-kV",
-                config.kV,
-                v -> {
-                    config.kV = v;
-                    controller.getConfigurator().apply(config);
-                }
-            )
-            .addDouble(
-                "-kA",
-                config.kA,
-                v -> {
-                    config.kA = v;
-                    controller.getConfigurator().apply(config);
-                }
-            )
-            .addDouble(
-                "-kG",
-                config.kG,
-                v -> {
-                    config.kG = v;
-                    controller.getConfigurator().apply(config);
-                }
-            );
+            .addDouble("-kP", config.kP, v -> {
+                config.kP = v;
+                controller.getConfigurator().apply(config);
+            })
+            .addDouble("-kI", config.kI, v -> {
+                config.kI = v;
+                controller.getConfigurator().apply(config);
+            })
+            .addDouble("-kD", config.kD, v -> {
+                config.kD = v;
+                controller.getConfigurator().apply(config);
+            })
+            .addDouble("-kS", config.kS, v -> {
+                config.kS = v;
+                controller.getConfigurator().apply(config);
+            })
+            .addDouble("-kV", config.kV, v -> {
+                config.kV = v;
+                controller.getConfigurator().apply(config);
+            })
+            .addDouble("-kA", config.kA, v -> {
+                config.kA = v;
+                controller.getConfigurator().apply(config);
+            })
+            .addDouble("-kG", config.kG, v -> {
+                config.kG = v;
+                controller.getConfigurator().apply(config);
+            });
     }
 }

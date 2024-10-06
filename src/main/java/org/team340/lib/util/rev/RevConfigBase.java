@@ -60,7 +60,8 @@ abstract class RevConfigBase<T> {
                 REVLibError result = step.applier.apply(device);
                 Sleep.seconds(CHECK_PERIOD, true);
 
-                ok = REVLibError.kOk.equals(result) || (RobotBase.isSimulation() && result.equals(REVLibError.kParamMismatchType));
+                ok = REVLibError.kOk.equals(result) ||
+                (RobotBase.isSimulation() && result.equals(REVLibError.kParamMismatchType));
                 check = step.checker().apply(device);
                 if (ok && check && step.trustCheck) break;
 

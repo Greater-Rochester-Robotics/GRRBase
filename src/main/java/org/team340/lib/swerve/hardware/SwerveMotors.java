@@ -188,7 +188,9 @@ public final class SwerveMotors {
                 .clearFaults()
                 .enableVoltageCompensation(config.voltage)
                 .setSmartCurrentLimit((int) (isMoveMotor ? config.moveCurrentLimit : config.turnCurrentLimit))
-                .setIdleMode((isMoveMotor ? config.moveBrakeMode : config.turnBrakeMode) ? IdleMode.kBrake : IdleMode.kCoast)
+                .setIdleMode(
+                    (isMoveMotor ? config.moveBrakeMode : config.turnBrakeMode) ? IdleMode.kBrake : IdleMode.kCoast
+                )
                 .setInverted(inverted)
                 .setPeriodicFramePeriod(SparkMaxConfig.Frame.S0, (int) (config.period * 1000.0))
                 .setPeriodicFramePeriod(SparkMaxConfig.Frame.S1, (int) (config.odometryPeriod * 1000.0))
@@ -219,7 +221,13 @@ public final class SwerveMotors {
 
                 @Override
                 public void setPosition(double position) {
-                    pidController.setReference(position, CANSparkBase.ControlType.kPosition, PID_SLOT, 0.0, ArbFFUnits.kVoltage);
+                    pidController.setReference(
+                        position,
+                        CANSparkBase.ControlType.kPosition,
+                        PID_SLOT,
+                        0.0,
+                        ArbFFUnits.kVoltage
+                    );
                 }
 
                 @Override
@@ -287,7 +295,9 @@ public final class SwerveMotors {
                 .clearFaults()
                 .enableVoltageCompensation(config.voltage)
                 .setSmartCurrentLimit((int) (isMoveMotor ? config.moveCurrentLimit : config.turnCurrentLimit))
-                .setIdleMode((isMoveMotor ? config.moveBrakeMode : config.turnBrakeMode) ? IdleMode.kBrake : IdleMode.kCoast)
+                .setIdleMode(
+                    (isMoveMotor ? config.moveBrakeMode : config.turnBrakeMode) ? IdleMode.kBrake : IdleMode.kCoast
+                )
                 .setInverted(inverted)
                 .setPeriodicFramePeriod(SparkFlexConfig.Frame.S0, (int) (config.period * 1000.0))
                 .setPeriodicFramePeriod(SparkFlexConfig.Frame.S1, (int) (config.odometryPeriod * 1000.0))
@@ -318,7 +328,13 @@ public final class SwerveMotors {
 
                 @Override
                 public void setPosition(double position) {
-                    pidController.setReference(position, CANSparkBase.ControlType.kPosition, PID_SLOT, 0.0, ArbFFUnits.kVoltage);
+                    pidController.setReference(
+                        position,
+                        CANSparkBase.ControlType.kPosition,
+                        PID_SLOT,
+                        0.0,
+                        ArbFFUnits.kVoltage
+                    );
                 }
 
                 @Override
@@ -380,8 +396,14 @@ public final class SwerveMotors {
             StatusSignal<Double> velocity = talonFX.getVelocity().clone();
 
             boolean enableFOC = isMoveMotor ? config.phoenixMoveFOC : config.phoenixTurnFOC;
-            PositionVoltage positionControl = new PositionVoltage(0.0).withSlot(PID_SLOT).withEnableFOC(enableFOC).withUpdateFreqHz(0.0);
-            VelocityVoltage velocityControl = new VelocityVoltage(0.0).withSlot(PID_SLOT).withEnableFOC(enableFOC).withUpdateFreqHz(0.0);
+            PositionVoltage positionControl = new PositionVoltage(0.0)
+                .withSlot(PID_SLOT)
+                .withEnableFOC(enableFOC)
+                .withUpdateFreqHz(0.0);
+            VelocityVoltage velocityControl = new VelocityVoltage(0.0)
+                .withSlot(PID_SLOT)
+                .withEnableFOC(enableFOC)
+                .withUpdateFreqHz(0.0);
             VoltageOut voltageControl = new VoltageOut(0);
 
             double[] pidGains = isMoveMotor ? config.movePID : config.turnPID;
@@ -395,9 +417,12 @@ public final class SwerveMotors {
             talonConfig.CurrentLimits.SupplyCurrentLimit = currentLimit;
             talonConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
 
-            talonConfig.MotorOutput.Inverted = inverted ? InvertedValue.Clockwise_Positive : InvertedValue.CounterClockwise_Positive;
-            talonConfig.MotorOutput.NeutralMode =
-                (isMoveMotor ? config.moveBrakeMode : config.turnBrakeMode) ? NeutralModeValue.Brake : NeutralModeValue.Coast;
+            talonConfig.MotorOutput.Inverted = inverted
+                ? InvertedValue.Clockwise_Positive
+                : InvertedValue.CounterClockwise_Positive;
+            talonConfig.MotorOutput.NeutralMode = (isMoveMotor ? config.moveBrakeMode : config.turnBrakeMode)
+                ? NeutralModeValue.Brake
+                : NeutralModeValue.Coast;
 
             talonConfig.Slot0.kP = pidGains[0];
             talonConfig.Slot0.kI = pidGains[1];

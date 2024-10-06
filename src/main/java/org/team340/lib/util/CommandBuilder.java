@@ -38,7 +38,9 @@ public class CommandBuilder extends Command {
      * The initial subroutine of a command. Called once when the command is initially scheduled.
      */
     public CommandBuilder onInitialize(Runnable onInitialize) {
-        if (this.isScheduled()) throw new IllegalStateException("Cannot change methods of a command while it is scheduled");
+        if (this.isScheduled()) throw new IllegalStateException(
+            "Cannot change methods of a command while it is scheduled"
+        );
         this.onInitialize = onInitialize;
         return this;
     }
@@ -47,7 +49,9 @@ public class CommandBuilder extends Command {
      * The main body of a command. Called repeatedly while the command is scheduled.
      */
     public CommandBuilder onExecute(Runnable onExecute) {
-        if (this.isScheduled()) throw new IllegalStateException("Cannot change methods of a command while it is scheduled");
+        if (this.isScheduled()) throw new IllegalStateException(
+            "Cannot change methods of a command while it is scheduled"
+        );
         this.onExecute = onExecute;
         return this;
     }
@@ -65,7 +69,9 @@ public class CommandBuilder extends Command {
      * or when it interrupted/canceled. Supplied boolean is if the command was interrupted.
      */
     public CommandBuilder onEnd(Consumer<Boolean> onEnd) {
-        if (this.isScheduled()) throw new IllegalStateException("Cannot change methods of a command while it is scheduled");
+        if (this.isScheduled()) throw new IllegalStateException(
+            "Cannot change methods of a command while it is scheduled"
+        );
         this.onEnd = onEnd;
         return this;
     }
@@ -85,7 +91,9 @@ public class CommandBuilder extends Command {
      * method and un-schedule it. By default, this returns {@code false}.
      */
     public CommandBuilder isFinished(Supplier<Boolean> isFinished) {
-        if (this.isScheduled()) throw new IllegalStateException("Cannot change methods of a command while it is scheduled");
+        if (this.isScheduled()) throw new IllegalStateException(
+            "Cannot change methods of a command while it is scheduled"
+        );
         this.isFinished = isFinished;
         return this;
     }

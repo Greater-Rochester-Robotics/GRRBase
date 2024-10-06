@@ -57,24 +57,25 @@ public class SwerveAPI implements AutoCloseable {
         modules = new SwerveModule[moduleCount];
         moduleLocations = new Translation2d[moduleCount];
         lockedStates = new SwerveModuleState[moduleCount];
-        var nextTarget = new SwerveModuleState[moduleCount];
-        var lastTarget = new SwerveModuleState[moduleCount];
         double farthest = 0.0;
         for (int i = 0; i < moduleCount; i++) {
             var moduleConfig = config.modules[i];
             modules[i] = new SwerveModule(config, moduleConfig);
             moduleLocations[i] = moduleConfig.location;
             lockedStates[i] = new SwerveModuleState(0.0, moduleLocations[i].getAngle());
-            nextTarget[i] = modules[i].getNextTarget();
-            lastTarget[i] = modules[i].getLastTarget();
             farthest = Math.max(farthest, moduleLocations[i].getNorm());
         }
 
         maxAngularVel = config.velocity / farthest;
 
-        state = new SwerveState(moduleCount, nextTarget, lastTarget);
+        state = new SwerveState(modules);
         kinematics = new SwerveDriveKinematics(moduleLocations);
-        poseEstimator = new SwerveDrivePoseEstimator(kinematics, Rotation2d.kZero, state.modules.positions, Pose2d.kZero);
+        poseEstimator = new SwerveDrivePoseEstimator(
+            kinematics,
+            Rotation2d.kZero,
+            state.modules.positions,
+            Pose2d.kZero
+        );
 
         imu = SwerveIMUs.construct(config.imu, config, () -> state.speeds);
         odometryThread = new SwerveOdometryThread();
@@ -153,7 +154,7 @@ public class SwerveAPI implements AutoCloseable {
     public void resetPose(Pose2d pose) {
         odometryMutex.lock();
         try {
-            poseEstimator.resetPosition(imu.getYaw(), state.modules.positions, pose);
+            poseEstimator.resetPosition(odometryThread.lastYaw, state.modules.positions, pose);
             state.pose = poseEstimator.getEstimatedPosition();
         } finally {
             odometryMutex.unlock();
@@ -196,7 +197,8 @@ public class SwerveAPI implements AutoCloseable {
         boolean discretize,
         boolean ratelimit
     ) {
-        double angularVel = config.driverAngularVel * Math.copySign(Math.pow(angular, config.driverAngularVelExp), angular);
+        double angularVel =
+            config.driverAngularVel * Math.copySign(Math.pow(angular, config.driverAngularVelExp), angular);
         applyDriverXY(x, y, angularVel, forwardPerspective, discretize, ratelimit);
     }
 
@@ -238,7 +240,12 @@ public class SwerveAPI implements AutoCloseable {
      * @param discretize If the speeds should be discretized.
      * @param ratelimit If the robot's acceleration should be constrained.
      */
-    public void applySpeeds(ChassisSpeeds speeds, ForwardPerspective forwardPerspective, boolean discretize, boolean ratelimit) {
+    public void applySpeeds(
+        ChassisSpeeds speeds,
+        ForwardPerspective forwardPerspective,
+        boolean discretize,
+        boolean ratelimit
+    ) {
         if (Math.abs(speeds.omegaRadiansPerSecond) >= maxAngularVel) {
             speeds.vxMetersPerSecond = 0.0;
             speeds.vyMetersPerSecond = 0.0;
@@ -263,7 +270,7 @@ public class SwerveAPI implements AutoCloseable {
                     double a = vx * vx + vy * vy;
                     double b = 2 * vx * vxw + 2 * vy * vyw;
                     double c = vxw * vxw + vyw * vyw - vmax2;
-                    k = Math.min(k, 2 * c / (-b - Math.sqrt(b * b - 4 * a * c)));
+                    k = Math.min(k, (2 * c) / (-b - Math.sqrt(b * b - 4 * a * c)));
                 }
             }
 
@@ -316,7 +323,9 @@ public class SwerveAPI implements AutoCloseable {
      */
     public void applyStates(SwerveModuleState[] states) {
         if (moduleCount != states.length) {
-            throw new IllegalArgumentException("Requested " + states.length + " states be applied to " + moduleCount + " modules");
+            throw new IllegalArgumentException(
+                "Requested " + states.length + " states be applied to " + moduleCount + " modules"
+            );
         }
 
         for (int i = 0; i < moduleCount; i++) {
@@ -469,6 +478,7 @@ public class SwerveAPI implements AutoCloseable {
      */
     private final class SwerveOdometryThread implements AutoCloseable {
 
+        public Rotation2d lastYaw = Rotation2d.kZero;
         public boolean async = false;
         public boolean timesync = false;
         public int successes = 0;
@@ -491,11 +501,10 @@ public class SwerveAPI implements AutoCloseable {
             }
 
             if (config.odometryPeriod < config.period) {
-                thread =
-                    new Thread(() -> {
-                        Threads.setCurrentThreadPriority(true, 1);
-                        while (async) this.run(false);
-                    });
+                thread = new Thread(() -> {
+                    Threads.setCurrentThreadPriority(true, 1);
+                    while (async) this.run(false);
+                });
                 thread.setName("SwerveAPI");
                 thread.setDaemon(true);
                 async = true;
@@ -525,7 +534,7 @@ public class SwerveAPI implements AutoCloseable {
             try {
                 if (!timesync) phoenixStatus = BaseStatusSignal.refreshAll(signals);
 
-                Rotation2d yaw = imu.getYaw();
+                lastYaw = imu.getYaw();
 
                 boolean readError = !phoenixStatus.isOK() || imu.readError();
                 for (var module : modules) {
@@ -537,7 +546,7 @@ public class SwerveAPI implements AutoCloseable {
                     if (!Robot.isSimulation()) return;
                 }
 
-                poseEstimator.update(yaw, positionCache);
+                poseEstimator.update(lastYaw, positionCache);
                 successes++;
             } finally {
                 odometryMutex.unlock();
@@ -548,10 +557,13 @@ public class SwerveAPI implements AutoCloseable {
         public void close() {
             if (async) {
                 async = false;
-                try {
-                    thread.join(0);
-                } catch (Exception e) {
-                    thread.interrupt();
+                if (thread != null && thread.isAlive()) {
+                    try {
+                        thread.interrupt();
+                        thread.join();
+                    } catch (Exception e) {
+                        Thread.currentThread().interrupt();
+                    }
                 }
             }
         }

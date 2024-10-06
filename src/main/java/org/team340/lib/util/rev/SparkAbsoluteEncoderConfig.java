@@ -74,7 +74,8 @@ public class SparkAbsoluteEncoderConfig extends RevConfigBase<SparkAbsoluteEncod
     public SparkAbsoluteEncoderConfig setPositionConversionFactor(double factor) {
         addStep(
             absoluteEncoder -> absoluteEncoder.setPositionConversionFactor(factor),
-            absoluteEncoder -> Math2.epsilonEquals(absoluteEncoder.getPositionConversionFactor(), factor, RevConfigRegistry.EPSILON),
+            absoluteEncoder ->
+                Math2.epsilonEquals(absoluteEncoder.getPositionConversionFactor(), factor, RevConfigRegistry.EPSILON),
             "Position Conversion Factor"
         );
         return this;
@@ -88,7 +89,8 @@ public class SparkAbsoluteEncoderConfig extends RevConfigBase<SparkAbsoluteEncod
     public SparkAbsoluteEncoderConfig setVelocityConversionFactor(double factor) {
         addStep(
             absoluteEncoder -> absoluteEncoder.setVelocityConversionFactor(factor),
-            absoluteEncoder -> Math2.epsilonEquals(absoluteEncoder.getVelocityConversionFactor(), factor, RevConfigRegistry.EPSILON),
+            absoluteEncoder ->
+                Math2.epsilonEquals(absoluteEncoder.getVelocityConversionFactor(), factor, RevConfigRegistry.EPSILON),
             "Velocity Conversion Factor"
         );
         return this;

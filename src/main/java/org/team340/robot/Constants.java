@@ -12,9 +12,15 @@ public final class Constants {
     public static final double PERIOD = 0.020;
     public static final double VOLTAGE = 12.0;
 
-    public static final ControllerConfig DRIVER = new ControllerConfig().setPort(0).setDeadbands(0.05, 0.05).setThresholds(0.5, 0.05);
+    public static final ControllerConfig DRIVER = new ControllerConfig()
+        .setPort(0)
+        .setDeadbands(0.05, 0.05)
+        .setThresholds(0.5, 0.05);
 
-    public static final ControllerConfig CO_DRIVER = new ControllerConfig().setPort(1).setDeadbands(0.05, 0.05).setThresholds(0.5, 0.05);
+    public static final ControllerConfig CO_DRIVER = new ControllerConfig()
+        .setPort(1)
+        .setDeadbands(0.05, 0.05)
+        .setThresholds(0.5, 0.05);
 
     /**
      * The RobotMap class defines CAN IDs, CAN bus names, DIO/PWM/PH/PCM channel

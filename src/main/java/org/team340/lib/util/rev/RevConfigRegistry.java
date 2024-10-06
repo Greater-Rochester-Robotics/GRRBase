@@ -75,24 +75,17 @@ public final class RevConfigRegistry {
         Sleep.seconds(BURN_FLASH_DELAY, true);
 
         for (var entry : burnFlash.entrySet()) {
-            String result;
-            try {
-                result = entry.getValue().get().name();
-                Sleep.seconds(BURN_FLASH_INTERVAL, true);
-            } catch (Exception e) {
-                DriverStation.reportError(e.getMessage(), e.getStackTrace());
-                result = e.getClass().getSimpleName();
-            }
-
-            if (!result.equals(REVLibError.kOk.name())) addError(entry.getKey() + " \"Burn Flash\": " + result);
+            REVLibError result = entry.getValue().get();
+            Sleep.seconds(BURN_FLASH_INTERVAL, true);
+            if (!result.equals(REVLibError.kOk)) addError(entry.getKey() + " \"Burn Flash\": " + result.name());
         }
 
-        if (errors.size() <= 0) {
+        if (errors.isEmpty()) {
             System.out.println("\n[RevConfigRegistry] All REV hardware configured successfully\n");
         } else {
             String error = "[RevConfigRegistry] " + errors.size() + " errors while configuring REV hardware:";
-            for (String errorString : errors) {
-                error += "\n\t" + errorString;
+            for (String e : errors) {
+                error += "\n\t" + e;
             }
             DriverStation.reportError(error, false);
             errors.clear();
@@ -105,10 +98,9 @@ public final class RevConfigRegistry {
      */
     public static void enableFrameRefreshing() {
         if (notifier == null) {
-            notifier =
-                new Notifier(() -> {
-                    for (Runnable callback : frameRefreshers.values()) callback.run();
-                });
+            notifier = new Notifier(() -> {
+                for (Runnable callback : frameRefreshers.values()) callback.run();
+            });
             notifier.setName("RevConfigRegistry");
             notifier.startPeriodic(PERIODIC_INTERVAL);
         }
@@ -148,7 +140,8 @@ public final class RevConfigRegistry {
 
             if (idDiff == 0) {
                 int localeDiff = localeComparator.compare(arg0, arg1);
-                if (localeDiff == 0) return 1; else return localeDiff;
+                if (localeDiff == 0) return 1;
+                else return localeDiff;
             } else {
                 return idDiff;
             }

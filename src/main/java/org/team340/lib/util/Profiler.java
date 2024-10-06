@@ -93,12 +93,16 @@ public final class Profiler {
      * @param name The name of the call. Must be unique.
      */
     public static void start(String name) {
-        if (stack.size() == 0) {
+        if (stack.isEmpty()) {
             if (root.isEmpty()) {
                 root = name;
             } else if (name != root) {
                 DriverStation.reportError(
-                    "[Profiler] Unexpected secondary root with name \"" + name + "\", expected primary root \"" + root + "\"",
+                    "[Profiler] Unexpected secondary root with name \"" +
+                    name +
+                    "\", expected primary root \"" +
+                    root +
+                    "\"",
                     true
                 );
             }
@@ -126,7 +130,7 @@ public final class Profiler {
             call.onEnd();
             stack.remove(stack.size() - 1);
 
-            if (stack.size() == 0) {
+            if (stack.isEmpty()) {
                 long start = RobotController.getFPGATime();
                 var it = callGraph.entrySet().iterator();
                 while (it.hasNext()) {
@@ -160,10 +164,10 @@ public final class Profiler {
      */
     private static final class CallData implements AutoCloseable {
 
-        private final String fullName;
-        private DoublePublisher pub;
-        private double time = -1.0;
-        private boolean done = false;
+        public final String fullName;
+        public double time = -1.0;
+        public boolean done = false;
+        public DoublePublisher pub;
 
         public CallData(String fullName) {
             this.fullName = fullName;

@@ -182,7 +182,12 @@ public class SwerveConfig {
      * @param couplingRatio The ratio between the wheel and the module's angle. Used as a compensation factor for odometry, set to {@code 0.0} to disable.
      * @param wheelDiameter The wheel diameter in meters.
      */
-    public SwerveConfig setMechanicalProperties(double moveRatio, double turnRatio, double couplingRatio, double wheelDiameter) {
+    public SwerveConfig setMechanicalProperties(
+        double moveRatio,
+        double turnRatio,
+        double couplingRatio,
+        double wheelDiameter
+    ) {
         moveGearRatio = moveRatio;
         turnGearRatio = turnRatio;
         this.couplingRatio = couplingRatio;

@@ -142,7 +142,10 @@ public final class SwerveEncoders {
 
             new SparkMaxConfig()
                 .setPeriodicFramePeriod(SparkMaxConfig.Frame.S5, (int) (config.odometryPeriod * 1000.0))
-                .setPeriodicFramePeriod(SparkMaxConfig.Frame.S6, (int) (SwerveBaseHardware.TELEMETRY_CAN_PERIOD * 1000.0))
+                .setPeriodicFramePeriod(
+                    SparkMaxConfig.Frame.S6,
+                    (int) (SwerveBaseHardware.TELEMETRY_CAN_PERIOD * 1000.0)
+                )
                 .apply(sparkMax);
 
             new SparkAbsoluteEncoderConfig()
@@ -191,7 +194,10 @@ public final class SwerveEncoders {
 
             new SparkFlexConfig()
                 .setPeriodicFramePeriod(SparkFlexConfig.Frame.S5, (int) (config.odometryPeriod * 1000.0))
-                .setPeriodicFramePeriod(SparkFlexConfig.Frame.S6, (int) (SwerveBaseHardware.TELEMETRY_CAN_PERIOD * 1000.0))
+                .setPeriodicFramePeriod(
+                    SparkFlexConfig.Frame.S6,
+                    (int) (SwerveBaseHardware.TELEMETRY_CAN_PERIOD * 1000.0)
+                )
                 .apply(sparkFlex);
 
             new SparkAbsoluteEncoderConfig()
@@ -240,10 +246,13 @@ public final class SwerveEncoders {
 
             var canCoderConfig = new CANcoderConfiguration();
             canCoderConfig.MagnetSensor.MagnetOffset = offset;
-            canCoderConfig.MagnetSensor.SensorDirection =
-                inverted ? SensorDirectionValue.Clockwise_Positive : SensorDirectionValue.CounterClockwise_Positive;
+            canCoderConfig.MagnetSensor.SensorDirection = inverted
+                ? SensorDirectionValue.Clockwise_Positive
+                : SensorDirectionValue.CounterClockwise_Positive;
 
-            PhoenixUtil.run(canCoder, "Apply CANcoderConfiguration", () -> canCoder.getConfigurator().apply(canCoderConfig));
+            PhoenixUtil.run(canCoder, "Apply CANcoderConfiguration", () ->
+                canCoder.getConfigurator().apply(canCoderConfig)
+            );
 
             BaseStatusSignal.setUpdateFrequencyForAll(1.0 / config.odometryPeriod, position, velocity);
             canCoder.optimizeBusUtilization(1.0 / SwerveBaseHardware.TELEMETRY_CAN_PERIOD, 0.05);
@@ -254,14 +263,18 @@ public final class SwerveEncoders {
                 var feedbackConfig = new FeedbackConfigs();
                 feedbackConfig.FeedbackRemoteSensorID = id;
                 feedbackConfig.RotorToSensorRatio = config.turnGearRatio;
-                feedbackConfig.FeedbackSensorSource =
-                    config.phoenixPro ? FeedbackSensorSourceValue.FusedCANcoder : FeedbackSensorSourceValue.RemoteCANcoder;
+                feedbackConfig.FeedbackSensorSource = config.phoenixPro
+                    ? FeedbackSensorSourceValue.FusedCANcoder
+                    : FeedbackSensorSourceValue.RemoteCANcoder;
 
                 var closedLoopConfig = new ClosedLoopGeneralConfigs();
                 closedLoopConfig.ContinuousWrap = true;
 
-                PhoenixUtil.run(talonFX, "Apply FeedbackConfigs", () -> talonFX.getConfigurator().apply(feedbackConfig));
-                PhoenixUtil.run(talonFX, "Apply ClosedLoopGeneralConfigs", () -> talonFX.getConfigurator().apply(closedLoopConfig));
+                PhoenixUtil.run(talonFX, "Apply FeedbackConfigs", () -> talonFX.getConfigurator().apply(feedbackConfig)
+                );
+                PhoenixUtil.run(talonFX, "Apply ClosedLoopGeneralConfigs", () ->
+                    talonFX.getConfigurator().apply(closedLoopConfig)
+                );
 
                 hookStatus.value = true;
             }

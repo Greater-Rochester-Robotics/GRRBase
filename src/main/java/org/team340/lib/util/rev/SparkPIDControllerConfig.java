@@ -172,7 +172,8 @@ public class SparkPIDControllerConfig extends RevConfigBase<SparkPIDController> 
     public SparkPIDControllerConfig setIMaxAccum(double iMaxAccum, int slotId) {
         addStep(
             pidController -> pidController.setIMaxAccum(iMaxAccum, slotId),
-            pidController -> Math2.epsilonEquals(pidController.getIMaxAccum(slotId), iMaxAccum, RevConfigRegistry.EPSILON),
+            pidController ->
+                Math2.epsilonEquals(pidController.getIMaxAccum(slotId), iMaxAccum, RevConfigRegistry.EPSILON),
             "I Max Accumulator (Slot " + slotId + ")"
         );
         return this;
@@ -287,7 +288,8 @@ public class SparkPIDControllerConfig extends RevConfigBase<SparkPIDController> 
     public SparkPIDControllerConfig setPositionPIDWrappingMaxInput(double max) {
         addStep(
             pidController -> pidController.setPositionPIDWrappingMaxInput(max),
-            pidController -> Math2.epsilonEquals(pidController.getPositionPIDWrappingMaxInput(), max, RevConfigRegistry.EPSILON),
+            pidController ->
+                Math2.epsilonEquals(pidController.getPositionPIDWrappingMaxInput(), max, RevConfigRegistry.EPSILON),
             "Position PID Wrapping Max Input"
         );
         return this;
@@ -300,7 +302,8 @@ public class SparkPIDControllerConfig extends RevConfigBase<SparkPIDController> 
     public SparkPIDControllerConfig setPositionPIDWrappingMinInput(double min) {
         addStep(
             pidController -> pidController.setPositionPIDWrappingMinInput(min),
-            pidController -> Math2.epsilonEquals(pidController.getPositionPIDWrappingMinInput(), min, RevConfigRegistry.EPSILON),
+            pidController ->
+                Math2.epsilonEquals(pidController.getPositionPIDWrappingMinInput(), min, RevConfigRegistry.EPSILON),
             "Position PID Wrapping Min Input"
         );
         return this;
@@ -399,7 +402,11 @@ public class SparkPIDControllerConfig extends RevConfigBase<SparkPIDController> 
         addStep(
             pidController -> pidController.setSmartMotionAllowedClosedLoopError(allowedErr, slotId),
             pidController ->
-                Math2.epsilonEquals(pidController.getSmartMotionAllowedClosedLoopError(slotId), allowedErr, RevConfigRegistry.EPSILON),
+                Math2.epsilonEquals(
+                    pidController.getSmartMotionAllowedClosedLoopError(slotId),
+                    allowedErr,
+                    RevConfigRegistry.EPSILON
+                ),
             "Smart Motion Allowed Closed Loop Error (Slot " + slotId + ")"
         );
         return this;
@@ -414,7 +421,8 @@ public class SparkPIDControllerConfig extends RevConfigBase<SparkPIDController> 
     public SparkPIDControllerConfig setSmartMotionMaxAccel(double maxAccel, int slotId) {
         addStep(
             pidController -> pidController.setSmartMotionMaxAccel(maxAccel, slotId),
-            pidController -> Math2.epsilonEquals(pidController.getSmartMotionMaxAccel(slotId), maxAccel, RevConfigRegistry.EPSILON),
+            pidController ->
+                Math2.epsilonEquals(pidController.getSmartMotionMaxAccel(slotId), maxAccel, RevConfigRegistry.EPSILON),
             "Smart Motion Max Acceleration (Slot " + slotId + ")"
         );
         return this;
@@ -429,7 +437,8 @@ public class SparkPIDControllerConfig extends RevConfigBase<SparkPIDController> 
     public SparkPIDControllerConfig setSmartMotionMaxVelocity(double maxVel, int slotId) {
         addStep(
             pidController -> pidController.setSmartMotionMaxVelocity(maxVel, slotId),
-            pidController -> Math2.epsilonEquals(pidController.getSmartMotionMaxVelocity(slotId), maxVel, RevConfigRegistry.EPSILON),
+            pidController ->
+                Math2.epsilonEquals(pidController.getSmartMotionMaxVelocity(slotId), maxVel, RevConfigRegistry.EPSILON),
             "Smart Motion Max Velocity (Slot " + slotId + ")"
         );
         return this;
@@ -443,7 +452,12 @@ public class SparkPIDControllerConfig extends RevConfigBase<SparkPIDController> 
     public SparkPIDControllerConfig setSmartMotionMinOutputVelocity(double minVel, int slotId) {
         addStep(
             pidController -> pidController.setSmartMotionMinOutputVelocity(minVel, slotId),
-            pidController -> Math2.epsilonEquals(pidController.getSmartMotionMinOutputVelocity(slotId), minVel, RevConfigRegistry.EPSILON),
+            pidController ->
+                Math2.epsilonEquals(
+                    pidController.getSmartMotionMinOutputVelocity(slotId),
+                    minVel,
+                    RevConfigRegistry.EPSILON
+                ),
             "Smart Motion Min Velocity (Slot " + slotId + ")"
         );
         return this;
