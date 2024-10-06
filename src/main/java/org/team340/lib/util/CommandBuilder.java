@@ -1,7 +1,10 @@
 package org.team340.lib.util;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.FunctionalCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.Subsystem;
+import java.util.ConcurrentModificationException;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -38,7 +41,7 @@ public class CommandBuilder extends Command {
      * The initial subroutine of a command. Called once when the command is initially scheduled.
      */
     public CommandBuilder onInitialize(Runnable onInitialize) {
-        if (this.isScheduled()) throw new IllegalStateException(
+        if (this.isScheduled()) throw new ConcurrentModificationException(
             "Cannot change methods of a command while it is scheduled"
         );
         this.onInitialize = onInitialize;
@@ -49,7 +52,7 @@ public class CommandBuilder extends Command {
      * The main body of a command. Called repeatedly while the command is scheduled.
      */
     public CommandBuilder onExecute(Runnable onExecute) {
-        if (this.isScheduled()) throw new IllegalStateException(
+        if (this.isScheduled()) throw new ConcurrentModificationException(
             "Cannot change methods of a command while it is scheduled"
         );
         this.onExecute = onExecute;
@@ -69,7 +72,7 @@ public class CommandBuilder extends Command {
      * or when it interrupted/canceled. Supplied boolean is if the command was interrupted.
      */
     public CommandBuilder onEnd(Consumer<Boolean> onEnd) {
-        if (this.isScheduled()) throw new IllegalStateException(
+        if (this.isScheduled()) throw new ConcurrentModificationException(
             "Cannot change methods of a command while it is scheduled"
         );
         this.onEnd = onEnd;
@@ -91,7 +94,7 @@ public class CommandBuilder extends Command {
      * method and un-schedule it. By default, this returns {@code false}.
      */
     public CommandBuilder isFinished(Supplier<Boolean> isFinished) {
-        if (this.isScheduled()) throw new IllegalStateException(
+        if (this.isScheduled()) throw new ConcurrentModificationException(
             "Cannot change methods of a command while it is scheduled"
         );
         this.isFinished = isFinished;

@@ -22,7 +22,7 @@ import org.team340.lib.swerve.config.SwerveConfig;
 public final class SwerveIMUs {
 
     private SwerveIMUs() {
-        throw new UnsupportedOperationException("This is a utility class!");
+        throw new AssertionError("This is a utility class!");
     }
 
     /**

@@ -297,7 +297,7 @@ public class SwerveAPI implements AutoCloseable {
             double norm = Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
             double norm_l = Math.hypot(vx_l, vy_l);
             double a_torque = (config.torqueAccel * config.period) * (1.0 - (norm_l / config.velocity));
-            if (norm > norm_l && norm - norm_l > a_torque) {
+            if (norm - norm_l > a_torque) {
                 double s = (norm_l + a_torque) / norm;
                 speeds.vxMetersPerSecond *= s;
                 speeds.vyMetersPerSecond *= s;

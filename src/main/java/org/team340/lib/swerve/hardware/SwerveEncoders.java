@@ -30,7 +30,7 @@ import org.team340.lib.util.rev.SparkMaxConfig;
 public final class SwerveEncoders {
 
     private SwerveEncoders() {
-        throw new UnsupportedOperationException("This is a utility class!");
+        throw new AssertionError("This is a utility class!");
     }
 
     /**

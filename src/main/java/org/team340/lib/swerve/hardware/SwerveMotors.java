@@ -36,7 +36,7 @@ import org.team340.lib.util.rev.SparkPIDControllerConfig;
 public final class SwerveMotors {
 
     private SwerveMotors() {
-        throw new UnsupportedOperationException("This is a utility class!");
+        throw new AssertionError("This is a utility class!");
     }
 
     /**

@@ -19,7 +19,7 @@ import org.team340.lib.util.Sleep;
 public final class RevConfigRegistry {
 
     private RevConfigRegistry() {
-        throw new UnsupportedOperationException("This is a utility class!");
+        throw new AssertionError("This is a utility class!");
     }
 
     static final double EPSILON = 1e-4;

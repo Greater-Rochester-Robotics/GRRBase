@@ -1,7 +1,8 @@
 package org.team340.lib.swerve.config;
 
 import com.ctre.phoenix6.hardware.TalonFX;
-import java.util.MissingResourceException;
+import java.util.ArrayList;
+import java.util.List;
 import org.team340.lib.swerve.hardware.SwerveIMUs;
 import org.team340.lib.swerve.hardware.SwerveIMUs.SwerveIMU;
 
@@ -252,37 +253,38 @@ public class SwerveConfig {
      * Throws an error if an issue is found.
      */
     public void verify() {
-        if (period == -1.0) throwMissing("Period");
-        if (odometryPeriod == -1.0) throwMissing("Odometry Period");
-        if (discretizationPeriod == -1.0) throwMissing("Discretization Period");
-        if (movePID == null) throwMissing("Move PID");
-        if (moveFF == null) throwMissing("Move FF");
-        if (turnPID == null) throwMissing("Turn PID");
-        if (velocity == -1.0) throwMissing("Velocity");
-        if (slipAccel == -1.0) throwMissing("Slip Acceleration");
-        if (torqueAccel == -1.0) throwMissing("Torque Acceleration");
-        if (angularAccel == -1.0) throwMissing("Angular Acceleration");
-        if (driverVel == -1.0) throwMissing("Driver Velocity");
-        if (driverVelExp == -1.0) throwMissing("Driver Velocity Exponential");
-        if (driverAngularVel == -1.0) throwMissing("Driver Angular Velocity");
-        if (driverAngularVelExp == -1.0) throwMissing("Driver Angular Velocity Exponential");
-        if (voltage == -1.0) throwMissing("Voltage");
-        if (moveCurrentLimit == -1.0) throwMissing("Move Current Limit");
-        if (turnCurrentLimit == -1.0) throwMissing("Turn Current Limit");
-        if (moveGearRatio == -1.0) throwMissing("Move Gear Ratio");
-        if (turnGearRatio == -1.0) throwMissing("Turn Gear Ratio");
-        if (couplingRatio == -1.0) throwMissing("Coupling Ratio");
-        if (wheelDiameter == -1.0) throwMissing("Wheel Diameter");
-        if (odometryStd == null) throwMissing("Odometry Standard Deviations");
-        if (imu == null) throwMissing("IMU");
-        if (modules == null) throwMissing("Modules");
+        List<String> missing = new ArrayList<>();
+        if (period == -1.0) missing.add("Period");
+        if (odometryPeriod == -1.0) missing.add("Odometry Period");
+        if (discretizationPeriod == -1.0) missing.add("Discretization Period");
+        if (movePID == null) missing.add("Move PID");
+        if (moveFF == null) missing.add("Move FF");
+        if (turnPID == null) missing.add("Turn PID");
+        if (velocity == -1.0) missing.add("Velocity");
+        if (slipAccel == -1.0) missing.add("Slip Acceleration");
+        if (torqueAccel == -1.0) missing.add("Torque Acceleration");
+        if (angularAccel == -1.0) missing.add("Angular Acceleration");
+        if (driverVel == -1.0) missing.add("Driver Velocity");
+        if (driverVelExp == -1.0) missing.add("Driver Velocity Exponential");
+        if (driverAngularVel == -1.0) missing.add("Driver Angular Velocity");
+        if (driverAngularVelExp == -1.0) missing.add("Driver Angular Velocity Exponential");
+        if (voltage == -1.0) missing.add("Voltage");
+        if (moveCurrentLimit == -1.0) missing.add("Move Current Limit");
+        if (turnCurrentLimit == -1.0) missing.add("Turn Current Limit");
+        if (moveGearRatio == -1.0) missing.add("Move Gear Ratio");
+        if (turnGearRatio == -1.0) missing.add("Turn Gear Ratio");
+        if (couplingRatio == -1.0) missing.add("Coupling Ratio");
+        if (wheelDiameter == -1.0) missing.add("Wheel Diameter");
+        if (odometryStd == null) missing.add("Odometry Standard Deviations");
+        if (imu == null) missing.add("IMU");
+        if (modules == null) missing.add("Modules");
+
+        if (!missing.isEmpty()) {
+            throw new IllegalArgumentException("SwerveConfig missing values: " + String.join(", ", missing));
+        }
 
         for (SwerveModuleConfig module : modules) {
             module.verify();
         }
-    }
-
-    private void throwMissing(String key) {
-        throw new MissingResourceException("Missing value: " + key, this.getClass().getSimpleName(), key);
     }
 }

@@ -34,7 +34,7 @@ import java.util.function.Supplier;
 public final class Profiler {
 
     private Profiler() {
-        throw new UnsupportedOperationException("This is a utility class!");
+        throw new AssertionError("This is a utility class!");
     }
 
     private static final NetworkTable nt = NetworkTableInstance.getDefault().getTable("Profiling");

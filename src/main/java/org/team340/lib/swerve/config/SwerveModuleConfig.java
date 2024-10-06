@@ -1,8 +1,11 @@
 package org.team340.lib.swerve.config;
 
 import edu.wpi.first.math.geometry.Translation2d;
-import java.util.MissingResourceException;
+import java.util.ArrayList;
+import java.util.List;
+import org.team340.lib.swerve.hardware.SwerveEncoders;
 import org.team340.lib.swerve.hardware.SwerveEncoders.SwerveEncoder;
+import org.team340.lib.swerve.hardware.SwerveMotors;
 import org.team340.lib.swerve.hardware.SwerveMotors.SwerveMotor;
 
 /**
@@ -71,14 +74,15 @@ public class SwerveModuleConfig {
      * Verifies the config.
      */
     public void verify() {
-        if (name == null) throwMissing("Name");
-        if (location == null) throwMissing("Position");
-        if (moveMotor == null) throwMissing("Move Motor");
-        if (turnMotor == null) throwMissing("Turn Motor");
-        if (encoder == null) throwMissing("Encoder");
-    }
+        List<String> missing = new ArrayList<>();
+        if (name == null) missing.add("Name");
+        if (location == null) missing.add("Position");
+        if (moveMotor == null) missing.add("Move Motor");
+        if (turnMotor == null) missing.add("Turn Motor");
+        if (encoder == null) missing.add("Encoder");
 
-    private void throwMissing(String key) {
-        throw new MissingResourceException("Missing value", this.getClass().getSimpleName(), key);
+        if (!missing.isEmpty()) {
+            throw new IllegalArgumentException("SwerveModuleConfig missing values: " + String.join(", ", missing));
+        }
     }
 }
