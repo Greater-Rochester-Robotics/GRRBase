@@ -256,20 +256,19 @@ public class SwerveAPI implements AutoCloseable {
             double w = speeds.omegaRadiansPerSecond;
 
             double k = 1.0;
-
-            double vmax2 = config.velocity * config.velocity;
+            double v_max2 = config.velocity * config.velocity;
 
             for (var r : moduleLocations) {
-                double vxw = -w * r.getY();
-                double vyw = w * r.getX();
+                double vx_w = -w * r.getY();
+                double vy_w = w * r.getX();
 
-                double vxm = (vx + vxw);
-                double vym = (vy + vyw);
+                double vx_m = (vx + vx_w);
+                double vy_m = (vy + vy_w);
 
-                if ((vxm * vxm + vym * vym) > vmax2) {
+                if ((vx_m * vx_m + vy_m * vy_m) > v_max2) {
                     double a = vx * vx + vy * vy;
-                    double b = 2 * vx * vxw + 2 * vy * vyw;
-                    double c = vxw * vxw + vyw * vyw - vmax2;
+                    double b = 2 * vx * vx_w + 2 * vy * vy_w;
+                    double c = vx_w * vx_w + vy_w * vy_w - v_max2;
                     k = Math.min(k, (2 * c) / (-b - Math.sqrt(b * b - 4 * a * c)));
                 }
             }
@@ -282,25 +281,31 @@ public class SwerveAPI implements AutoCloseable {
             ChassisSpeeds lastSpeeds = Math2.copyInto(state.speeds, new ChassisSpeeds());
             forwardPerspective.toPerspectiveSpeeds(lastSpeeds, lastRobotAngle);
 
-            double vxl = lastSpeeds.vxMetersPerSecond;
-            double vyl = lastSpeeds.vyMetersPerSecond;
+            double vx_l = lastSpeeds.vxMetersPerSecond;
+            double vy_l = lastSpeeds.vyMetersPerSecond;
+            double w_l = lastSpeeds.omegaRadiansPerSecond;
 
-            double dx = speeds.vxMetersPerSecond - vxl;
-            double dy = speeds.vyMetersPerSecond - vyl;
-
-            double k = 1.0;
-            double a = config.accel * config.period;
-            if (dx * dx + dy * dy > a * a) {
-                k = a / Math.hypot(dx, dy);
+            double dx = speeds.vxMetersPerSecond - vx_l;
+            double dy = speeds.vyMetersPerSecond - vy_l;
+            double a_slip = config.slipAccel * config.period;
+            if (dx * dx + dy * dy > a_slip * a_slip) {
+                double s = a_slip / Math.hypot(dx, dy);
+                speeds.vxMetersPerSecond = vx_l + (s * dx);
+                speeds.vyMetersPerSecond = vy_l + (s * dy);
             }
 
-            speeds.vxMetersPerSecond = vxl + (k * dx);
-            speeds.vyMetersPerSecond = vyl + (k * dy);
+            double norm = Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
+            double norm_l = Math.hypot(vx_l, vy_l);
+            double a_torque = (config.torqueAccel * config.period) * (1.0 - (norm_l / config.velocity));
+            if (norm > norm_l && norm - norm_l > a_torque) {
+                double s = (norm_l + a_torque) / norm;
+                speeds.vxMetersPerSecond *= s;
+                speeds.vyMetersPerSecond *= s;
+            }
 
-            double wl = lastSpeeds.omegaRadiansPerSecond;
-            double dw = speeds.omegaRadiansPerSecond - wl;
-            double alpha = config.angularAccel * config.period;
-            speeds.omegaRadiansPerSecond = wl + ((Math.abs(dw) > alpha ? alpha / Math.abs(dw) : 1.0) * dw);
+            double dw = speeds.omegaRadiansPerSecond - w_l;
+            double a_angular = config.angularAccel * config.period;
+            speeds.omegaRadiansPerSecond = w_l + ((Math.abs(dw) > a_angular ? a_angular / Math.abs(dw) : 1.0) * dw);
         }
 
         if (discretize) ChassisSpeeds.discretize(speeds, config.discretizationPeriod);

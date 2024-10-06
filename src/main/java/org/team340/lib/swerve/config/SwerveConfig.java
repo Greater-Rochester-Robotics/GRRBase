@@ -28,8 +28,10 @@ public class SwerveConfig {
     public boolean turnBrakeMode = false;
     /** The maximum forward velocity the robot is capable of in meters/second. */
     public double velocity = -1.0;
-    /** The maximum acceleration the robot is capable of in meters/second/second. */
-    public double accel = -1.0;
+    /** The maximum acceleration the robot is capable of relevant to carpet slip in meters/second/second. */
+    public double slipAccel = -1.0;
+    /** The maximum acceleration the robot is capable of relevant to motor torque in meters/second/second. */
+    public double torqueAccel = -1.0;
     /** The maximum angular acceleration the robot is capable of in radians/second/second. */
     public double angularAccel = -1.0;
     /** The maximum velocity for driver input in meters/second. */
@@ -137,12 +139,14 @@ public class SwerveConfig {
      * It is recommended that these values are found empirically using an actual robot. An easy way to do so is to configure infeasible limits, then analyze telemetry.
      *
      * @param velocity The maximum forward velocity the robot is capable of in meters/second. More specifically, the maximum velocity a move motor is capable of.
-     * @param accel The maximum acceleration the robot is capable of in meters/second/second.
+     * @param slipAccel The maximum acceleration the robot is capable of relevant to carpet slip in meters/second/second.
+     * @param torqueAccel The maximum acceleration the robot is capable of relevant to motor torque in meters/second/second.
      * @param angularAccel The maximum angular acceleration the robot is capable of in radians/second/second.
      */
-    public SwerveConfig setLimits(double velocity, double accel, double angularAccel) {
+    public SwerveConfig setLimits(double velocity, double slipAccel, double torqueAccel, double angularAccel) {
         this.velocity = velocity;
-        this.accel = accel;
+        this.slipAccel = slipAccel;
+        this.torqueAccel = torqueAccel;
         this.angularAccel = angularAccel;
         return this;
     }
@@ -255,7 +259,8 @@ public class SwerveConfig {
         if (moveFF == null) throwMissing("Move FF");
         if (turnPID == null) throwMissing("Turn PID");
         if (velocity == -1.0) throwMissing("Velocity");
-        if (accel == -1.0) throwMissing("Acceleration");
+        if (slipAccel == -1.0) throwMissing("Slip Acceleration");
+        if (torqueAccel == -1.0) throwMissing("Torque Acceleration");
         if (angularAccel == -1.0) throwMissing("Angular Acceleration");
         if (driverVel == -1.0) throwMissing("Driver Velocity");
         if (driverVelExp == -1.0) throwMissing("Driver Velocity Exponential");
