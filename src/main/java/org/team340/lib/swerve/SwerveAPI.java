@@ -4,6 +4,7 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusCode;
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -21,11 +22,9 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.team340.lib.swerve.config.SwerveConfig;
-import org.team340.lib.swerve.hardware.SwerveIMUs;
 import org.team340.lib.swerve.hardware.SwerveIMUs.SwerveIMU;
 import org.team340.lib.util.Alliance;
 import org.team340.lib.util.Math2;
-import org.team340.lib.util.Profiler;
 import org.team340.lib.util.Sleep;
 import org.team340.robot.Robot;
 
@@ -33,13 +32,12 @@ public class SwerveAPI implements AutoCloseable {
 
     final SwerveIMU imu;
     final SwerveModule[] modules;
+    final SwerveConfig config;
 
-    private final SwerveConfig config;
     private final int moduleCount;
-
+    private final double farthestModule;
     private final Translation2d[] moduleLocations;
     private final SwerveModuleState[] lockedStates;
-    private final double maxAngularVel;
 
     private final SwerveState state;
     private final SwerveDriveKinematics kinematics;
@@ -52,8 +50,8 @@ public class SwerveAPI implements AutoCloseable {
 
     public SwerveAPI(SwerveConfig config) {
         this.config = config;
-        moduleCount = config.modules.length;
 
+        moduleCount = config.modules.length;
         modules = new SwerveModule[moduleCount];
         moduleLocations = new Translation2d[moduleCount];
         lockedStates = new SwerveModuleState[moduleCount];
@@ -66,7 +64,7 @@ public class SwerveAPI implements AutoCloseable {
             farthest = Math.max(farthest, moduleLocations[i].getNorm());
         }
 
-        maxAngularVel = config.velocity / farthest;
+        farthestModule = farthest;
 
         state = new SwerveState(modules);
         kinematics = new SwerveDriveKinematics(moduleLocations);
@@ -74,10 +72,12 @@ public class SwerveAPI implements AutoCloseable {
             kinematics,
             Rotation2d.kZero,
             state.modules.positions,
-            Pose2d.kZero
+            Pose2d.kZero,
+            config.odometryStdDevs,
+            VecBuilder.fill(0.0, 0.0, 0.0)
         );
 
-        imu = SwerveIMUs.construct(config.imu, config, () -> state.speeds);
+        imu = SwerveIMU.construct(config.imu, config, () -> state.speeds);
         odometryThread = new SwerveOdometryThread();
     }
 
@@ -94,8 +94,6 @@ public class SwerveAPI implements AutoCloseable {
      * start of the swerve subsystem's {@code periodic()} method.
      */
     public void refresh() {
-        if (Profiler.isRunning()) Profiler.start("SwerveAPI.refresh()");
-
         odometryMutex.lock();
         try {
             odometryThread.run(true);
@@ -120,8 +118,6 @@ public class SwerveAPI implements AutoCloseable {
         } finally {
             odometryMutex.unlock();
         }
-
-        if (Profiler.isRunning()) Profiler.end();
     }
 
     /**
@@ -246,10 +242,11 @@ public class SwerveAPI implements AutoCloseable {
         boolean discretize,
         boolean ratelimit
     ) {
-        if (Math.abs(speeds.omegaRadiansPerSecond) >= maxAngularVel) {
+        double w_max = config.velocity / farthestModule;
+        if (Math.abs(speeds.omegaRadiansPerSecond) >= w_max) {
             speeds.vxMetersPerSecond = 0.0;
             speeds.vyMetersPerSecond = 0.0;
-            speeds.omegaRadiansPerSecond = Math.copySign(maxAngularVel, speeds.omegaRadiansPerSecond);
+            speeds.omegaRadiansPerSecond = Math.copySign(w_max, speeds.omegaRadiansPerSecond);
         } else {
             double vx = speeds.vxMetersPerSecond;
             double vy = speeds.vyMetersPerSecond;
@@ -295,10 +292,9 @@ public class SwerveAPI implements AutoCloseable {
             }
 
             double norm = Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
-            double norm_l = Math.hypot(vx_l, vy_l);
-            double a_torque = (config.torqueAccel * config.period) * (1.0 - (norm_l / config.velocity));
-            if (norm - norm_l > a_torque) {
-                double s = (norm_l + a_torque) / norm;
+            double a_torque = (config.torqueAccel * config.period) * (1.0 - (state.velocity / config.velocity));
+            if (norm - state.velocity > a_torque) {
+                double s = (state.velocity + a_torque) / norm;
                 speeds.vxMetersPerSecond *= s;
                 speeds.vyMetersPerSecond *= s;
             }
@@ -350,6 +346,14 @@ public class SwerveAPI implements AutoCloseable {
         for (int i = 0; i < moduleCount; i++) {
             modules[i].applyVoltage(voltage, angle);
         }
+    }
+
+    /**
+     * Enables publishing tunables for adjustment of the API's constants.
+     * @param name The parent name for the tunables in NetworkTables.
+     */
+    public void enableTunables(String name) {
+        SwerveTunables.initialize(name, this);
     }
 
     @Override

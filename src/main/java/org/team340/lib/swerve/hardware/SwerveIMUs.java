@@ -17,8 +17,12 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import org.team340.lib.logging.ADIS16470Logger;
 import org.team340.lib.logging.Pigeon2Logger;
+import org.team340.lib.swerve.SwerveAPI;
 import org.team340.lib.swerve.config.SwerveConfig;
 
+/**
+ * Contains implementations for IMUs to be used with the {@link SwerveAPI}.
+ */
 public final class SwerveIMUs {
 
     private SwerveIMUs() {
@@ -37,6 +41,18 @@ public final class SwerveIMUs {
         public static interface Ctor extends Function<SwerveConfig, SwerveIMU> {}
 
         /**
+         * Constructs a swerve IMU. Wraps to support simulation if applicable.
+         * @param ctor The IMU's constructor.
+         * @param config The general swerve API configuration.
+         * @param speedsSupplier A supplier for the robot's current chassis speeds. Used only for simulation.
+         */
+        public static SwerveIMU construct(Ctor ctor, SwerveConfig config, Supplier<ChassisSpeeds> speedsSupplier) {
+            SwerveIMU imu = ctor.apply(config);
+            if (RobotBase.isSimulation()) imu = simulate(imu, config, speedsSupplier);
+            return imu;
+        }
+
+        /**
          * Gets the IMU's absolute yaw.
          */
         public abstract Rotation2d getYaw();
@@ -50,81 +66,6 @@ public final class SwerveIMUs {
          * Gets the IMU's absolute roll.
          */
         public abstract Rotation2d getRoll();
-    }
-
-    /**
-     * Constructs a swerve IMU. Wraps to support simulation if applicable.
-     * @param ctor The IMU's constructor.
-     * @param config The general swerve API configuration.
-     * @param speedsSupplier A supplier for the robot's current chassis speeds. Used only for simulation.
-     */
-    public static SwerveIMU construct(
-        SwerveIMU.Ctor ctor,
-        SwerveConfig config,
-        Supplier<ChassisSpeeds> speedsSupplier
-    ) {
-        SwerveIMU imu = ctor.apply(config);
-        if (RobotBase.isSimulation()) imu = simulate(imu, config, speedsSupplier);
-        return imu;
-    }
-
-    /**
-     * Rudimentary IMU simulation wrapper. Calculates yaw based on the robot's angular velocity.
-     * @param imu The IMU to wrap.
-     * @param config The general swerve API configuration.
-     * @param speedsSupplier A supplier that returns the robot's current chassis speeds.
-     */
-    private static SwerveIMU simulate(SwerveIMU imu, SwerveConfig config, Supplier<ChassisSpeeds> speedsSupplier) {
-        return new SwerveIMU() {
-            private Rotation2d yaw = Rotation2d.kZero;
-
-            @Override
-            public Rotation2d getYaw() {
-                yaw = yaw.plus(Rotation2d.fromRadians(speedsSupplier.get().omegaRadiansPerSecond * config.period));
-                return yaw;
-            }
-
-            @Override
-            public Rotation2d getPitch() {
-                return Rotation2d.kZero;
-            }
-
-            @Override
-            public Rotation2d getRoll() {
-                return Rotation2d.kZero;
-            }
-
-            @Override
-            public Object getAPI() {
-                return imu;
-            }
-
-            @Override
-            public void log(DataLogger logger, ErrorHandler errorHandler) {
-                imu.log(logger, errorHandler);
-                var simLogger = logger.getSubLogger(".sim");
-                simLogger.log("yaw", getYaw(), Rotation2d.struct);
-                simLogger.log("pitch", getPitch(), Rotation2d.struct);
-                simLogger.log("roll", getRoll(), Rotation2d.struct);
-            }
-
-            @Override
-            public List<BaseStatusSignal> getSignals() {
-                return imu.getSignals();
-            }
-
-            @Override
-            public boolean readError() {
-                return imu.readError();
-            }
-
-            @Override
-            public void close() {
-                try {
-                    imu.close();
-                } catch (Exception e) {}
-            }
-        };
     }
 
     /**
@@ -240,6 +181,65 @@ public final class SwerveIMUs {
                     pigeon2.close();
                 }
             };
+        };
+    }
+
+    /**
+     * Rudimentary IMU simulation wrapper. Calculates yaw based on the robot's angular velocity.
+     * @param imu The IMU to wrap.
+     * @param config The general swerve API configuration.
+     * @param speedsSupplier A supplier that returns the robot's current chassis speeds.
+     */
+    private static SwerveIMU simulate(SwerveIMU imu, SwerveConfig config, Supplier<ChassisSpeeds> speedsSupplier) {
+        return new SwerveIMU() {
+            private Rotation2d yaw = Rotation2d.kZero;
+
+            @Override
+            public Rotation2d getYaw() {
+                yaw = yaw.plus(Rotation2d.fromRadians(speedsSupplier.get().omegaRadiansPerSecond * config.period));
+                return yaw;
+            }
+
+            @Override
+            public Rotation2d getPitch() {
+                return Rotation2d.kZero;
+            }
+
+            @Override
+            public Rotation2d getRoll() {
+                return Rotation2d.kZero;
+            }
+
+            @Override
+            public Object getAPI() {
+                return imu;
+            }
+
+            @Override
+            public void log(DataLogger logger, ErrorHandler errorHandler) {
+                imu.log(logger, errorHandler);
+                var simLogger = logger.getSubLogger(".sim");
+                simLogger.log("yaw", getYaw(), Rotation2d.struct);
+                simLogger.log("pitch", getPitch(), Rotation2d.struct);
+                simLogger.log("roll", getRoll(), Rotation2d.struct);
+            }
+
+            @Override
+            public List<BaseStatusSignal> getSignals() {
+                return imu.getSignals();
+            }
+
+            @Override
+            public boolean readError() {
+                return imu.readError();
+            }
+
+            @Override
+            public void close() {
+                try {
+                    imu.close();
+                } catch (Exception e) {}
+            }
         };
     }
 }

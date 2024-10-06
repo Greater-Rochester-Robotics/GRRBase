@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 import org.team340.lib.logging.CANcoderLogger;
 import org.team340.lib.logging.SparkAbsoluteEncoderLogger;
+import org.team340.lib.swerve.SwerveAPI;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.hardware.SwerveMotors.SwerveMotor;
 import org.team340.lib.util.Mutable;
@@ -27,6 +28,9 @@ import org.team340.lib.util.rev.SparkAbsoluteEncoderConfig;
 import org.team340.lib.util.rev.SparkFlexConfig;
 import org.team340.lib.util.rev.SparkMaxConfig;
 
+/**
+ * Contains implementations for absolute encoders to be used with the {@link SwerveAPI}.
+ */
 public final class SwerveEncoders {
 
     private SwerveEncoders() {
@@ -46,6 +50,18 @@ public final class SwerveEncoders {
         public static interface Ctor extends BiFunction<SwerveConfig, SwerveMotor, SwerveEncoder> {}
 
         /**
+         * Constructs a swerve encoder. Wraps to support simulation if applicable.
+         * @param ctor The encoder's constructor.
+         * @param config The general swerve API configuration.
+         * @param turnMotor The turn motor associated with the encoder's module.
+         */
+        public static SwerveEncoder construct(Ctor ctor, SwerveConfig config, SwerveMotor turnMotor) {
+            SwerveEncoder encoder = ctor.apply(config, turnMotor);
+            if (RobotBase.isSimulation()) encoder = simulate(encoder, config, turnMotor);
+            return encoder;
+        }
+
+        /**
          * Gets the encoder's position in rotations.
          */
         public abstract double getPosition();
@@ -61,68 +77,6 @@ public final class SwerveEncoders {
         public boolean hookStatus() {
             return false;
         }
-    }
-
-    /**
-     * Constructs a swerve encoder. Wraps to support simulation if applicable.
-     * @param ctor The encoder's constructor.
-     * @param config The general swerve API configuration.
-     * @param turnMotor The turn motor associated with the encoder's module.
-     */
-    public static SwerveEncoder construct(SwerveEncoder.Ctor ctor, SwerveConfig config, SwerveMotor turnMotor) {
-        SwerveEncoder encoder = ctor.apply(config, turnMotor);
-        if (RobotBase.isSimulation()) encoder = simulate(encoder, config, turnMotor);
-        return encoder;
-    }
-
-    /**
-     * Rudimentary encoder simulation wrapper. Follows the position of the turn motor.
-     * @param encoder The encoder to wrap.
-     * @param config The general swerve API configuration.
-     * @param turnMotor The turn motor associated with the encoder's module.
-     */
-    private static SwerveEncoder simulate(SwerveEncoder encoder, SwerveConfig config, SwerveMotor turnMotor) {
-        return new SwerveEncoder() {
-            @Override
-            public double getPosition() {
-                return turnMotor.getPosition() / (hookStatus() ? 1.0 : config.turnGearRatio);
-            }
-
-            @Override
-            public boolean hookStatus() {
-                return encoder.hookStatus();
-            }
-
-            @Override
-            public Object getAPI() {
-                return encoder;
-            }
-
-            @Override
-            public void log(DataLogger logger, ErrorHandler errorHandler) {
-                encoder.log(logger, errorHandler);
-                var simLogger = logger.getSubLogger(".sim");
-                simLogger.log("position", getPosition());
-                simLogger.log("hookStatus", hookStatus());
-            }
-
-            @Override
-            public List<BaseStatusSignal> getSignals() {
-                return encoder.getSignals();
-            }
-
-            @Override
-            public boolean readError() {
-                return encoder.readError();
-            }
-
-            @Override
-            public void close() {
-                try {
-                    encoder.close();
-                } catch (Exception e) {}
-            }
-        };
     }
 
     /**
@@ -150,7 +104,7 @@ public final class SwerveEncoders {
 
             new SparkAbsoluteEncoderConfig()
                 .setPositionConversionFactor(1.0)
-                .setVelocityConversionFactor(offset)
+                .setVelocityConversionFactor(1.0 / 60.0)
                 .setInverted(inverted)
                 .setZeroOffset(offset)
                 .apply(sparkMax, encoder);
@@ -202,7 +156,7 @@ public final class SwerveEncoders {
 
             new SparkAbsoluteEncoderConfig()
                 .setPositionConversionFactor(1.0)
-                .setVelocityConversionFactor(offset)
+                .setVelocityConversionFactor(1.0 / 60.0)
                 .setInverted(inverted)
                 .setZeroOffset(offset)
                 .apply(sparkFlex, encoder);
@@ -310,6 +264,56 @@ public final class SwerveEncoders {
                     canCoder.close();
                 }
             };
+        };
+    }
+
+    /**
+     * Rudimentary encoder simulation wrapper. Follows the position of the turn motor.
+     * @param encoder The encoder to wrap.
+     * @param config The general swerve API configuration.
+     * @param turnMotor The turn motor associated with the encoder's module.
+     */
+    private static SwerveEncoder simulate(SwerveEncoder encoder, SwerveConfig config, SwerveMotor turnMotor) {
+        return new SwerveEncoder() {
+            @Override
+            public double getPosition() {
+                return turnMotor.getPosition() / (hookStatus() ? 1.0 : config.turnGearRatio);
+            }
+
+            @Override
+            public boolean hookStatus() {
+                return encoder.hookStatus();
+            }
+
+            @Override
+            public Object getAPI() {
+                return encoder;
+            }
+
+            @Override
+            public void log(DataLogger logger, ErrorHandler errorHandler) {
+                encoder.log(logger, errorHandler);
+                var simLogger = logger.getSubLogger(".sim");
+                simLogger.log("position", getPosition());
+                simLogger.log("hookStatus", hookStatus());
+            }
+
+            @Override
+            public List<BaseStatusSignal> getSignals() {
+                return encoder.getSignals();
+            }
+
+            @Override
+            public boolean readError() {
+                return encoder.readError();
+            }
+
+            @Override
+            public void close() {
+                try {
+                    encoder.close();
+                } catch (Exception e) {}
+            }
         };
     }
 }

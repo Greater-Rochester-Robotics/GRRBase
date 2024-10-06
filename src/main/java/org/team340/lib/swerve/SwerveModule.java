@@ -11,9 +11,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.config.SwerveModuleConfig;
-import org.team340.lib.swerve.hardware.SwerveEncoders;
 import org.team340.lib.swerve.hardware.SwerveEncoders.SwerveEncoder;
-import org.team340.lib.swerve.hardware.SwerveMotors;
 import org.team340.lib.swerve.hardware.SwerveMotors.SwerveMotor;
 import org.team340.lib.util.Math2;
 
@@ -48,9 +46,9 @@ class SwerveModule implements AutoCloseable {
         this.config = config;
         this.moduleConfig = moduleConfig;
 
-        moveMotor = SwerveMotors.construct(moduleConfig.moveMotor, config, true);
-        turnMotor = SwerveMotors.construct(moduleConfig.turnMotor, config, false);
-        encoder = SwerveEncoders.construct(moduleConfig.encoder, config, turnMotor);
+        moveMotor = SwerveMotor.construct(moduleConfig.moveMotor, config, true);
+        turnMotor = SwerveMotor.construct(moduleConfig.turnMotor, config, false);
+        encoder = SwerveEncoder.construct(moduleConfig.encoder, config, turnMotor);
 
         moveRotationsPerMeter = config.moveGearRatio / (config.wheelDiameter * Math.PI);
         hookStatus = encoder.hookStatus();

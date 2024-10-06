@@ -65,6 +65,7 @@ public class Swerve extends GRRSubsystem {
 
     public Swerve() {
         api = new SwerveAPI(CONFIG);
+        api.enableTunables("Swerve");
     }
 
     @Override

@@ -42,7 +42,7 @@ public final class GRRDashboard {
         .getBooleanTopic("AllianceOverride/isBlue")
         .subscribe(false);
 
-    private static final Map<String, Pair<String, Command>> autoOptions = new LinkedHashMap<>(); // { id: [json, command] }
+    private static final Map<String, Pair<Command, String>> autoOptions = new LinkedHashMap<>(); // { id: [command, json] }
     private static final StringArrayPublisher autoOptionsPub = nt.getStringArrayTopic("Autos/options").publish();
     private static final StringPublisher activeAutoPub = nt.getStringTopic("Autos/active").publish();
     private static final StringSubscriber selectedAutoSub;
@@ -136,8 +136,8 @@ public final class GRRDashboard {
         }
 
         if (json.isEmpty()) json = "{ \"id\": \"" + id + "\", \"label\": \"" + label + "\", \"points\": [] }";
-        autoOptions.put(id, Pair.of(json, command));
-        autoOptionsPub.set(autoOptions.values().stream().map(entry -> entry.getFirst()).toArray(String[]::new));
+        autoOptions.put(id, Pair.of(command, json));
+        autoOptionsPub.set(autoOptions.values().stream().map(entry -> entry.getSecond()).toArray(String[]::new));
         return id;
     }
 
@@ -146,14 +146,6 @@ public final class GRRDashboard {
      */
     public static Command getSelectedAuto() {
         return selectedAuto;
-    }
-
-    /**
-     * Binds an action to the dashboard's update loop.
-     * @param action The action to bind.
-     */
-    static void bind(Runnable action) {
-        periodic.bind(action);
     }
 
     /**
@@ -171,10 +163,18 @@ public final class GRRDashboard {
             var entry = autoOptions.get(id);
             if (entry != null) {
                 activeAutoPub.set(id);
-                selectedAuto = entry.getSecond();
+                selectedAuto = entry.getFirst();
             }
         }
 
         periodic.poll();
+    }
+
+    /**
+     * Binds an action to the dashboard's update loop.
+     * @param action The action to bind.
+     */
+    static void bind(Runnable action) {
+        periodic.bind(action);
     }
 }

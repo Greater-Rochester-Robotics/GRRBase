@@ -2,6 +2,7 @@ package org.team340.lib.swerve.hardware;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
@@ -26,6 +27,7 @@ import java.util.function.BiFunction;
 import org.team340.lib.logging.SparkFlexLogger;
 import org.team340.lib.logging.SparkMaxLogger;
 import org.team340.lib.logging.TalonFXLogger;
+import org.team340.lib.swerve.SwerveAPI;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.util.ctre.PhoenixUtil;
 import org.team340.lib.util.rev.RelativeEncoderConfig;
@@ -33,6 +35,9 @@ import org.team340.lib.util.rev.SparkFlexConfig;
 import org.team340.lib.util.rev.SparkMaxConfig;
 import org.team340.lib.util.rev.SparkPIDControllerConfig;
 
+/**
+ * Contains implementations for motors to be used with the {@link SwerveAPI}.
+ */
 public final class SwerveMotors {
 
     private SwerveMotors() {
@@ -50,6 +55,18 @@ public final class SwerveMotors {
          */
         @FunctionalInterface
         public static interface Ctor extends BiFunction<SwerveConfig, Boolean, SwerveMotor> {}
+
+        /**
+         * Constructs a swerve motor. Wraps to support simulation if applicable.
+         * @param ctor The motor's constructor.
+         * @param config The general swerve API configuration.
+         * @param isMoveMotor {@code true} if the motor is a move motor.
+         */
+        public static SwerveMotor construct(Ctor ctor, SwerveConfig config, boolean isMoveMotor) {
+            SwerveMotor motor = ctor.apply(config, isMoveMotor);
+            if (RobotBase.isSimulation()) motor = simulate(motor, config);
+            return motor;
+        }
 
         /**
          * Gets the motor's position in rotations.
@@ -78,93 +95,12 @@ public final class SwerveMotors {
          * @param voltage The voltage to apply.
          */
         public abstract void setVoltage(double voltage);
-    }
 
-    /**
-     * Constructs a swerve motor. Wraps to support simulation if applicable.
-     * @param ctor The motor's constructor.
-     * @param config The general swerve API configuration.
-     * @param isMoveMotor {@code true} if the motor is a move motor.
-     */
-    public static SwerveMotor construct(SwerveMotor.Ctor ctor, SwerveConfig config, boolean isMoveMotor) {
-        SwerveMotor motor = ctor.apply(config, isMoveMotor);
-        if (RobotBase.isSimulation()) motor = simulate(motor, config);
-        return motor;
-    }
-
-    /**
-     * Rudimentary motor simulation wrapper. Motor physics are not simulated,
-     * as the simulation assumes the motor perfectly tracks its setpoint.
-     * @param motor The motor to wrap.
-     * @param config The general swerve API configuration.
-     */
-    private static SwerveMotor simulate(SwerveMotor motor, SwerveConfig config) {
-        return new SwerveMotor() {
-            private double position = 0.0;
-            private double velocity = 0.0;
-
-            @Override
-            public double getPosition() {
-                return position;
-            }
-
-            @Override
-            public void setPosition(double position) {
-                velocity = (position - this.position) / config.period;
-                this.position = position;
-                motor.setPosition(position);
-            }
-
-            @Override
-            public double getVelocity() {
-                return velocity;
-            }
-
-            @Override
-            public void setVelocity(double velocity) {
-                position = position + (velocity * config.period);
-                this.velocity = velocity;
-                motor.setVelocity(velocity);
-            }
-
-            @Override
-            public void setVoltage(double voltage) {
-                // No-op in sim
-                // Intended for characterization with a real robot
-                velocity = 0.0;
-                motor.setVoltage(voltage);
-            }
-
-            @Override
-            public Object getAPI() {
-                return motor;
-            }
-
-            @Override
-            public void log(DataLogger logger, ErrorHandler errorHandler) {
-                motor.log(logger, errorHandler);
-                var simLogger = logger.getSubLogger(".sim");
-                simLogger.log("position", getPosition());
-                simLogger.log("velocity", getVelocity());
-            }
-
-            @Override
-            public List<BaseStatusSignal> getSignals() {
-                return motor.getSignals();
-            }
-
-            @Override
-            public boolean readError() {
-                return motor.readError();
-            }
-
-            @Override
-            public void close() {
-                try {
-                    motor.close();
-                } catch (Exception e) {}
-            }
-        };
+        /**
+         * Re-applies PID and FF gains from the swerve config. Used
+         * for setting new gains after the config has been mutated.
+         */
+        public abstract void reapplyGains();
     }
 
     /**
@@ -249,6 +185,20 @@ public final class SwerveMotors {
                 @Override
                 public void setVoltage(double voltage) {
                     sparkMax.setVoltage(voltage);
+                }
+
+                @Override
+                public void reapplyGains() {
+                    if (isMoveMotor) {
+                        ffGains[0] = config.moveFF[0];
+                        ffGains[1] = config.moveFF[1];
+                    }
+
+                    double[] pidGains = isMoveMotor ? config.movePID : config.turnPID;
+                    pidController.setP(pidGains[0], PID_SLOT);
+                    pidController.setI(pidGains[1], PID_SLOT);
+                    pidController.setD(pidGains[2], PID_SLOT);
+                    pidController.setIZone(pidGains[3], PID_SLOT);
                 }
 
                 @Override
@@ -359,6 +309,20 @@ public final class SwerveMotors {
                 }
 
                 @Override
+                public void reapplyGains() {
+                    if (isMoveMotor) {
+                        ffGains[0] = config.moveFF[0];
+                        ffGains[1] = config.moveFF[1];
+                    }
+
+                    double[] pidGains = isMoveMotor ? config.movePID : config.turnPID;
+                    pidController.setP(pidGains[0], PID_SLOT);
+                    pidController.setI(pidGains[1], PID_SLOT);
+                    pidController.setD(pidGains[2], PID_SLOT);
+                    pidController.setIZone(pidGains[3], PID_SLOT);
+                }
+
+                @Override
                 public Object getAPI() {
                     return sparkFlex;
                 }
@@ -462,6 +426,20 @@ public final class SwerveMotors {
                 }
 
                 @Override
+                public void reapplyGains() {
+                    double[] pidGains = isMoveMotor ? config.movePID : config.turnPID;
+                    double[] ffGains = isMoveMotor ? config.moveFF : new double[] { 0.0, 0.0 };
+
+                    var slot0Config = new Slot0Configs();
+                    slot0Config.kP = pidGains[0];
+                    slot0Config.kI = pidGains[1];
+                    slot0Config.kD = pidGains[2];
+                    slot0Config.kS = ffGains[0];
+                    slot0Config.kV = ffGains[1];
+                    talonFX.getConfigurator().apply(slot0Config);
+                }
+
+                @Override
                 public Object getAPI() {
                     return talonFX;
                 }
@@ -481,6 +459,86 @@ public final class SwerveMotors {
                     talonFX.close();
                 }
             };
+        };
+    }
+
+    /**
+     * Rudimentary motor simulation wrapper. Motor physics are not simulated,
+     * as the simulation assumes the motor perfectly tracks its setpoint.
+     * @param motor The motor to wrap.
+     * @param config The general swerve API configuration.
+     */
+    private static SwerveMotor simulate(SwerveMotor motor, SwerveConfig config) {
+        return new SwerveMotor() {
+            private double position = 0.0;
+            private double velocity = 0.0;
+
+            @Override
+            public double getPosition() {
+                return position;
+            }
+
+            @Override
+            public void setPosition(double position) {
+                velocity = (position - this.position) / config.period;
+                this.position = position;
+                motor.setPosition(position);
+            }
+
+            @Override
+            public double getVelocity() {
+                return velocity;
+            }
+
+            @Override
+            public void setVelocity(double velocity) {
+                position = position + (velocity * config.period);
+                this.velocity = velocity;
+                motor.setVelocity(velocity);
+            }
+
+            @Override
+            public void setVoltage(double voltage) {
+                // No-op in sim
+                // Intended for characterization with a real robot
+                velocity = 0.0;
+                motor.setVoltage(voltage);
+            }
+
+            @Override
+            public void reapplyGains() {
+                motor.reapplyGains();
+            }
+
+            @Override
+            public Object getAPI() {
+                return motor;
+            }
+
+            @Override
+            public void log(DataLogger logger, ErrorHandler errorHandler) {
+                motor.log(logger, errorHandler);
+                var simLogger = logger.getSubLogger(".sim");
+                simLogger.log("position", getPosition());
+                simLogger.log("velocity", getVelocity());
+            }
+
+            @Override
+            public List<BaseStatusSignal> getSignals() {
+                return motor.getSignals();
+            }
+
+            @Override
+            public boolean readError() {
+                return motor.readError();
+            }
+
+            @Override
+            public void close() {
+                try {
+                    motor.close();
+                } catch (Exception e) {}
+            }
         };
     }
 }
