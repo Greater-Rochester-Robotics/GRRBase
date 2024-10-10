@@ -99,7 +99,6 @@ public class SwerveAPI implements AutoCloseable {
         odometryMutex.lock();
         try {
             odometryThread.run(true);
-            state.odometry.async = odometryThread.async;
             state.odometry.timesync = odometryThread.timesync;
             state.odometry.successes = odometryThread.successes;
             state.odometry.failures = odometryThread.failures;
@@ -493,8 +492,7 @@ public class SwerveAPI implements AutoCloseable {
     private final class SwerveOdometryThread implements AutoCloseable {
 
         public Rotation2d lastYaw = Rotation2d.kZero;
-        public final boolean async;
-        public final boolean timesync;
+        public boolean timesync = false;
         public int successes = 0;
         public int failures = 0;
 
@@ -522,14 +520,11 @@ public class SwerveAPI implements AutoCloseable {
                 });
                 thread.setName("SwerveAPI");
                 thread.setDaemon(true);
-                active = true;
-                async = true;
                 timesync = config.phoenixPro && CANBus.isNetworkFD(config.phoenixCanBus);
+                active = true;
                 thread.start();
             } else {
                 thread = null;
-                async = false;
-                timesync = false;
             }
         }
 

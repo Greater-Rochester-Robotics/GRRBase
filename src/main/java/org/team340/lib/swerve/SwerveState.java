@@ -44,8 +44,6 @@ public final class SwerveState {
      */
     public static final class Odometry {
 
-        /** If the odometry thread is running asynchronously. */
-        public boolean async;
         /** If Phoenix timesync is being utilized. */
         public boolean timesync;
         /** The number of successful odometry measurements since the last loop. */
