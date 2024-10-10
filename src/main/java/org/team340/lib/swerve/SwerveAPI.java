@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.hardware.SwerveIMUs.SwerveIMU;
 import org.team340.lib.util.Alliance;
@@ -47,6 +48,7 @@ public class SwerveAPI implements AutoCloseable {
     private final SwerveOdometryThread odometryThread;
 
     private Rotation2d lastRobotAngle = Rotation2d.kZero;
+    private Consumer<ChassisSpeeds> imuSimHook = s -> {};
 
     public SwerveAPI(SwerveConfig config) {
         this.config = config;
@@ -77,7 +79,7 @@ public class SwerveAPI implements AutoCloseable {
             VecBuilder.fill(0.0, 0.0, 0.0)
         );
 
-        imu = SwerveIMU.construct(config.imu, config, () -> state.speeds);
+        imu = SwerveIMU.construct(config.imu, config, hook -> imuSimHook = hook);
         odometryThread = new SwerveOdometryThread();
     }
 
@@ -102,22 +104,25 @@ public class SwerveAPI implements AutoCloseable {
             state.odometry.successes = odometryThread.successes;
             state.odometry.failures = odometryThread.failures;
 
+            odometryThread.successes = 0;
+            odometryThread.failures = 0;
+
             for (int i = 0; i < moduleCount; i++) {
                 Math2.copyInto(modules[i].getPosition(), state.modules.positions[i]);
                 Math2.copyInto(modules[i].getState(), state.modules.states[i]);
             }
 
-            state.pitch = imu.getPitch();
-            state.roll = imu.getRoll();
             state.pose = poseEstimator.getEstimatedPosition();
-            state.speeds = kinematics.toChassisSpeeds(state.modules.states);
-            state.velocity = Math.hypot(state.speeds.vxMetersPerSecond, state.speeds.vyMetersPerSecond);
-
-            odometryThread.successes = 0;
-            odometryThread.failures = 0;
         } finally {
             odometryMutex.unlock();
         }
+
+        state.pitch = imu.getPitch();
+        state.roll = imu.getRoll();
+        state.speeds = kinematics.toChassisSpeeds(state.modules.states);
+        state.velocity = Math.hypot(state.speeds.vxMetersPerSecond, state.speeds.vyMetersPerSecond);
+
+        imuSimHook.accept(state.speeds);
     }
 
     /**
@@ -128,10 +133,10 @@ public class SwerveAPI implements AutoCloseable {
      */
     public void tareRotation(ForwardPerspective forwardPerspective) {
         if (forwardPerspective.equals(ForwardPerspective.ROBOT)) return;
+        var rotation = forwardPerspective.getTareRotation();
 
         odometryMutex.lock();
         try {
-            var rotation = forwardPerspective.getTareRotation();
             poseEstimator.resetRotation(rotation);
             state.pose = new Pose2d(poseEstimator.getEstimatedPosition().getTranslation(), rotation);
         } finally {
@@ -488,8 +493,8 @@ public class SwerveAPI implements AutoCloseable {
     private final class SwerveOdometryThread implements AutoCloseable {
 
         public Rotation2d lastYaw = Rotation2d.kZero;
-        public boolean async = false;
-        public boolean timesync = false;
+        public final boolean async;
+        public final boolean timesync;
         public int successes = 0;
         public int failures = 0;
 
@@ -497,6 +502,7 @@ public class SwerveAPI implements AutoCloseable {
         private final BaseStatusSignal[] signals;
         private final Thread thread;
 
+        private volatile boolean active = false;
         private double lastTime = 0.0;
 
         public SwerveOdometryThread() {
@@ -512,15 +518,18 @@ public class SwerveAPI implements AutoCloseable {
             if (config.odometryPeriod < config.period) {
                 thread = new Thread(() -> {
                     Threads.setCurrentThreadPriority(true, 1);
-                    while (async) this.run(false);
+                    while (active) this.run(false);
                 });
                 thread.setName("SwerveAPI");
                 thread.setDaemon(true);
+                active = true;
                 async = true;
                 timesync = config.phoenixPro && CANBus.isNetworkFD(config.phoenixCanBus);
                 thread.start();
             } else {
                 thread = null;
+                async = false;
+                timesync = false;
             }
         }
 
@@ -564,8 +573,8 @@ public class SwerveAPI implements AutoCloseable {
 
         @Override
         public void close() {
-            if (async) {
-                async = false;
+            if (active) {
+                active = false;
                 if (thread != null && thread.isAlive()) {
                     try {
                         thread.interrupt();

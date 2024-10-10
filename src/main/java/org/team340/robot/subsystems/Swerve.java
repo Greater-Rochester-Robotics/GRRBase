@@ -52,13 +52,13 @@ public class Swerve extends GRRSubsystem {
         .setMoveFF(0.0, 2.4)
         .setTurnPID(0.5, 0.0, 0.0, 0.0)
         .setBrakeMode(false, true)
-        .setLimits(5.0, 16.0, 12.0, 9.425)
-        .setDriverProfile(4.5, 1.0, 1.047, 2.0)
+        .setLimits(5.0, 16.0, 12.0, 31.416)
+        .setDriverProfile(4.5, 1.0, 5.498, 2.0)
         .setPowerProperties(Constants.VOLTAGE, 80.0, 60.0)
         .setMechanicalProperties(75.0 / 14.0, 18.75, 0.0, Units.inchesToMeters(4.0))
         .setOdometryStd(0.1, 0.1, 0.1)
         .setIMU(SwerveIMUs.pigeon2(RobotMap.PIGEON))
-        .setPhoenixFeatures(RobotMap.CANBUS, false, true, true)
+        .setPhoenixFeatures(RobotMap.CANBUS, true, true, true)
         .setModules(FRONT_LEFT, FRONT_RIGHT, BACK_LEFT, BACK_RIGHT);
 
     private final SwerveAPI api;
