@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 public final class PhoenixUtil {
 
     private PhoenixUtil() {
-        throw new UnsupportedOperationException("This is a utility class!");
+        throw new AssertionError("This is a utility class!");
     }
 
     /**
@@ -43,7 +43,14 @@ public final class PhoenixUtil {
         }
 
         DriverStation.reportError(
-            "[PhoenixUtil] " + device.getClass().getSimpleName() + " (ID " + device.getDeviceID() + ") \"" + name + "\": " + results,
+            "[PhoenixUtil] " +
+            device.getClass().getSimpleName() +
+            " (ID " +
+            device.getDeviceID() +
+            ") \"" +
+            name +
+            "\": " +
+            results,
             false
         );
         return false;

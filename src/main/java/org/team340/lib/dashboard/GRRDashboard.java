@@ -35,10 +35,14 @@ public final class GRRDashboard {
     private static final NetworkTable nt = NetworkTableInstance.getDefault().getTable("GRRDashboard");
     private static final EventLoop periodic = new EventLoop();
 
-    private static final BooleanSubscriber allianceOverrideActiveSub = nt.getBooleanTopic("AllianceOverride/active").subscribe(false);
-    private static final BooleanSubscriber allianceOverrideIsBlueSub = nt.getBooleanTopic("AllianceOverride/isBlue").subscribe(false);
+    private static final BooleanSubscriber allianceOverrideActiveSub = nt
+        .getBooleanTopic("AllianceOverride/active")
+        .subscribe(false);
+    private static final BooleanSubscriber allianceOverrideIsBlueSub = nt
+        .getBooleanTopic("AllianceOverride/isBlue")
+        .subscribe(false);
 
-    private static final Map<String, Pair<String, Command>> autoOptions = new LinkedHashMap<>(); // { id: [json, command] }
+    private static final Map<String, Pair<Command, String>> autoOptions = new LinkedHashMap<>(); // { id: [command, json] }
     private static final StringArrayPublisher autoOptionsPub = nt.getStringArrayTopic("Autos/options").publish();
     private static final StringPublisher activeAutoPub = nt.getStringTopic("Autos/active").publish();
     private static final StringSubscriber selectedAutoSub;
@@ -93,44 +97,47 @@ public final class GRRDashboard {
         double lastTimestamp = 0.0;
         for (int i = 0; i < trajectories.length; i++) {
             ChoreoTrajectoryState[] states = trajectories[i].getStates();
-            if (i > 0 && trajectories[i - 1].getStates().length > 0) lastTimestamp += trajectories[i - 1].getFinalState().timestamp;
+            if (i > 0 && trajectories[i - 1].getStates().length > 0) lastTimestamp +=
+            trajectories[i - 1].getFinalState().timestamp;
             for (ChoreoTrajectoryState state : states) {
                 points.add(
                     new BigDecimal[] {
                         new BigDecimal(state.x).setScale(3, RoundingMode.HALF_UP),
                         new BigDecimal(state.y).setScale(3, RoundingMode.HALF_UP),
                         new BigDecimal(state.heading).setScale(2, RoundingMode.HALF_UP),
-                        new BigDecimal(state.timestamp + lastTimestamp).setScale(3, RoundingMode.HALF_UP),
+                        new BigDecimal(state.timestamp + lastTimestamp).setScale(3, RoundingMode.HALF_UP)
                     }
                 );
             }
         }
 
-        ChoreoTrajectory lastTrajectory = trajectories.length > 0 ? trajectories[trajectories.length - 1] : new ChoreoTrajectory();
-        double time = lastTimestamp + (lastTrajectory.getStates().length > 0 ? lastTrajectory.getFinalState().timestamp : 0.0);
+        ChoreoTrajectory lastTrajectory = trajectories.length > 0
+            ? trajectories[trajectories.length - 1]
+            : new ChoreoTrajectory();
+        double time =
+            lastTimestamp + (lastTrajectory.getStates().length > 0 ? lastTrajectory.getFinalState().timestamp : 0.0);
 
         String json = "";
         try {
-            json =
-                new ObjectMapper()
-                    .writeValueAsString(
-                        new HashMap<>() {
-                            {
-                                put("id", id);
-                                put("label", label);
-                                put("points", points);
-                                put("time", time);
-                            }
+            json = new ObjectMapper()
+                .writeValueAsString(
+                    new HashMap<>() {
+                        {
+                            put("id", id);
+                            put("label", label);
+                            put("points", points);
+                            put("time", time);
                         }
-                    );
+                    }
+                );
         } catch (Exception e) {
             e.printStackTrace();
             json = "";
         }
 
         if (json.isEmpty()) json = "{ \"id\": \"" + id + "\", \"label\": \"" + label + "\", \"points\": [] }";
-        autoOptions.put(id, Pair.of(json, command));
-        autoOptionsPub.set(autoOptions.values().stream().map(entry -> entry.getFirst()).toArray(String[]::new));
+        autoOptions.put(id, Pair.of(command, json));
+        autoOptionsPub.set(autoOptions.values().stream().map(entry -> entry.getSecond()).toArray(String[]::new));
         return id;
     }
 
@@ -139,14 +146,6 @@ public final class GRRDashboard {
      */
     public static Command getSelectedAuto() {
         return selectedAuto;
-    }
-
-    /**
-     * Binds an action to the dashboard's update loop.
-     * @param action The action to bind.
-     */
-    static void bind(Runnable action) {
-        periodic.bind(action);
     }
 
     /**
@@ -164,10 +163,18 @@ public final class GRRDashboard {
             var entry = autoOptions.get(id);
             if (entry != null) {
                 activeAutoPub.set(id);
-                selectedAuto = entry.getSecond();
+                selectedAuto = entry.getFirst();
             }
         }
 
         periodic.poll();
+    }
+
+    /**
+     * Binds an action to the dashboard's update loop.
+     * @param action The action to bind.
+     */
+    static void bind(Runnable action) {
+        periodic.bind(action);
     }
 }

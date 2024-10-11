@@ -19,8 +19,7 @@ public class Controller extends CommandXboxController {
     private static final EventLoop loop = new EventLoop();
 
     static {
-        CommandScheduler
-            .getInstance()
+        CommandScheduler.getInstance()
             .getDefaultButtonLoop()
             .bind(() -> {
                 if (!RobotState.isAutonomous()) loop.poll();
@@ -108,6 +107,11 @@ public class Controller extends CommandXboxController {
     @Override
     public Trigger axisGreaterThan(int axis, double threshold) {
         return axisGreaterThan(axis, threshold, loop);
+    }
+
+    @Override
+    public Trigger axisMagnitudeGreaterThan(int axis, double threshold) {
+        return axisMagnitudeGreaterThan(axis, threshold, loop);
     }
 
     @Override

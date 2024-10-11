@@ -260,7 +260,8 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
     public SparkMaxConfig disableVoltageCompensation() {
         addStep(
             sparkMax -> sparkMax.disableVoltageCompensation(),
-            sparkMax -> Math2.epsilonEquals(sparkMax.getVoltageCompensationNominalVoltage(), 0.0, RevConfigRegistry.EPSILON),
+            sparkMax ->
+                Math2.epsilonEquals(sparkMax.getVoltageCompensationNominalVoltage(), 0.0, RevConfigRegistry.EPSILON),
             "Disable Voltage Compensation"
         );
         return this;
@@ -287,7 +288,12 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
     public SparkMaxConfig enableVoltageCompensation(double nominalVoltage) {
         addStep(
             sparkMax -> sparkMax.enableVoltageCompensation(nominalVoltage),
-            sparkMax -> Math2.epsilonEquals(sparkMax.getVoltageCompensationNominalVoltage(), nominalVoltage, RevConfigRegistry.EPSILON),
+            sparkMax ->
+                Math2.epsilonEquals(
+                    sparkMax.getVoltageCompensationNominalVoltage(),
+                    nominalVoltage,
+                    RevConfigRegistry.EPSILON
+                ),
             "Enable Voltage Compensation"
         );
         return this;
@@ -335,7 +341,12 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
      * @param invert Set the follower to output opposite of the leader.
      */
     public SparkMaxConfig follow(CANSparkMax.ExternalFollower leader, int deviceId, boolean invert) {
-        addStep(sparkMax -> sparkMax.follow(leader, deviceId, invert), sparkMax -> sparkMax.isFollower(), false, "Follow");
+        addStep(
+            sparkMax -> sparkMax.follow(leader, deviceId, invert),
+            sparkMax -> sparkMax.isFollower(),
+            false,
+            "Follow"
+        );
         return this;
     }
 
@@ -416,9 +427,8 @@ public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
     public SparkMaxConfig setPeriodicFramePeriod(Frame frame, int periodMs) {
         addStep(
             sparkMax -> {
-                RevConfigRegistry.addFrameRefresher(
-                    sparkMax.hashCode() + "." + frame.name(),
-                    () -> sparkMax.setPeriodicFramePeriod(frame.frame, periodMs)
+                RevConfigRegistry.addFrameRefresher(sparkMax.hashCode() + "." + frame.name(), () ->
+                    sparkMax.setPeriodicFramePeriod(frame.frame, periodMs)
                 );
                 return sparkMax.setPeriodicFramePeriod(frame.frame, periodMs);
             },

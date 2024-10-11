@@ -260,7 +260,8 @@ public class SparkFlexConfig extends RevConfigBase<CANSparkFlex> {
     public SparkFlexConfig disableVoltageCompensation() {
         addStep(
             sparkFlex -> sparkFlex.disableVoltageCompensation(),
-            sparkFlex -> Math2.epsilonEquals(sparkFlex.getVoltageCompensationNominalVoltage(), 0.0, RevConfigRegistry.EPSILON),
+            sparkFlex ->
+                Math2.epsilonEquals(sparkFlex.getVoltageCompensationNominalVoltage(), 0.0, RevConfigRegistry.EPSILON),
             "Disable Voltage Compensation"
         );
         return this;
@@ -287,7 +288,12 @@ public class SparkFlexConfig extends RevConfigBase<CANSparkFlex> {
     public SparkFlexConfig enableVoltageCompensation(double nominalVoltage) {
         addStep(
             sparkFlex -> sparkFlex.enableVoltageCompensation(nominalVoltage),
-            sparkFlex -> Math2.epsilonEquals(sparkFlex.getVoltageCompensationNominalVoltage(), nominalVoltage, RevConfigRegistry.EPSILON),
+            sparkFlex ->
+                Math2.epsilonEquals(
+                    sparkFlex.getVoltageCompensationNominalVoltage(),
+                    nominalVoltage,
+                    RevConfigRegistry.EPSILON
+                ),
             "Enable Voltage Compensation"
         );
         return this;
@@ -335,7 +341,12 @@ public class SparkFlexConfig extends RevConfigBase<CANSparkFlex> {
      * @param invert Set the follower to output opposite of the leader.
      */
     public SparkFlexConfig follow(CANSparkFlex.ExternalFollower leader, int deviceId, boolean invert) {
-        addStep(sparkFlex -> sparkFlex.follow(leader, deviceId, invert), sparkFlex -> sparkFlex.isFollower(), false, "Follow");
+        addStep(
+            sparkFlex -> sparkFlex.follow(leader, deviceId, invert),
+            sparkFlex -> sparkFlex.isFollower(),
+            false,
+            "Follow"
+        );
         return this;
     }
 
@@ -371,7 +382,11 @@ public class SparkFlexConfig extends RevConfigBase<CANSparkFlex> {
      * @param mode Idle mode (coast or brake).
      */
     public SparkFlexConfig setIdleMode(CANSparkFlex.IdleMode mode) {
-        addStep(sparkFlex -> sparkFlex.setIdleMode(mode), sparkFlex -> sparkFlex.getIdleMode().equals(mode), "Idle Mode");
+        addStep(
+            sparkFlex -> sparkFlex.setIdleMode(mode),
+            sparkFlex -> sparkFlex.getIdleMode().equals(mode),
+            "Idle Mode"
+        );
         return this;
     }
 
@@ -416,9 +431,8 @@ public class SparkFlexConfig extends RevConfigBase<CANSparkFlex> {
     public SparkFlexConfig setPeriodicFramePeriod(Frame frame, int periodMs) {
         addStep(
             sparkFlex -> {
-                RevConfigRegistry.addFrameRefresher(
-                    sparkFlex.hashCode() + "." + frame.name(),
-                    () -> sparkFlex.setPeriodicFramePeriod(frame.frame, periodMs)
+                RevConfigRegistry.addFrameRefresher(sparkFlex.hashCode() + "." + frame.name(), () ->
+                    sparkFlex.setPeriodicFramePeriod(frame.frame, periodMs)
                 );
                 return sparkFlex.setPeriodicFramePeriod(frame.frame, periodMs);
             },

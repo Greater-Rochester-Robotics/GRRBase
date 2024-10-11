@@ -52,19 +52,20 @@ public class Swerve extends GRRSubsystem {
         .setMoveFF(0.0, 2.4)
         .setTurnPID(0.5, 0.0, 0.0, 0.0)
         .setBrakeMode(false, true)
-        .setLimits(5.0, 15.0, 10.0)
-        .setDriverProfile(4.5, 1.0, 1.5, 2.0)
+        .setLimits(5.0, 16.0, 12.0, 31.416)
+        .setDriverProfile(4.5, 1.0, 5.498, 2.0)
         .setPowerProperties(Constants.VOLTAGE, 80.0, 60.0)
         .setMechanicalProperties(75.0 / 14.0, 18.75, 0.0, Units.inchesToMeters(4.0))
         .setOdometryStd(0.1, 0.1, 0.1)
         .setIMU(SwerveIMUs.pigeon2(RobotMap.PIGEON))
-        .setPhoenixFeatures(RobotMap.CANBUS, false, true, true)
+        .setPhoenixFeatures(RobotMap.CANBUS, true, true, true)
         .setModules(FRONT_LEFT, FRONT_RIGHT, BACK_LEFT, BACK_RIGHT);
 
     private final SwerveAPI api;
 
     public Swerve() {
         api = new SwerveAPI(CONFIG);
+        api.enableTunables("Swerve");
     }
 
     @Override
@@ -79,8 +80,9 @@ public class Swerve extends GRRSubsystem {
      * @param angular The CCW+ angular speed to apply, from {@code [-1.0, 1.0]}.
      */
     public Command drive(Supplier<Double> x, Supplier<Double> y, Supplier<Double> angular) {
-        return commandBuilder("Swerve.drive()")
-            .onExecute(() -> api.applyDriverInput(x.get(), y.get(), angular.get(), ForwardPerspective.OPERATOR, true, true));
+        return commandBuilder("Swerve.drive()").onExecute(() ->
+            api.applyDriverInput(x.get(), y.get(), angular.get(), ForwardPerspective.OPERATOR, true, true)
+        );
     }
 
     /**
@@ -88,6 +90,8 @@ public class Swerve extends GRRSubsystem {
      * fixing an out of sync or drifting IMU.
      */
     public Command tareRotation() {
-        return commandBuilder("Swerve.tareRotation()").onInitialize(() -> api.tareRotation(ForwardPerspective.OPERATOR)).isFinished(true);
+        return commandBuilder("Swerve.tareRotation()")
+            .onInitialize(() -> api.tareRotation(ForwardPerspective.OPERATOR))
+            .isFinished(true);
     }
 }

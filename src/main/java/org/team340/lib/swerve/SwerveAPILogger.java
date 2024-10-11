@@ -47,7 +47,6 @@ public class SwerveAPILogger extends ClassSpecificLogger<SwerveAPI> {
         modules.log("lastTarget", state.modules.lastTarget, SwerveModuleState.struct);
 
         var odometry = logger.getSubLogger("odometry");
-        odometry.log("async", state.odometry.async);
         odometry.log("timesync", state.odometry.timesync);
         odometry.log("successes", state.odometry.successes);
         odometry.log("failures", state.odometry.failures);

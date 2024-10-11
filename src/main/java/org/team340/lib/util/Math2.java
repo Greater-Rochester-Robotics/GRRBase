@@ -15,7 +15,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 public final class Math2 {
 
     private Math2() {
-        throw new UnsupportedOperationException("This is a utility class!");
+        throw new AssertionError("This is a utility class!");
     }
 
     /** Shared maximum accuracy floating point. */
@@ -29,11 +29,11 @@ public final class Math2 {
     /** {@code PI/2} (90deg) */
     public static final double HALF_PI = Math.PI / 2.0;
     /** {@code 2PI/3} (120deg) */
-    public static final double TWO_THIRDS_PI = 2.0 * Math.PI / 3.0;
+    public static final double TWO_THIRDS_PI = (2.0 * Math.PI) / 3.0;
     /** {@code 3PI/4} (135deg) */
-    public static final double THREE_QUARTERS_PI = 3.0 * Math.PI / 4.0;
+    public static final double THREE_QUARTERS_PI = (3.0 * Math.PI) / 4.0;
     /** {@code 5PI/6} (150deg) */
-    public static final double FIVE_SIXTHS_PI = 5.0 * Math.PI / 6.0;
+    public static final double FIVE_SIXTHS_PI = (5.0 * Math.PI) / 6.0;
     /** {@code PI*2} (360deg) */
     public static final double TWO_PI = Math.PI * 2.0;
 
@@ -93,7 +93,7 @@ public final class Math2 {
      * @return {@code true} if the values are equal.
      */
     public static boolean translationEpsilonEquals(Translation2d a, Translation2d b, double epsilon) {
-        return epsilonEquals(a.getX(), b.getX(), epsilon) && epsilonEquals(a.getY(), b.getY(), epsilon);
+        return (epsilonEquals(a.getX(), b.getX(), epsilon) && epsilonEquals(a.getY(), b.getY(), epsilon));
     }
 
     /**
@@ -164,7 +164,11 @@ public final class Math2 {
      * @return {@code true} if the values are equal.
      */
     public static boolean twistEpsilonEquals(Twist2d a, Twist2d b, double epsilon) {
-        return (epsilonEquals(a.dx, b.dx, epsilon) && epsilonEquals(a.dy, b.dy, epsilon) && epsilonEquals(a.dtheta, b.dtheta, epsilon));
+        return (
+            epsilonEquals(a.dx, b.dx, epsilon) &&
+            epsilonEquals(a.dy, b.dy, epsilon) &&
+            epsilonEquals(a.dtheta, b.dtheta, epsilon)
+        );
     }
 
     /**

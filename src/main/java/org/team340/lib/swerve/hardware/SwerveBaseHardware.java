@@ -4,6 +4,7 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import edu.wpi.first.epilogue.logging.DataLogger;
 import edu.wpi.first.epilogue.logging.errors.ErrorHandler;
 import java.util.List;
+import org.team340.lib.swerve.SwerveAPI;
 
 interface SwerveBaseHardware extends AutoCloseable {
     /**

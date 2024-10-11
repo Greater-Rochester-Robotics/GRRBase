@@ -12,7 +12,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 public final class SwerveState {
 
     /**
-     * Contains information about the swerve module states and positions.
+     * Contains information about swerve module states and positions.
      */
     public static final class Modules {
 
@@ -25,16 +25,17 @@ public final class SwerveState {
         /** The last target states of the modules. */
         public final SwerveModuleState[] lastTarget;
 
-        public Modules(int moduleCount, SwerveModuleState[] nextTarget, SwerveModuleState[] lastTarget) {
-            positions = new SwerveModulePosition[moduleCount];
-            states = new SwerveModuleState[moduleCount];
-            for (int i = 0; i < moduleCount; i++) {
+        public Modules(SwerveModule[] modules) {
+            positions = new SwerveModulePosition[modules.length];
+            states = new SwerveModuleState[modules.length];
+            nextTarget = new SwerveModuleState[modules.length];
+            lastTarget = new SwerveModuleState[modules.length];
+            for (int i = 0; i < modules.length; i++) {
                 positions[i] = new SwerveModulePosition();
                 states[i] = new SwerveModuleState();
+                nextTarget[i] = modules[i].getNextTarget();
+                lastTarget[i] = modules[i].getLastTarget();
             }
-
-            this.nextTarget = nextTarget;
-            this.lastTarget = lastTarget;
         }
     }
 
@@ -43,8 +44,6 @@ public final class SwerveState {
      */
     public static final class Odometry {
 
-        /** If the odometry thread is running asynchronously. */
-        public boolean async;
         /** If Phoenix timesync is being utilized. */
         public boolean timesync;
         /** The number of successful odometry measurements since the last loop. */
@@ -70,8 +69,8 @@ public final class SwerveState {
     /** The directionless measured velocity of the robot. */
     public double velocity;
 
-    SwerveState(int moduleCount, SwerveModuleState[] nextTarget, SwerveModuleState[] lastTarget) {
-        modules = new Modules(moduleCount, nextTarget, lastTarget);
+    SwerveState(SwerveModule[] modules) {
+        this.modules = new Modules(modules);
         odometry = new Odometry();
         pitch = Rotation2d.kZero;
         roll = Rotation2d.kZero;

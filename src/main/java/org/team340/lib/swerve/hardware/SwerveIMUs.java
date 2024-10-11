@@ -13,16 +13,22 @@ import edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.SPI;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import org.team340.lib.logging.ADIS16470Logger;
 import org.team340.lib.logging.Pigeon2Logger;
+import org.team340.lib.swerve.SwerveAPI;
 import org.team340.lib.swerve.config.SwerveConfig;
+import org.team340.lib.swerve.hardware.SwerveIMUs.SwerveIMU.IMUSimHook;
+import org.team340.lib.util.Mutable;
 
+/**
+ * Contains implementations for IMUs to be used with the {@link SwerveAPI}.
+ */
 public final class SwerveIMUs {
 
     private SwerveIMUs() {
-        throw new UnsupportedOperationException("This is a utility class!");
+        throw new AssertionError("This is a utility class!");
     }
 
     /**
@@ -35,6 +41,25 @@ public final class SwerveIMUs {
          */
         @FunctionalInterface
         public static interface Ctor extends Function<SwerveConfig, SwerveIMU> {}
+
+        /**
+         * Provides consumer to be saved and invoked periodically with the
+         * robot's current chassis speeds to update the simulated IMU.
+         */
+        @FunctionalInterface
+        public static interface IMUSimHook extends Consumer<Consumer<ChassisSpeeds>> {}
+
+        /**
+         * Constructs a swerve IMU. Wraps to support simulation if applicable.
+         * @param ctor The IMU's constructor.
+         * @param config The general swerve API configuration.
+         * @param simHook Hook to update the IMU if simulation is active.
+         */
+        public static SwerveIMU construct(Ctor ctor, SwerveConfig config, IMUSimHook simHook) {
+            SwerveIMU imu = ctor.apply(config);
+            if (RobotBase.isSimulation()) imu = simulate(imu, config, simHook);
+            return imu;
+        }
 
         /**
          * Gets the IMU's absolute yaw.
@@ -50,77 +75,6 @@ public final class SwerveIMUs {
          * Gets the IMU's absolute roll.
          */
         public abstract Rotation2d getRoll();
-    }
-
-    /**
-     * Constructs a swerve IMU. Wraps to support simulation if applicable.
-     * @param ctor The IMU's constructor.
-     * @param config The general swerve API configuration.
-     * @param speedsSupplier A supplier for the robot's current chassis speeds. Used only for simulation.
-     */
-    public static SwerveIMU construct(SwerveIMU.Ctor ctor, SwerveConfig config, Supplier<ChassisSpeeds> speedsSupplier) {
-        SwerveIMU imu = ctor.apply(config);
-        if (RobotBase.isSimulation()) imu = simulate(imu, config, speedsSupplier);
-        return imu;
-    }
-
-    /**
-     * Rudimentary IMU simulation wrapper. Calculates yaw based on the robot's angular velocity.
-     * @param imu The IMU to wrap.
-     * @param config The general swerve API configuration.
-     * @param speedsSupplier A supplier that returns the robot's current chassis speeds.
-     */
-    private static SwerveIMU simulate(SwerveIMU imu, SwerveConfig config, Supplier<ChassisSpeeds> speedsSupplier) {
-        return new SwerveIMU() {
-            private Rotation2d yaw = Rotation2d.kZero;
-
-            @Override
-            public Rotation2d getYaw() {
-                yaw = yaw.plus(Rotation2d.fromRadians(speedsSupplier.get().omegaRadiansPerSecond * config.period));
-                return yaw;
-            }
-
-            @Override
-            public Rotation2d getPitch() {
-                return Rotation2d.kZero;
-            }
-
-            @Override
-            public Rotation2d getRoll() {
-                return Rotation2d.kZero;
-            }
-
-            @Override
-            public Object getAPI() {
-                return imu;
-            }
-
-            @Override
-            public void log(DataLogger logger, ErrorHandler errorHandler) {
-                imu.log(logger, errorHandler);
-                var simLogger = logger.getSubLogger(".sim");
-                simLogger.log("yaw", getYaw(), Rotation2d.struct);
-                simLogger.log("pitch", getPitch(), Rotation2d.struct);
-                simLogger.log("roll", getRoll(), Rotation2d.struct);
-            }
-
-            @Override
-            public List<BaseStatusSignal> getSignals() {
-                return imu.getSignals();
-            }
-
-            @Override
-            public boolean readError() {
-                return imu.readError();
-            }
-
-            @Override
-            public void close() {
-                try {
-                    imu.close();
-                } catch (Exception e) {}
-            }
-        };
     }
 
     /**
@@ -204,12 +158,16 @@ public final class SwerveIMUs {
 
                 @Override
                 public Rotation2d getPitch() {
-                    return Rotation2d.fromDegrees(BaseStatusSignal.getLatencyCompensatedValue(pitch.refresh(), pitchVelocity.refresh()));
+                    return Rotation2d.fromDegrees(
+                        BaseStatusSignal.getLatencyCompensatedValue(pitch.refresh(), pitchVelocity.refresh())
+                    );
                 }
 
                 @Override
                 public Rotation2d getRoll() {
-                    return Rotation2d.fromDegrees(BaseStatusSignal.getLatencyCompensatedValue(roll.refresh(), rollVelocity.refresh()));
+                    return Rotation2d.fromDegrees(
+                        BaseStatusSignal.getLatencyCompensatedValue(roll.refresh(), rollVelocity.refresh())
+                    );
                 }
 
                 @Override
@@ -232,6 +190,67 @@ public final class SwerveIMUs {
                     pigeon2.close();
                 }
             };
+        };
+    }
+
+    /**
+     * Rudimentary IMU simulation wrapper. Calculates yaw based on the robot's angular velocity.
+     * @param imu The IMU to wrap.
+     * @param config The general swerve API configuration.
+     * @param Hook to update the IMU if simulation is active.
+     */
+    private static SwerveIMU simulate(SwerveIMU imu, SwerveConfig config, IMUSimHook simHook) {
+        Mutable<Rotation2d> yaw = new Mutable<>(Rotation2d.kZero);
+        simHook.accept(speeds ->
+            yaw.accept(yaw.get().plus(Rotation2d.fromRadians(speeds.omegaRadiansPerSecond * config.period)))
+        );
+
+        return new SwerveIMU() {
+            @Override
+            public Rotation2d getYaw() {
+                return yaw.get();
+            }
+
+            @Override
+            public Rotation2d getPitch() {
+                return Rotation2d.kZero;
+            }
+
+            @Override
+            public Rotation2d getRoll() {
+                return Rotation2d.kZero;
+            }
+
+            @Override
+            public Object getAPI() {
+                return imu;
+            }
+
+            @Override
+            public void log(DataLogger logger, ErrorHandler errorHandler) {
+                imu.log(logger, errorHandler);
+                var simLogger = logger.getSubLogger(".sim");
+                simLogger.log("yaw", getYaw(), Rotation2d.struct);
+                simLogger.log("pitch", getPitch(), Rotation2d.struct);
+                simLogger.log("roll", getRoll(), Rotation2d.struct);
+            }
+
+            @Override
+            public List<BaseStatusSignal> getSignals() {
+                return imu.getSignals();
+            }
+
+            @Override
+            public boolean readError() {
+                return imu.readError();
+            }
+
+            @Override
+            public void close() {
+                try {
+                    imu.close();
+                } catch (Exception e) {}
+            }
         };
     }
 }
