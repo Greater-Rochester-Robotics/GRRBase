@@ -20,6 +20,7 @@ import org.team340.lib.logging.Pigeon2Logger;
 import org.team340.lib.swerve.SwerveAPI;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.hardware.SwerveIMUs.SwerveIMU.IMUSimHook;
+import org.team340.lib.util.Math2;
 import org.team340.lib.util.Mutable;
 
 /**
@@ -200,7 +201,7 @@ public final class SwerveIMUs {
      * @param Hook to update the IMU if simulation is active.
      */
     private static SwerveIMU simulate(SwerveIMU imu, SwerveConfig config, IMUSimHook simHook) {
-        Mutable<Rotation2d> yaw = new Mutable<>(Rotation2d.kZero);
+        Mutable<Rotation2d> yaw = new Mutable<>(Math2.kZeroRotation2d);
         simHook.accept(speeds ->
             yaw.accept(yaw.get().plus(Rotation2d.fromRadians(speeds.omegaRadiansPerSecond * config.period)))
         );
@@ -213,12 +214,12 @@ public final class SwerveIMUs {
 
             @Override
             public Rotation2d getPitch() {
-                return Rotation2d.kZero;
+                return Math2.kZeroRotation2d;
             }
 
             @Override
             public Rotation2d getRoll() {
-                return Rotation2d.kZero;
+                return Math2.kZeroRotation2d;
             }
 
             @Override

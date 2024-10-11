@@ -2,7 +2,8 @@ package org.team340.lib.util;
 
 import static edu.wpi.first.units.Units.Milliseconds;
 
-import edu.wpi.first.units.measure.Time;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.Time;
 import edu.wpi.first.wpilibj.RobotBase;
 
 /**
@@ -20,7 +21,7 @@ public final class Sleep {
      * Will always run, even if in simulation.
      * @param time The time to sleep for.
      */
-    public static void of(Time time) {
+    public static void of(Measure<Time> time) {
         of(time, false);
     }
 
@@ -29,7 +30,7 @@ public final class Sleep {
      * @param time The time to sleep for.
      * @param skipSim If the thread should skip sleeping if in simulation.
      */
-    public static void of(Time time, boolean skipSim) {
+    public static void of(Measure<Time> time, boolean skipSim) {
         ms(time.in(Milliseconds), skipSim);
     }
 

@@ -1,6 +1,7 @@
 package org.team340.lib.util;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
@@ -36,6 +37,10 @@ public final class Math2 {
     public static final double FIVE_SIXTHS_PI = (5.0 * Math.PI) / 6.0;
     /** {@code PI*2} (360deg) */
     public static final double TWO_PI = Math.PI * 2.0;
+
+    public static final Pose2d kZeroPose2d = new Pose2d();
+    public static final Rotation2d kZeroRotation2d = new Rotation2d();
+    public static final Rotation2d kPiRotation2d = new Rotation2d(Math.PI);
 
     /**
      * Returns a random double from {@code 0.0} to {@code max}.

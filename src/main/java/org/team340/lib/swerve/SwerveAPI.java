@@ -47,7 +47,7 @@ public class SwerveAPI implements AutoCloseable {
     private final Lock odometryMutex = new ReentrantLock();
     private final SwerveOdometryThread odometryThread;
 
-    private Rotation2d lastRobotAngle = Rotation2d.kZero;
+    private Rotation2d lastRobotAngle = Math2.kZeroRotation2d;
     private double lastRatelimit = 0.0;
 
     private Consumer<ChassisSpeeds> imuSimHook = s -> {};
@@ -74,9 +74,9 @@ public class SwerveAPI implements AutoCloseable {
         kinematics = new SwerveDriveKinematics(moduleLocations);
         poseEstimator = new SwerveDrivePoseEstimator(
             kinematics,
-            Rotation2d.kZero,
+            Math2.kZeroRotation2d,
             state.modules.positions,
-            Pose2d.kZero,
+            Math2.kZeroPose2d,
             config.odometryStdDevs,
             VecBuilder.fill(0.0, 0.0, 0.0)
         );
@@ -135,14 +135,7 @@ public class SwerveAPI implements AutoCloseable {
     public void tareRotation(ForwardPerspective forwardPerspective) {
         if (forwardPerspective.equals(ForwardPerspective.ROBOT)) return;
         var rotation = forwardPerspective.getTareRotation();
-
-        odometryMutex.lock();
-        try {
-            poseEstimator.resetRotation(rotation);
-            state.pose = new Pose2d(poseEstimator.getEstimatedPosition().getTranslation(), rotation);
-        } finally {
-            odometryMutex.unlock();
-        }
+        resetPose(new Pose2d(state.pose.getTranslation(), rotation));
     }
 
     /**
@@ -426,7 +419,7 @@ public class SwerveAPI implements AutoCloseable {
 
             @Override
             Rotation2d getTareRotation() {
-                return Rotation2d.kZero;
+                return Math2.kZeroRotation2d;
             }
         },
 
@@ -437,19 +430,19 @@ public class SwerveAPI implements AutoCloseable {
         RED_ALLIANCE {
             @Override
             void toRobotSpeeds(ChassisSpeeds speeds, Rotation2d robotAngle) {
-                var newSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, robotAngle.rotateBy(Rotation2d.kPi));
+                var newSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, robotAngle.rotateBy(Math2.kPiRotation2d));
                 Math2.copyInto(newSpeeds, speeds);
             }
 
             @Override
             void toPerspectiveSpeeds(ChassisSpeeds speeds, Rotation2d robotAngle) {
-                var newSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(speeds, robotAngle.rotateBy(Rotation2d.kPi));
+                var newSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(speeds, robotAngle.rotateBy(Math2.kPiRotation2d));
                 Math2.copyInto(newSpeeds, speeds);
             }
 
             @Override
             Rotation2d getTareRotation() {
-                return Rotation2d.kPi;
+                return Math2.kPiRotation2d;
             }
         },
 
@@ -501,7 +494,7 @@ public class SwerveAPI implements AutoCloseable {
      */
     private final class SwerveOdometryThread implements AutoCloseable {
 
-        public Rotation2d lastYaw = Rotation2d.kZero;
+        public Rotation2d lastYaw = Math2.kZeroRotation2d;
         public boolean timesync = false;
         public int successes = 0;
         public int failures = 0;

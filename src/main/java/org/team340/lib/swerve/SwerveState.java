@@ -5,6 +5,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import org.team340.lib.util.Math2;
 
 /**
  * Represents the state of the robot's drivetrain.
@@ -74,9 +75,9 @@ public final class SwerveState {
     SwerveState(SwerveModule[] modules) {
         this.modules = new Modules(modules);
         odometry = new Odometry();
-        pitch = Rotation2d.kZero;
-        roll = Rotation2d.kZero;
-        pose = Pose2d.kZero;
+        pitch = Math2.kZeroRotation2d;
+        roll = Math2.kZeroRotation2d;
+        pose = Math2.kZeroPose2d;
         speeds = new ChassisSpeeds();
         targetSpeeds = new ChassisSpeeds();
     }

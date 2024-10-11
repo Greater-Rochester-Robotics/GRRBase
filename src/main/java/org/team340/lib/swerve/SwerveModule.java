@@ -35,7 +35,7 @@ class SwerveModule implements AutoCloseable {
     private final SwerveModuleState lastTarget = new SwerveModuleState();
 
     private Lock cacheMutex = new ReentrantLock();
-    private Rotation2d cachedAngle = Rotation2d.kZero;
+    private Rotation2d cachedAngle = Math2.kZeroRotation2d;
     private double cachedTurnPosition = 0.0;
 
     /**
@@ -151,7 +151,7 @@ class SwerveModule implements AutoCloseable {
         boolean flipped = false;
         if (Math.abs(angleDelta.getRadians()) > Math2.HALF_PI) {
             state.speedMetersPerSecond *= -1.0;
-            state.angle = state.angle.rotateBy(Rotation2d.kPi);
+            state.angle = state.angle.rotateBy(Math2.kPiRotation2d);
             flipped = true;
         }
 

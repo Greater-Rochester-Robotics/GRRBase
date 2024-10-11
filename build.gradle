@@ -1,13 +1,10 @@
 plugins {
     id "java"
-    id "edu.wpi.first.GradleRIO" version "2025.0.0-alpha-2"
+    id "edu.wpi.first.GradleRIO" version "2024.3.2"
     id "com.diffplug.spotless" version "6.25.0"
 }
 
-wpi.maven.useLocal = false
-wpi.maven.useDevelopment = true
-wpi.versions.wpilibVersion = '2025.+'
-wpi.versions.wpimathVersion = '2025.+'
+repositories { mavenLocal() }
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -56,7 +53,10 @@ def includeDesktopSupport = true
 // Defining my dependencies. In this case, WPILib (+ friends), and vendor libraries.
 // Also defines JUnit 5.
 dependencies {
-    annotationProcessor wpi.java.deps.wpilibAnnotations()
+    implementation 'edu.wpi.first.epilogue:epilogue-runtime:0.0.0'
+    annotationProcessor 'edu.wpi.first.epilogue:epilogue-processor:0.0.0'
+    annotationProcessor 'edu.wpi.first.epilogue:epilogue-runtime:0.0.0'
+
     implementation wpi.java.deps.wpilib()
     implementation wpi.java.vendor.java()
 

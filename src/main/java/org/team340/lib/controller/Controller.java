@@ -110,11 +110,6 @@ public class Controller extends CommandXboxController {
     }
 
     @Override
-    public Trigger axisMagnitudeGreaterThan(int axis, double threshold) {
-        return axisMagnitudeGreaterThan(axis, threshold, loop);
-    }
-
-    @Override
     public Trigger a() {
         return a(loop);
     }
