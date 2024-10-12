@@ -1,0 +1,14 @@
+plugins {
+    id 'epilogue.java-conventions'
+}
+
+dependencies {
+    implementation(project(':epilogue-runtime'))
+
+    api wpi.java.deps.wpilib()
+    api 'edu.wpi.first.wpilibNewCommands:wpilibNewCommands-java:+'
+
+    implementation 'com.google.auto.service:auto-service:1.1.1'
+    annotationProcessor 'com.google.auto.service:auto-service:1.1.1'
+    testImplementation 'com.google.testing.compile:compile-testing:+'
+}

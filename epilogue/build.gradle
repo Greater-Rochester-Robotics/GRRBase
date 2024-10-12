@@ -1,0 +1,12 @@
+buildscript {
+  repositories {
+    maven {
+      url = 'https://frcmaven.wpi.edu/artifactory/ex-mvn'
+    }
+  }
+}
+
+plugins {
+  id 'edu.wpi.first.GradleRIO' version '2024.3.2'
+  id 'edu.wpi.first.wpilib.repositories.WPILibRepositoriesPlugin' version '2020.2'
+}

@@ -1,0 +1,7 @@
+plugins {
+    id 'epilogue.java-conventions'
+}
+
+dependencies {
+    api wpi.java.deps.wpilib() // ntcore, wpiutil (datalog, struct), wpiunits
+}

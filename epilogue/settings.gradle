@@ -1,0 +1,3 @@
+rootProject.name = 'epilogue'
+include 'epilogue-processor'
+include 'epilogue-runtime'
