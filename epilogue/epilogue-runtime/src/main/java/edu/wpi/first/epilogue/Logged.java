@@ -24,69 +24,69 @@ import java.lang.annotation.Target;
  * objects with struct serializers.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD, ElementType.METHOD, ElementType.TYPE})
+@Target({ ElementType.FIELD, ElementType.METHOD, ElementType.TYPE })
 public @interface Logged {
-  /**
-   * The name for the annotated element to be logged as. Does nothing on class-level annotations.
-   * Fields and methods will default to be logged using their in-code names; use this attribute to
-   * set it to something custom.
-   *
-   * <p>If the annotation is placed on a class, the specified name will not change logged data
-   * (since that uses the names of the specific usages of the class in fields and methods); however,
-   * it will be used to set the names of the generated logger that Logged will use to log instances
-   * of the class. This can be used to avoid name conflicts if you have multiple classes with the
-   * same name, but in different packages, and want to be able to log both.
-   *
-   * @return the name to use to log the field or method under; or the name of the generated
-   *     class-specific logger
-   */
-  String name() default "";
-
-  /** Opt-in or opt-out strategies for logging. */
-  enum Strategy {
     /**
-     * Log everything except for those elements explicitly opted out of with the skip = true
-     * attribute. This is the default behavior.
+     * The name for the annotated element to be logged as. Does nothing on class-level annotations.
+     * Fields and methods will default to be logged using their in-code names; use this attribute to
+     * set it to something custom.
+     *
+     * <p>If the annotation is placed on a class, the specified name will not change logged data
+     * (since that uses the names of the specific usages of the class in fields and methods); however,
+     * it will be used to set the names of the generated logger that Logged will use to log instances
+     * of the class. This can be used to avoid name conflicts if you have multiple classes with the
+     * same name, but in different packages, and want to be able to log both.
+     *
+     * @return the name to use to log the field or method under; or the name of the generated
+     *     class-specific logger
      */
-    OPT_OUT,
+    String name() default "";
 
-    /** Log only fields and methods tagged with an {@link Logged} annotation. */
-    OPT_IN
-  }
+    /** Opt-in or opt-out strategies for logging. */
+    enum Strategy {
+        /**
+         * Log everything except for those elements explicitly opted out of with the skip = true
+         * attribute. This is the default behavior.
+         */
+        OPT_OUT,
 
-  /**
-   * The strategy to use for logging. Only has an effect on annotations on class or interface
-   * declarations.
-   *
-   * @return the strategy to use to determine which fields and methods in the class to log
-   */
-  Strategy strategy() default Strategy.OPT_OUT;
-
-  /**
-   * Data importance. Can be used at the class level to set the default importance for all data
-   * points in the class, and can be used on individual fields and methods to set a specific
-   * importance level overriding the class-level default.
-   */
-  enum Importance {
-    /** Debug information. Useful for low-level information like raw sensor values. */
-    DEBUG,
+        /** Log only fields and methods tagged with an {@link Logged} annotation. */
+        OPT_IN
+    }
 
     /**
-     * Informational data. Useful for higher-level information like pose estimates or subsystem
-     * state.
+     * The strategy to use for logging. Only has an effect on annotations on class or interface
+     * declarations.
+     *
+     * @return the strategy to use to determine which fields and methods in the class to log
      */
-    INFO,
+    Strategy strategy() default Strategy.OPT_OUT;
 
-    /** Critical data that should always be present in logs. */
-    CRITICAL
-  }
+    /**
+     * Data importance. Can be used at the class level to set the default importance for all data
+     * points in the class, and can be used on individual fields and methods to set a specific
+     * importance level overriding the class-level default.
+     */
+    enum Importance {
+        /** Debug information. Useful for low-level information like raw sensor values. */
+        DEBUG,
 
-  /**
-   * The importance of the annotated data. If placed on a class or interface, this will be the
-   * default importance of all data within that class; this can be overridden on a per-element basis
-   * by annotating fields and methods with their own {@code @Logged(importance = ...)} annotation.
-   *
-   * @return the importance of the annotated element
-   */
-  Importance importance() default Importance.DEBUG;
+        /**
+         * Informational data. Useful for higher-level information like pose estimates or subsystem
+         * state.
+         */
+        INFO,
+
+        /** Critical data that should always be present in logs. */
+        CRITICAL
+    }
+
+    /**
+     * The importance of the annotated data. If placed on a class or interface, this will be the
+     * default importance of all data within that class; this can be overridden on a per-element basis
+     * by annotating fields and methods with their own {@code @Logged(importance = ...)} annotation.
+     *
+     * @return the importance of the annotated element
+     */
+    Importance importance() default Importance.DEBUG;
 }

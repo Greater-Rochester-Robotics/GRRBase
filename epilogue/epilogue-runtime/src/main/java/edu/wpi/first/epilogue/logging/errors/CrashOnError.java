@@ -12,11 +12,12 @@ import edu.wpi.first.epilogue.logging.ClassSpecificLogger;
  * code.
  */
 public class CrashOnError implements ErrorHandler {
-  @Override
-  public void handle(Throwable exception, ClassSpecificLogger<?> logger) {
-    throw new RuntimeException(
-        "[EPILOGUE] An error occurred while logging an instance of "
-            + logger.getLoggedType().getName(),
-        exception);
-  }
+
+    @Override
+    public void handle(Throwable exception, ClassSpecificLogger<?> logger) {
+        throw new RuntimeException(
+            "[EPILOGUE] An error occurred while logging an instance of " + logger.getLoggedType().getName(),
+            exception
+        );
+    }
 }

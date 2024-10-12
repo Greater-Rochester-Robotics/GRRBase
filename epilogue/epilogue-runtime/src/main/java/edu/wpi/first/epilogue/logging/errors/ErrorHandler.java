@@ -15,47 +15,47 @@ import edu.wpi.first.epilogue.logging.ClassSpecificLogger;
  */
 @FunctionalInterface
 public interface ErrorHandler {
-  /**
-   * Handles an exception that arose while logging.
-   *
-   * @param exception the exception that occurred
-   * @param logger the logger that was being processed that caused the error to occur
-   */
-  void handle(Throwable exception, ClassSpecificLogger<?> logger);
+    /**
+     * Handles an exception that arose while logging.
+     *
+     * @param exception the exception that occurred
+     * @param logger the logger that was being processed that caused the error to occur
+     */
+    void handle(Throwable exception, ClassSpecificLogger<?> logger);
 
-  /**
-   * Creates an error handler that will immediately re-throw an exception and cause robot code to
-   * exit. This is particularly useful when running in simulation or JUnit tests to identify errors
-   * quickly and safely.
-   *
-   * @return the error handler
-   */
-  static ErrorHandler crashOnError() {
-    return new CrashOnError();
-  }
+    /**
+     * Creates an error handler that will immediately re-throw an exception and cause robot code to
+     * exit. This is particularly useful when running in simulation or JUnit tests to identify errors
+     * quickly and safely.
+     *
+     * @return the error handler
+     */
+    static ErrorHandler crashOnError() {
+        return new CrashOnError();
+    }
 
-  /**
-   * Creates an error handler that will print error messages to the console output, but otherwise
-   * allow logging to continue in the future. This can be helpful when errors occur only rarely and
-   * you don't want your robot program to crash or disable future logging.
-   *
-   * @return the error handler
-   */
-  static ErrorHandler printErrorMessages() {
-    return new ErrorPrinter();
-  }
+    /**
+     * Creates an error handler that will print error messages to the console output, but otherwise
+     * allow logging to continue in the future. This can be helpful when errors occur only rarely and
+     * you don't want your robot program to crash or disable future logging.
+     *
+     * @return the error handler
+     */
+    static ErrorHandler printErrorMessages() {
+        return new ErrorPrinter();
+    }
 
-  /**
-   * Creates an error handler that will automatically disable a logger if it encounters too many
-   * errors. Only the error-prone logger(s) will be disabled; loggers that have not encountered any
-   * errors, or encountered fewer than the limit, will continue to be used. Disabled loggers can be
-   * reset by calling {@link LoggerDisabler#reset()} on the handler.
-   *
-   * @param maximumPermissibleErrors the maximum number of errors that a logger is permitted to
-   *     encounter before being disabled.
-   * @return the error handler
-   */
-  static LoggerDisabler disabling(int maximumPermissibleErrors) {
-    return LoggerDisabler.forLimit(maximumPermissibleErrors);
-  }
+    /**
+     * Creates an error handler that will automatically disable a logger if it encounters too many
+     * errors. Only the error-prone logger(s) will be disabled; loggers that have not encountered any
+     * errors, or encountered fewer than the limit, will continue to be used. Disabled loggers can be
+     * reset by calling {@link LoggerDisabler#reset()} on the handler.
+     *
+     * @param maximumPermissibleErrors the maximum number of errors that a logger is permitted to
+     *     encounter before being disabled.
+     * @return the error handler
+     */
+    static LoggerDisabler disabling(int maximumPermissibleErrors) {
+        return LoggerDisabler.forLimit(maximumPermissibleErrors);
+    }
 }

@@ -19,23 +19,24 @@ import javax.lang.model.element.Element;
 import javax.lang.model.type.TypeMirror;
 
 public class PrimitiveHandler extends ElementHandler {
-  private final TypeMirror m_javaLangString;
 
-  protected PrimitiveHandler(ProcessingEnvironment processingEnv) {
-    super(processingEnv);
+    private final TypeMirror m_javaLangString;
 
-    m_javaLangString = processingEnv.getElementUtils().getTypeElement("java.lang.String").asType();
-  }
+    protected PrimitiveHandler(ProcessingEnvironment processingEnv) {
+        super(processingEnv);
+        m_javaLangString = processingEnv.getElementUtils().getTypeElement("java.lang.String").asType();
+    }
 
-  @Override
-  public boolean isLoggable(Element element) {
-    return m_processingEnv.getTypeUtils().isAssignable(dataType(element), m_javaLangString)
-        || Set.of(BYTE, CHAR, SHORT, INT, LONG, FLOAT, DOUBLE, BOOLEAN)
-            .contains(dataType(element).getKind());
-  }
+    @Override
+    public boolean isLoggable(Element element) {
+        return (
+            m_processingEnv.getTypeUtils().isAssignable(dataType(element), m_javaLangString) ||
+            Set.of(BYTE, CHAR, SHORT, INT, LONG, FLOAT, DOUBLE, BOOLEAN).contains(dataType(element).getKind())
+        );
+    }
 
-  @Override
-  public String logInvocation(Element element) {
-    return "dataLogger.log(\"" + loggedName(element) + "\", " + elementAccess(element) + ")";
-  }
+    @Override
+    public String logInvocation(Element element) {
+        return "dataLogger.log(\"" + loggedName(element) + "\", " + elementAccess(element) + ")";
+    }
 }

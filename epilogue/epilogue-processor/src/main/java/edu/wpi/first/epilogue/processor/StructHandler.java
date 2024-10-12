@@ -10,41 +10,43 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 
 public class StructHandler extends ElementHandler {
-  private final TypeMirror m_serializable;
-  private final Types m_typeUtils;
 
-  protected StructHandler(ProcessingEnvironment processingEnv) {
-    super(processingEnv);
-    m_serializable =
-        processingEnv
+    private final TypeMirror m_serializable;
+    private final Types m_typeUtils;
+
+    protected StructHandler(ProcessingEnvironment processingEnv) {
+        super(processingEnv);
+        m_serializable = processingEnv
             .getElementUtils()
             .getTypeElement("edu.wpi.first.util.struct.StructSerializable")
             .asType();
-    m_typeUtils = processingEnv.getTypeUtils();
-  }
+        m_typeUtils = processingEnv.getTypeUtils();
+    }
 
-  @Override
-  public boolean isLoggable(Element element) {
-    return m_typeUtils.isAssignable(dataType(element), m_serializable);
-  }
+    @Override
+    public boolean isLoggable(Element element) {
+        return m_typeUtils.isAssignable(dataType(element), m_serializable);
+    }
 
-  public boolean isLoggableType(TypeMirror type) {
-    return m_typeUtils.isAssignable(type, m_serializable);
-  }
+    public boolean isLoggableType(TypeMirror type) {
+        return m_typeUtils.isAssignable(type, m_serializable);
+    }
 
-  public String structAccess(TypeMirror serializableType) {
-    var className = m_typeUtils.erasure(serializableType).toString();
-    return className + ".struct";
-  }
+    public String structAccess(TypeMirror serializableType) {
+        var className = m_typeUtils.erasure(serializableType).toString();
+        return className + ".struct";
+    }
 
-  @Override
-  public String logInvocation(Element element) {
-    return "dataLogger.log(\""
-        + loggedName(element)
-        + "\", "
-        + elementAccess(element)
-        + ", "
-        + structAccess(dataType(element))
-        + ")";
-  }
+    @Override
+    public String logInvocation(Element element) {
+        return (
+            "dataLogger.log(\"" +
+            loggedName(element) +
+            "\", " +
+            elementAccess(element) +
+            ", " +
+            structAccess(dataType(element)) +
+            ")"
+        );
+    }
 }

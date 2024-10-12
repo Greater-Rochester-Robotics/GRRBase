@@ -17,53 +17,55 @@ import java.util.Map;
  * overhead due to the cost of throwing exceptions.
  */
 public class LoggerDisabler implements ErrorHandler {
-  private final int m_threshold;
-  private final Map<ClassSpecificLogger<?>, Integer> m_errorCounts = new HashMap<>();
 
-  /**
-   * Creates a new logger-disabling error handler.
-   *
-   * @param threshold how many errors any one logger is allowed to encounter before it is disabled.
-   */
-  public LoggerDisabler(int threshold) {
-    this.m_threshold = threshold;
-  }
+    private final int m_threshold;
+    private final Map<ClassSpecificLogger<?>, Integer> m_errorCounts = new HashMap<>();
 
-  /**
-   * Creates a disabler that kicks in after a logger raises more than {@code threshold} exceptions.
-   *
-   * @param threshold the threshold value for the maximum number of exceptions loggers are permitted
-   *     to encounter before they are disabled
-   * @return the disabler
-   */
-  public static LoggerDisabler forLimit(int threshold) {
-    return new LoggerDisabler(threshold);
-  }
-
-  @Override
-  public void handle(Throwable exception, ClassSpecificLogger<?> logger) {
-    var errorCount = m_errorCounts.getOrDefault(logger, 0) + 1;
-    m_errorCounts.put(logger, errorCount);
-
-    if (errorCount > m_threshold) {
-      logger.disable();
-      System.err.println(
-          "[EPILOGUE] Too many errors detected in "
-              + logger.getClass().getName()
-              + " (maximum allowed: "
-              + m_threshold
-              + "). The most recent error follows:");
-      System.err.println(exception.getMessage());
-      exception.printStackTrace(System.err);
+    /**
+     * Creates a new logger-disabling error handler.
+     *
+     * @param threshold how many errors any one logger is allowed to encounter before it is disabled.
+     */
+    public LoggerDisabler(int threshold) {
+        this.m_threshold = threshold;
     }
-  }
 
-  /** Resets all error counts and reenables all loggers. */
-  public void reset() {
-    for (var logger : m_errorCounts.keySet()) {
-      // Safe. This is a no-op on loggers that are already enabled
-      logger.reenable();
+    /**
+     * Creates a disabler that kicks in after a logger raises more than {@code threshold} exceptions.
+     *
+     * @param threshold the threshold value for the maximum number of exceptions loggers are permitted
+     *     to encounter before they are disabled
+     * @return the disabler
+     */
+    public static LoggerDisabler forLimit(int threshold) {
+        return new LoggerDisabler(threshold);
     }
-    m_errorCounts.clear();
-  }
+
+    @Override
+    public void handle(Throwable exception, ClassSpecificLogger<?> logger) {
+        var errorCount = m_errorCounts.getOrDefault(logger, 0) + 1;
+        m_errorCounts.put(logger, errorCount);
+
+        if (errorCount > m_threshold) {
+            logger.disable();
+            System.err.println(
+                "[EPILOGUE] Too many errors detected in " +
+                logger.getClass().getName() +
+                " (maximum allowed: " +
+                m_threshold +
+                "). The most recent error follows:"
+            );
+            System.err.println(exception.getMessage());
+            exception.printStackTrace(System.err);
+        }
+    }
+
+    /** Resets all error counts and reenables all loggers. */
+    public void reset() {
+        for (var logger : m_errorCounts.keySet()) {
+            // Safe. This is a no-op on loggers that are already enabled
+            logger.reenable();
+        }
+        m_errorCounts.clear();
+    }
 }

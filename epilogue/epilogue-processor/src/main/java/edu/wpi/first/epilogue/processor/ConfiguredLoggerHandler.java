@@ -11,31 +11,35 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 
 public class ConfiguredLoggerHandler extends ElementHandler {
-  private final Map<TypeMirror, DeclaredType> m_customLoggers;
 
-  protected ConfiguredLoggerHandler(
-      ProcessingEnvironment processingEnv, Map<TypeMirror, DeclaredType> customLoggers) {
-    super(processingEnv);
+    private final Map<TypeMirror, DeclaredType> m_customLoggers;
 
-    this.m_customLoggers = customLoggers;
-  }
+    protected ConfiguredLoggerHandler(
+        ProcessingEnvironment processingEnv,
+        Map<TypeMirror, DeclaredType> customLoggers
+    ) {
+        super(processingEnv);
+        this.m_customLoggers = customLoggers;
+    }
 
-  @Override
-  public boolean isLoggable(Element element) {
-    return m_customLoggers.containsKey(dataType(element));
-  }
+    @Override
+    public boolean isLoggable(Element element) {
+        return m_customLoggers.containsKey(dataType(element));
+    }
 
-  @Override
-  public String logInvocation(Element element) {
-    var dataType = dataType(element);
-    var loggerType = m_customLoggers.get(dataType);
+    @Override
+    public String logInvocation(Element element) {
+        var dataType = dataType(element);
+        var loggerType = m_customLoggers.get(dataType);
 
-    return "Epilogue."
-        + StringUtils.lowerCamelCase(loggerType.asElement().getSimpleName())
-        + ".tryUpdate(dataLogger.getSubLogger(\""
-        + loggedName(element)
-        + "\"), "
-        + elementAccess(element)
-        + ", Epilogue.getConfig().errorHandler)";
-  }
+        return (
+            "Epilogue." +
+            StringUtils.lowerCamelCase(loggerType.asElement().getSimpleName()) +
+            ".tryUpdate(dataLogger.getSubLogger(\"" +
+            loggedName(element) +
+            "\"), " +
+            elementAccess(element) +
+            ", Epilogue.getConfig().errorHandler)"
+        );
+    }
 }

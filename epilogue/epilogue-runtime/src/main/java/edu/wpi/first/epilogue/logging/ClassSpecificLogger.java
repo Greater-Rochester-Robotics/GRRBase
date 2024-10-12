@@ -21,99 +21,97 @@ import java.util.Map;
  */
 @SuppressWarnings("unused") // Used by generated subclasses
 public abstract class ClassSpecificLogger<T> {
-  private final Class<T> m_clazz;
-  // TODO: This will hold onto Sendables that are otherwise no longer referenced by a robot program.
-  //       Determine if that's a concern
-  // Linked hashmap to maintain insert order
-  private final Map<Sendable, SendableBuilder> m_sendables = new LinkedHashMap<>();
 
-  @SuppressWarnings("PMD.RedundantFieldInitializer")
-  private boolean m_disabled = false;
+    private final Class<T> m_clazz;
+    // TODO: This will hold onto Sendables that are otherwise no longer referenced by a robot program.
+    //       Determine if that's a concern
+    // Linked hashmap to maintain insert order
+    private final Map<Sendable, SendableBuilder> m_sendables = new LinkedHashMap<>();
 
-  /**
-   * Instantiates the logger.
-   *
-   * @param clazz the Java class of objects that can be logged
-   */
-  protected ClassSpecificLogger(Class<T> clazz) {
-    this.m_clazz = clazz;
-  }
+    @SuppressWarnings("PMD.RedundantFieldInitializer")
+    private boolean m_disabled = false;
 
-  /**
-   * Updates an object's fields in a data log.
-   *
-   * @param dataLogger the logger to update
-   * @param object the object to update in the log
-   */
-  protected abstract void update(DataLogger dataLogger, T object);
-
-  /**
-   * Attempts to update the data log. Will do nothing if the logger is {@link #disable() disabled}.
-   *
-   * @param dataLogger the logger to log data to
-   * @param object the data object to log
-   * @param errorHandler the handler to use if logging raised an exception
-   */
-  @SuppressWarnings("PMD.AvoidCatchingGenericException")
-  public final void tryUpdate(DataLogger dataLogger, T object, ErrorHandler errorHandler) {
-    if (m_disabled) {
-      return;
+    /**
+     * Instantiates the logger.
+     *
+     * @param clazz the Java class of objects that can be logged
+     */
+    protected ClassSpecificLogger(Class<T> clazz) {
+        this.m_clazz = clazz;
     }
 
-    try {
-      update(dataLogger, object);
-    } catch (Exception e) {
-      errorHandler.handle(e, this);
-    }
-  }
+    /**
+     * Updates an object's fields in a data log.
+     *
+     * @param dataLogger the logger to update
+     * @param object the object to update in the log
+     */
+    protected abstract void update(DataLogger dataLogger, T object);
 
-  /**
-   * Checks if this logger has been disabled.
-   *
-   * @return true if this logger has been disabled by {@link #disable()}, false if not
-   */
-  public final boolean isDisabled() {
-    return m_disabled;
-  }
+    /**
+     * Attempts to update the data log. Will do nothing if the logger is {@link #disable() disabled}.
+     *
+     * @param dataLogger the logger to log data to
+     * @param object the data object to log
+     * @param errorHandler the handler to use if logging raised an exception
+     */
+    @SuppressWarnings("PMD.AvoidCatchingGenericException")
+    public final void tryUpdate(DataLogger dataLogger, T object, ErrorHandler errorHandler) {
+        if (m_disabled) {
+            return;
+        }
 
-  /** Disables this logger. Any log calls made while disabled will be ignored. */
-  public final void disable() {
-    m_disabled = true;
-  }
-
-  /** Reenables this logger after being disabled. Has no effect if the logger is already enabled. */
-  public final void reenable() {
-    m_disabled = false;
-  }
-
-  /**
-   * Gets the type of the data this logger accepts.
-   *
-   * @return the logged data type
-   */
-  public final Class<T> getLoggedType() {
-    return m_clazz;
-  }
-
-  /**
-   * Logs a sendable type.
-   *
-   * @param dataLogger the logger to log data into
-   * @param sendable the sendable object to log
-   */
-  protected void logSendable(DataLogger dataLogger, Sendable sendable) {
-    if (sendable == null) {
-      return;
+        try {
+            update(dataLogger, object);
+        } catch (Exception e) {
+            errorHandler.handle(e, this);
+        }
     }
 
-    var builder =
-        m_sendables.computeIfAbsent(
-            sendable,
-            s -> {
-              var b = new LogBackedSendableBuilder(dataLogger);
-              s.initSendable(b);
-              return b;
-            });
-    builder.update();
-  }
+    /**
+     * Checks if this logger has been disabled.
+     *
+     * @return true if this logger has been disabled by {@link #disable()}, false if not
+     */
+    public final boolean isDisabled() {
+        return m_disabled;
+    }
+
+    /** Disables this logger. Any log calls made while disabled will be ignored. */
+    public final void disable() {
+        m_disabled = true;
+    }
+
+    /** Reenables this logger after being disabled. Has no effect if the logger is already enabled. */
+    public final void reenable() {
+        m_disabled = false;
+    }
+
+    /**
+     * Gets the type of the data this logger accepts.
+     *
+     * @return the logged data type
+     */
+    public final Class<T> getLoggedType() {
+        return m_clazz;
+    }
+
+    /**
+     * Logs a sendable type.
+     *
+     * @param dataLogger the logger to log data into
+     * @param sendable the sendable object to log
+     */
+    protected void logSendable(DataLogger dataLogger, Sendable sendable) {
+        if (sendable == null) {
+            return;
+        }
+
+        var builder = m_sendables.computeIfAbsent(sendable, s -> {
+            var b = new LogBackedSendableBuilder(dataLogger);
+            s.initSendable(b);
+            return b;
+        });
+        builder.update();
+    }
 }

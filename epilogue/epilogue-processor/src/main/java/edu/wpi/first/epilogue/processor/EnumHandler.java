@@ -9,25 +9,24 @@ import javax.lang.model.element.Element;
 import javax.lang.model.type.TypeMirror;
 
 public class EnumHandler extends ElementHandler {
-  private final TypeMirror m_javaLangEnum;
 
-  protected EnumHandler(ProcessingEnvironment processingEnv) {
-    super(processingEnv);
+    private final TypeMirror m_javaLangEnum;
 
-    // raw type java.lang.Enum
-    m_javaLangEnum =
-        processingEnv
+    protected EnumHandler(ProcessingEnvironment processingEnv) {
+        super(processingEnv);
+        // raw type java.lang.Enum
+        m_javaLangEnum = processingEnv
             .getTypeUtils()
             .erasure(processingEnv.getElementUtils().getTypeElement("java.lang.Enum").asType());
-  }
+    }
 
-  @Override
-  public boolean isLoggable(Element element) {
-    return m_processingEnv.getTypeUtils().isAssignable(dataType(element), m_javaLangEnum);
-  }
+    @Override
+    public boolean isLoggable(Element element) {
+        return m_processingEnv.getTypeUtils().isAssignable(dataType(element), m_javaLangEnum);
+    }
 
-  @Override
-  public String logInvocation(Element element) {
-    return "dataLogger.log(\"" + loggedName(element) + "\", " + elementAccess(element) + ")";
-  }
+    @Override
+    public String logInvocation(Element element) {
+        return "dataLogger.log(\"" + loggedName(element) + "\", " + elementAccess(element) + ")";
+    }
 }

@@ -21,10 +21,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface CustomLoggerFor {
-  /**
-   * The class or classes of objects able to be logged with the annotated logger.
-   *
-   * @return the supported data types
-   */
-  Class<?>[] value();
+    /**
+     * The class or classes of objects able to be logged with the annotated logger.
+     *
+     * @return the supported data types
+     */
+    Class<?>[] value();
 }

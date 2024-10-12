@@ -28,117 +28,117 @@ import java.util.function.BiFunction;
 
 /** A data logger implementation that saves information to a WPILib {@link DataLog} file on disk. */
 public class FileLogger implements DataLogger {
-  private final DataLog m_dataLog;
-  private final Map<String, DataLogEntry> m_entries = new HashMap<>();
-  private final Map<String, SubLogger> m_subLoggers = new HashMap<>();
 
-  /**
-   * Creates a new file logger.
-   *
-   * @param dataLog the data log to save data to
-   */
-  public FileLogger(DataLog dataLog) {
-    this.m_dataLog = requireNonNullParam(dataLog, "dataLog", "FileLogger");
-  }
+    private final DataLog m_dataLog;
+    private final Map<String, DataLogEntry> m_entries = new HashMap<>();
+    private final Map<String, SubLogger> m_subLoggers = new HashMap<>();
 
-  @Override
-  public DataLogger getSubLogger(String path) {
-    return m_subLoggers.computeIfAbsent(path, k -> new SubLogger(k, this));
-  }
-
-  @SuppressWarnings("unchecked")
-  private <E extends DataLogEntry> E getEntry(
-      String identifier, BiFunction<DataLog, String, ? extends E> ctor) {
-    if (m_entries.get(identifier) != null) {
-      return (E) m_entries.get(identifier);
+    /**
+     * Creates a new file logger.
+     *
+     * @param dataLog the data log to save data to
+     */
+    public FileLogger(DataLog dataLog) {
+        this.m_dataLog = requireNonNullParam(dataLog, "dataLog", "FileLogger");
     }
 
-    var entry = ctor.apply(m_dataLog, identifier);
-    m_entries.put(identifier, entry);
-    return entry;
-  }
-
-  @Override
-  public void log(String identifier, int value) {
-    getEntry(identifier, IntegerLogEntry::new).append(value);
-  }
-
-  @Override
-  public void log(String identifier, long value) {
-    getEntry(identifier, IntegerLogEntry::new).append(value);
-  }
-
-  @Override
-  public void log(String identifier, float value) {
-    getEntry(identifier, FloatLogEntry::new).append(value);
-  }
-
-  @Override
-  public void log(String identifier, double value) {
-    getEntry(identifier, DoubleLogEntry::new).append(value);
-  }
-
-  @Override
-  public void log(String identifier, boolean value) {
-    getEntry(identifier, BooleanLogEntry::new).append(value);
-  }
-
-  @Override
-  public void log(String identifier, byte[] value) {
-    getEntry(identifier, RawLogEntry::new).append(value);
-  }
-
-  @Override
-  @SuppressWarnings("PMD.UnnecessaryCastRule")
-  public void log(String identifier, int[] value) {
-    long[] widened = new long[value.length];
-    for (int i = 0; i < value.length; i++) {
-      widened[i] = (long) value[i];
+    @Override
+    public DataLogger getSubLogger(String path) {
+        return m_subLoggers.computeIfAbsent(path, k -> new SubLogger(k, this));
     }
-    getEntry(identifier, IntegerArrayLogEntry::new).append(widened);
-  }
 
-  @Override
-  public void log(String identifier, long[] value) {
-    getEntry(identifier, IntegerArrayLogEntry::new).append(value);
-  }
+    @SuppressWarnings("unchecked")
+    private <E extends DataLogEntry> E getEntry(String identifier, BiFunction<DataLog, String, ? extends E> ctor) {
+        if (m_entries.get(identifier) != null) {
+            return (E) m_entries.get(identifier);
+        }
 
-  @Override
-  public void log(String identifier, float[] value) {
-    getEntry(identifier, FloatArrayLogEntry::new).append(value);
-  }
+        var entry = ctor.apply(m_dataLog, identifier);
+        m_entries.put(identifier, entry);
+        return entry;
+    }
 
-  @Override
-  public void log(String identifier, double[] value) {
-    getEntry(identifier, DoubleArrayLogEntry::new).append(value);
-  }
+    @Override
+    public void log(String identifier, int value) {
+        getEntry(identifier, IntegerLogEntry::new).append(value);
+    }
 
-  @Override
-  public void log(String identifier, boolean[] value) {
-    getEntry(identifier, BooleanArrayLogEntry::new).append(value);
-  }
+    @Override
+    public void log(String identifier, long value) {
+        getEntry(identifier, IntegerLogEntry::new).append(value);
+    }
 
-  @Override
-  public void log(String identifier, String value) {
-    getEntry(identifier, StringLogEntry::new).append(value);
-  }
+    @Override
+    public void log(String identifier, float value) {
+        getEntry(identifier, FloatLogEntry::new).append(value);
+    }
 
-  @Override
-  public void log(String identifier, String[] value) {
-    getEntry(identifier, StringArrayLogEntry::new).append(value);
-  }
+    @Override
+    public void log(String identifier, double value) {
+        getEntry(identifier, DoubleLogEntry::new).append(value);
+    }
 
-  @Override
-  @SuppressWarnings("unchecked")
-  public <S> void log(String identifier, S value, Struct<S> struct) {
-    m_dataLog.addSchema(struct);
-    getEntry(identifier, (log, k) -> StructLogEntry.create(log, k, struct)).append(value);
-  }
+    @Override
+    public void log(String identifier, boolean value) {
+        getEntry(identifier, BooleanLogEntry::new).append(value);
+    }
 
-  @Override
-  @SuppressWarnings("unchecked")
-  public <S> void log(String identifier, S[] value, Struct<S> struct) {
-    m_dataLog.addSchema(struct);
-    getEntry(identifier, (log, k) -> StructArrayLogEntry.create(log, k, struct)).append(value);
-  }
+    @Override
+    public void log(String identifier, byte[] value) {
+        getEntry(identifier, RawLogEntry::new).append(value);
+    }
+
+    @Override
+    @SuppressWarnings("PMD.UnnecessaryCastRule")
+    public void log(String identifier, int[] value) {
+        long[] widened = new long[value.length];
+        for (int i = 0; i < value.length; i++) {
+            widened[i] = (long) value[i];
+        }
+        getEntry(identifier, IntegerArrayLogEntry::new).append(widened);
+    }
+
+    @Override
+    public void log(String identifier, long[] value) {
+        getEntry(identifier, IntegerArrayLogEntry::new).append(value);
+    }
+
+    @Override
+    public void log(String identifier, float[] value) {
+        getEntry(identifier, FloatArrayLogEntry::new).append(value);
+    }
+
+    @Override
+    public void log(String identifier, double[] value) {
+        getEntry(identifier, DoubleArrayLogEntry::new).append(value);
+    }
+
+    @Override
+    public void log(String identifier, boolean[] value) {
+        getEntry(identifier, BooleanArrayLogEntry::new).append(value);
+    }
+
+    @Override
+    public void log(String identifier, String value) {
+        getEntry(identifier, StringLogEntry::new).append(value);
+    }
+
+    @Override
+    public void log(String identifier, String[] value) {
+        getEntry(identifier, StringArrayLogEntry::new).append(value);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <S> void log(String identifier, S value, Struct<S> struct) {
+        m_dataLog.addSchema(struct);
+        getEntry(identifier, (log, k) -> StructLogEntry.create(log, k, struct)).append(value);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <S> void log(String identifier, S[] value, Struct<S> struct) {
+        m_dataLog.addSchema(struct);
+        getEntry(identifier, (log, k) -> StructArrayLogEntry.create(log, k, struct)).append(value);
+    }
 }
