@@ -38,6 +38,7 @@ public class SwerveAPILogger extends ClassSpecificLogger<SwerveAPI> {
         logger.log("roll", state.roll, Rotation2d.struct);
         logger.log("pose", state.pose, Pose2d.struct);
         logger.log("speeds", state.speeds, ChassisSpeeds.struct);
+        logger.log("targetSpeeds", state.targetSpeeds, ChassisSpeeds.struct);
         logger.log("velocity", state.velocity);
 
         var modules = logger.getSubLogger("modules");

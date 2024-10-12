@@ -48,6 +48,8 @@ public class SwerveAPI implements AutoCloseable {
     private final SwerveOdometryThread odometryThread;
 
     private Rotation2d lastRobotAngle = Rotation2d.kZero;
+    private double lastRatelimit = 0.0;
+
     private Consumer<ChassisSpeeds> imuSimHook = s -> {};
 
     public SwerveAPI(SwerveConfig config) {
@@ -279,12 +281,18 @@ public class SwerveAPI implements AutoCloseable {
         }
 
         if (ratelimit) {
-            ChassisSpeeds lastSpeeds = Math2.copyInto(state.speeds, new ChassisSpeeds());
-            forwardPerspective.toPerspectiveSpeeds(lastSpeeds, lastRobotAngle);
+            double now = Timer.getFPGATimestamp();
+            if (now - lastRatelimit > config.period * 2.0) {
+                Math2.copyInto(state.speeds, state.targetSpeeds);
+            }
+            lastRatelimit = now;
 
-            double vx_l = lastSpeeds.vxMetersPerSecond;
-            double vy_l = lastSpeeds.vyMetersPerSecond;
-            double w_l = lastSpeeds.omegaRadiansPerSecond;
+            forwardPerspective.toPerspectiveSpeeds(state.targetSpeeds, lastRobotAngle);
+
+            double vx_l = state.targetSpeeds.vxMetersPerSecond;
+            double vy_l = state.targetSpeeds.vyMetersPerSecond;
+            double v_l = Math.hypot(vx_l, vy_l);
+            double w_l = state.targetSpeeds.omegaRadiansPerSecond;
 
             double dx = speeds.vxMetersPerSecond - vx_l;
             double dy = speeds.vyMetersPerSecond - vy_l;
@@ -295,10 +303,10 @@ public class SwerveAPI implements AutoCloseable {
                 speeds.vyMetersPerSecond = vy_l + (s * dy);
             }
 
-            double norm = Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
-            double a_torque = (config.torqueAccel * config.period) * (1.0 - (state.velocity / config.velocity));
-            if (norm - state.velocity > a_torque) {
-                double s = (state.velocity + a_torque) / norm;
+            double v = Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
+            double a_torque = (config.torqueAccel * config.period) * (1.0 - (v_l / config.velocity));
+            if (v - v_l > a_torque) {
+                double s = (v_l + a_torque) / v;
                 speeds.vxMetersPerSecond *= s;
                 speeds.vyMetersPerSecond *= s;
             }
@@ -312,6 +320,8 @@ public class SwerveAPI implements AutoCloseable {
 
         lastRobotAngle = state.pose.getRotation();
         forwardPerspective.toRobotSpeeds(speeds, lastRobotAngle);
+        Math2.copyInto(speeds, state.targetSpeeds);
+
         applyStates(kinematics.toSwerveModuleStates(speeds));
     }
 

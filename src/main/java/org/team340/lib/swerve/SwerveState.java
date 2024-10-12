@@ -66,6 +66,8 @@ public final class SwerveState {
     public Pose2d pose;
     /** The current measured robot-relative speeds. */
     public ChassisSpeeds speeds;
+    /** The target robot-relative speeds when using {@code applySpeeds()}. */
+    public ChassisSpeeds targetSpeeds;
     /** The directionless measured velocity of the robot. */
     public double velocity;
 
@@ -76,5 +78,6 @@ public final class SwerveState {
         roll = Rotation2d.kZero;
         pose = Pose2d.kZero;
         speeds = new ChassisSpeeds();
+        targetSpeeds = new ChassisSpeeds();
     }
 }
