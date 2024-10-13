@@ -555,7 +555,7 @@ public class SwerveAPI implements AutoCloseable {
 
             odometryMutex.lock();
             try {
-                if (!timesync) phoenixStatus = BaseStatusSignal.refreshAll(signals);
+                if (!timesync && signals.length > 0) phoenixStatus = BaseStatusSignal.refreshAll(signals);
 
                 lastYaw = imu.getYaw();
 
