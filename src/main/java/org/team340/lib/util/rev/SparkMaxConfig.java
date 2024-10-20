@@ -12,6 +12,25 @@ import org.team340.lib.util.Sleep;
 public class SparkMaxConfig extends RevConfigBase<CANSparkMax> {
 
     private static final double FACTORY_DEFAULTS_SLEEP = 0.050;
+    private static final SparkMaxConfig kDefaults = new SparkMaxConfig()
+        .clearFaults()
+        .restoreFactoryDefaults()
+        .enableVoltageCompensation(12.0)
+        .setPeriodicFramePeriod(Frame.S0, 20)
+        .setPeriodicFramePeriod(Frame.S1, 20)
+        .setPeriodicFramePeriod(Frame.S2, 20)
+        .setPeriodicFramePeriod(Frame.S3, 10000)
+        .setPeriodicFramePeriod(Frame.S4, 10000)
+        .setPeriodicFramePeriod(Frame.S5, 10000)
+        .setPeriodicFramePeriod(Frame.S6, 10000)
+        .setPeriodicFramePeriod(Frame.S7, 10000);
+
+    /**
+     * Returns a default Spark MAX config.
+     */
+    public static SparkMaxConfig defaults() {
+        return kDefaults.clone();
+    }
 
     /**
      * Clones this config.

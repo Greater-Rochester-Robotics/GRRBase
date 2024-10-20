@@ -2,6 +2,7 @@ package org.team340.robot;
 
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 
+import com.ctre.phoenix6.SignalLogger;
 import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.wpilibj.DataLogManager;
@@ -36,6 +37,7 @@ public final class Robot extends TimedRobot {
         DriverStation.silenceJoystickConnectionWarning(true);
 
         // Start logging
+        SignalLogger.enableAutoLogging(false);
         DataLogManager.start();
         DriverStation.startDataLog(DataLogManager.getLog());
         Epilogue.configure(config -> {
@@ -51,6 +53,7 @@ public final class Robot extends TimedRobot {
 
         // Finish configuration of REV hardware
         RevConfigRegistry.burnFlashAll();
+        RevConfigRegistry.enableFrameRefreshing();
 
         // Configure Autos
         GRRDashboard.addAuto("Example", none());

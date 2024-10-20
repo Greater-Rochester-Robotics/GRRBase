@@ -21,12 +21,14 @@ import com.revrobotics.SparkPIDController;
 import com.revrobotics.SparkPIDController.ArbFFUnits;
 import edu.wpi.first.epilogue.logging.DataLogger;
 import edu.wpi.first.epilogue.logging.errors.ErrorHandler;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.RobotBase;
 import java.util.List;
 import java.util.function.BiFunction;
-import org.team340.lib.logging.SparkFlexLogger;
-import org.team340.lib.logging.SparkMaxLogger;
-import org.team340.lib.logging.TalonFXLogger;
+import org.team340.lib.logging.phoenix.TalonFXLogger;
+import org.team340.lib.logging.revlib.SparkFlexLogger;
+import org.team340.lib.logging.revlib.SparkMaxLogger;
 import org.team340.lib.swerve.SwerveAPI;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.util.ctre.PhoenixUtil;
@@ -147,6 +149,8 @@ public final class SwerveMotors {
             new RelativeEncoderConfig()
                 .setPositionConversionFactor(1.0)
                 .setVelocityConversionFactor(1.0 / 60.0)
+                .setMeasurementPeriod(isMoveMotor ? 16 : 32)
+                .setAverageDepth(isMoveMotor ? 2 : 8)
                 .apply(sparkMax, relativeEncoder);
 
             return new SwerveMotor() {
@@ -268,6 +272,8 @@ public final class SwerveMotors {
             new RelativeEncoderConfig()
                 .setPositionConversionFactor(1.0)
                 .setVelocityConversionFactor(1.0 / 60.0)
+                .setMeasurementPeriod(isMoveMotor ? 32 : 100)
+                .setAverageDepth(isMoveMotor ? 8 : 64)
                 .apply(sparkFlex, relativeEncoder);
 
             return new SwerveMotor() {
@@ -356,18 +362,24 @@ public final class SwerveMotors {
             TalonFX talonFX = new TalonFX(id, config.phoenixCanBus);
             int PID_SLOT = 0;
 
-            StatusSignal<Double> position = talonFX.getPosition().clone();
-            StatusSignal<Double> velocity = talonFX.getVelocity().clone();
+            StatusSignal<Angle> position = talonFX.getPosition().clone();
+            StatusSignal<AngularVelocity> velocity = talonFX.getVelocity().clone();
 
             boolean enableFOC = isMoveMotor ? config.phoenixMoveFOC : config.phoenixTurnFOC;
-            PositionVoltage positionControl = new PositionVoltage(0.0)
-                .withSlot(PID_SLOT)
-                .withEnableFOC(enableFOC)
-                .withUpdateFreqHz(0.0);
-            VelocityVoltage velocityControl = new VelocityVoltage(0.0)
-                .withSlot(PID_SLOT)
-                .withEnableFOC(enableFOC)
-                .withUpdateFreqHz(0.0);
+            boolean timesync = config.phoenixPro && config.phoenixCanBus.isNetworkFD();
+
+            PositionVoltage positionControl = new PositionVoltage(0.0);
+            positionControl.Slot = PID_SLOT;
+            positionControl.EnableFOC = enableFOC;
+            positionControl.UseTimesync = timesync;
+            positionControl.UpdateFreqHz = 0.0;
+
+            VelocityVoltage velocityControl = new VelocityVoltage(0.0);
+            velocityControl.Slot = PID_SLOT;
+            velocityControl.EnableFOC = enableFOC;
+            velocityControl.UseTimesync = timesync;
+            velocityControl.UpdateFreqHz = 0.0;
+
             VoltageOut voltageControl = new VoltageOut(0);
 
             double[] pidGains = isMoveMotor ? config.movePID : config.turnPID;
@@ -381,6 +393,7 @@ public final class SwerveMotors {
             talonConfig.CurrentLimits.SupplyCurrentLimit = currentLimit;
             talonConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
 
+            talonConfig.MotorOutput.ControlTimesyncFreqHz = 1.0 / config.period;
             talonConfig.MotorOutput.Inverted = inverted
                 ? InvertedValue.Clockwise_Positive
                 : InvertedValue.CounterClockwise_Positive;
@@ -402,7 +415,7 @@ public final class SwerveMotors {
             return new SwerveMotor() {
                 @Override
                 public double getPosition() {
-                    return BaseStatusSignal.getLatencyCompensatedValue(position, velocity);
+                    return BaseStatusSignal.getLatencyCompensatedValueAsDouble(position, velocity);
                 }
 
                 @Override
@@ -412,7 +425,7 @@ public final class SwerveMotors {
 
                 @Override
                 public double getVelocity() {
-                    return velocity.getValue();
+                    return velocity.getValueAsDouble();
                 }
 
                 @Override

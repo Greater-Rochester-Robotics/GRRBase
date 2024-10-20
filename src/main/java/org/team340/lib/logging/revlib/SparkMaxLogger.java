@@ -1,4 +1,4 @@
-package org.team340.lib.logging;
+package org.team340.lib.logging.revlib;
 
 import com.revrobotics.CANSparkMax;
 import edu.wpi.first.epilogue.CustomLoggerFor;
@@ -14,8 +14,12 @@ public class SparkMaxLogger extends ClassSpecificLogger<CANSparkMax> {
 
     @Override
     public void update(DataLogger logger, CANSparkMax sparkMax) {
-        logger.log("appliedOutput", sparkMax.getAppliedOutput());
-        logger.log("busVoltage", sparkMax.getBusVoltage());
+        double appliedOutput = sparkMax.getAppliedOutput();
+        double busVoltage = sparkMax.getBusVoltage();
+
+        logger.log("appliedOutput", appliedOutput);
+        logger.log("appliedVoltage", appliedOutput * busVoltage);
+        logger.log("busVoltage", busVoltage);
         logger.log("motorTemperature", sparkMax.getMotorTemperature());
         logger.log("outputCurrent", sparkMax.getOutputCurrent());
         logger.log("position", sparkMax.getEncoder().getPosition());

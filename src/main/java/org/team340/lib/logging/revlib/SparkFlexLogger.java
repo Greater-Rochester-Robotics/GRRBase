@@ -1,4 +1,4 @@
-package org.team340.lib.logging;
+package org.team340.lib.logging.revlib;
 
 import com.revrobotics.CANSparkFlex;
 import edu.wpi.first.epilogue.CustomLoggerFor;
@@ -14,8 +14,12 @@ public class SparkFlexLogger extends ClassSpecificLogger<CANSparkFlex> {
 
     @Override
     public void update(DataLogger logger, CANSparkFlex sparkFlex) {
-        logger.log("appliedOutput", sparkFlex.getAppliedOutput());
-        logger.log("busVoltage", sparkFlex.getBusVoltage());
+        double appliedOutput = sparkFlex.getAppliedOutput();
+        double busVoltage = sparkFlex.getBusVoltage();
+
+        logger.log("appliedOutput", appliedOutput);
+        logger.log("appliedVoltage", appliedOutput * busVoltage);
+        logger.log("busVoltage", busVoltage);
         logger.log("motorTemperature", sparkFlex.getMotorTemperature());
         logger.log("outputCurrent", sparkFlex.getOutputCurrent());
         logger.log("position", sparkFlex.getEncoder().getPosition());

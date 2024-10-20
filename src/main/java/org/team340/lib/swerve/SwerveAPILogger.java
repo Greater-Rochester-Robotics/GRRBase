@@ -7,6 +7,7 @@ import edu.wpi.first.epilogue.logging.DataLogger;
 import edu.wpi.first.epilogue.logging.errors.ErrorHandler;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -20,7 +21,7 @@ public class SwerveAPILogger extends ClassSpecificLogger<SwerveAPI> {
 
     @Override
     public void update(DataLogger logger, SwerveAPI swerveAPI) {
-        logState(logger.getSubLogger("state"), swerveAPI.getState());
+        logState(logger.getSubLogger("state"), swerveAPI.state);
         var hardwareLogger = logger.getSubLogger("hardware");
 
         ErrorHandler errorHandler = Epilogue.getConfig().errorHandler;
@@ -37,7 +38,9 @@ public class SwerveAPILogger extends ClassSpecificLogger<SwerveAPI> {
         logger.log("pitch", state.pitch, Rotation2d.struct);
         logger.log("roll", state.roll, Rotation2d.struct);
         logger.log("pose", state.pose, Pose2d.struct);
+        logger.log("twist", state.twist, Twist2d.struct);
         logger.log("speeds", state.speeds, ChassisSpeeds.struct);
+        logger.log("targetSpeeds", state.targetSpeeds, ChassisSpeeds.struct);
         logger.log("velocity", state.velocity);
 
         var modules = logger.getSubLogger("modules");

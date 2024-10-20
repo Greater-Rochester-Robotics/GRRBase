@@ -12,6 +12,25 @@ import org.team340.lib.util.Sleep;
 public class SparkFlexConfig extends RevConfigBase<CANSparkFlex> {
 
     private static final double FACTORY_DEFAULTS_SLEEP = 0.025;
+    private static final SparkFlexConfig kDefaults = new SparkFlexConfig()
+        .clearFaults()
+        .restoreFactoryDefaults()
+        .enableVoltageCompensation(12.0)
+        .setPeriodicFramePeriod(Frame.S0, 20)
+        .setPeriodicFramePeriod(Frame.S1, 20)
+        .setPeriodicFramePeriod(Frame.S2, 20)
+        .setPeriodicFramePeriod(Frame.S3, 10000)
+        .setPeriodicFramePeriod(Frame.S4, 10000)
+        .setPeriodicFramePeriod(Frame.S5, 10000)
+        .setPeriodicFramePeriod(Frame.S6, 10000)
+        .setPeriodicFramePeriod(Frame.S7, 10000);
+
+    /**
+     * Returns a default Spark Flex config.
+     */
+    public static SparkFlexConfig defaults() {
+        return kDefaults.clone();
+    }
 
     /**
      * Clones this config.

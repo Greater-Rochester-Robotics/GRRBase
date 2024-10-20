@@ -1,5 +1,6 @@
 package org.team340.robot.subsystems;
 
+import com.ctre.phoenix6.CANBus;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -54,11 +55,11 @@ public class Swerve extends GRRSubsystem {
         .setBrakeMode(false, true)
         .setLimits(5.0, 16.0, 12.0, 31.416)
         .setDriverProfile(4.5, 1.0, 5.498, 2.0)
-        .setPowerProperties(Constants.VOLTAGE, 80.0, 60.0)
+        .setPowerProperties(12.0, 80.0, 60.0)
         .setMechanicalProperties(75.0 / 14.0, 18.75, 0.0, Units.inchesToMeters(4.0))
         .setOdometryStd(0.1, 0.1, 0.1)
         .setIMU(SwerveIMUs.pigeon2(RobotMap.PIGEON))
-        .setPhoenixFeatures(RobotMap.CANBUS, true, true, true)
+        .setPhoenixFeatures(new CANBus(RobotMap.CANBUS), true, true, true)
         .setModules(FRONT_LEFT, FRONT_RIGHT, BACK_LEFT, BACK_RIGHT);
 
     private final SwerveAPI api;
@@ -92,6 +93,7 @@ public class Swerve extends GRRSubsystem {
     public Command tareRotation() {
         return commandBuilder("Swerve.tareRotation()")
             .onInitialize(() -> api.tareRotation(ForwardPerspective.OPERATOR))
-            .isFinished(true);
+            .isFinished(true)
+            .ignoringDisable(true);
     }
 }

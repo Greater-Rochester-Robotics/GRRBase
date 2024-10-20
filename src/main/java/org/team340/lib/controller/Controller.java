@@ -1,5 +1,7 @@
 package org.team340.lib.controller;
 
+import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.XboxController.Axis;
@@ -14,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * axis values, and all buttons are disabled when the robot
  * <a href="https://youtu.be/6K7QkXYmEp4?t=14"> is in autonomous mode.</a>
  */
+@Logged(strategy = Strategy.OPT_IN)
 public class Controller extends CommandXboxController {
 
     private static final EventLoop loop = new EventLoop();

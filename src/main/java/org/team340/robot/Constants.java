@@ -10,7 +10,6 @@ import org.team340.lib.controller.ControllerConfig;
 public final class Constants {
 
     public static final double PERIOD = 0.020;
-    public static final double VOLTAGE = 12.0;
 
     public static final ControllerConfig DRIVER = new ControllerConfig()
         .setPort(0)

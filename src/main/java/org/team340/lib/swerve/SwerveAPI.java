@@ -1,7 +1,6 @@
 package org.team340.lib.swerve;
 
 import com.ctre.phoenix6.BaseStatusSignal;
-import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusCode;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
@@ -31,6 +30,8 @@ import org.team340.robot.Robot;
 
 public class SwerveAPI implements AutoCloseable {
 
+    public final SwerveState state;
+
     final SwerveIMU imu;
     final SwerveModule[] modules;
     final SwerveConfig config;
@@ -40,14 +41,16 @@ public class SwerveAPI implements AutoCloseable {
     private final Translation2d[] moduleLocations;
     private final SwerveModuleState[] lockedStates;
 
-    private final SwerveState state;
     private final SwerveDriveKinematics kinematics;
     private final SwerveDrivePoseEstimator poseEstimator;
 
     private final Lock odometryMutex = new ReentrantLock();
     private final SwerveOdometryThread odometryThread;
 
+    private final SwerveModulePosition[] lastPositions;
     private Rotation2d lastRobotAngle = Rotation2d.kZero;
+    private double lastRatelimit = 0.0;
+
     private Consumer<ChassisSpeeds> imuSimHook = s -> {};
 
     public SwerveAPI(SwerveConfig config) {
@@ -57,12 +60,14 @@ public class SwerveAPI implements AutoCloseable {
         modules = new SwerveModule[moduleCount];
         moduleLocations = new Translation2d[moduleCount];
         lockedStates = new SwerveModuleState[moduleCount];
+        lastPositions = new SwerveModulePosition[moduleCount];
         double farthest = 0.0;
         for (int i = 0; i < moduleCount; i++) {
             var moduleConfig = config.modules[i];
             modules[i] = new SwerveModule(config, moduleConfig);
             moduleLocations[i] = moduleConfig.location;
             lockedStates[i] = new SwerveModuleState(0.0, moduleLocations[i].getAngle());
+            lastPositions[i] = new SwerveModulePosition();
             farthest = Math.max(farthest, moduleLocations[i].getNorm());
         }
 
@@ -84,18 +89,13 @@ public class SwerveAPI implements AutoCloseable {
     }
 
     /**
-     * Gets the current state of the robot's swerve drivetrain.
-     */
-    public SwerveState getState() {
-        return state;
-    }
-
-    /**
      * Refreshes inputs from all swerve hardware. This must be called periodically
      * in order for the API to function. Typically, this method is called at the
      * start of the swerve subsystem's {@code periodic()} method.
      */
     public void refresh() {
+        kinematics.copyInto(state.modules.positions, lastPositions);
+
         odometryMutex.lock();
         try {
             odometryThread.run(true);
@@ -118,6 +118,7 @@ public class SwerveAPI implements AutoCloseable {
 
         state.pitch = imu.getPitch();
         state.roll = imu.getRoll();
+        state.twist = kinematics.toTwist2d(lastPositions, state.modules.positions);
         state.speeds = kinematics.toChassisSpeeds(state.modules.states);
         state.velocity = Math.hypot(state.speeds.vxMetersPerSecond, state.speeds.vyMetersPerSecond);
 
@@ -131,13 +132,12 @@ public class SwerveAPI implements AutoCloseable {
      * @param forwardPerspective The perspective to tare the rotation to.
      */
     public void tareRotation(ForwardPerspective forwardPerspective) {
-        if (forwardPerspective.equals(ForwardPerspective.ROBOT)) return;
         var rotation = forwardPerspective.getTareRotation();
-
+        if (rotation == null) return;
         odometryMutex.lock();
         try {
             poseEstimator.resetRotation(rotation);
-            state.pose = new Pose2d(poseEstimator.getEstimatedPosition().getTranslation(), rotation);
+            state.pose = poseEstimator.getEstimatedPosition();
         } finally {
             odometryMutex.unlock();
         }
@@ -279,12 +279,18 @@ public class SwerveAPI implements AutoCloseable {
         }
 
         if (ratelimit) {
-            ChassisSpeeds lastSpeeds = Math2.copyInto(state.speeds, new ChassisSpeeds());
-            forwardPerspective.toPerspectiveSpeeds(lastSpeeds, lastRobotAngle);
+            double now = Timer.getFPGATimestamp();
+            if (now - lastRatelimit > config.period * 2.0) {
+                Math2.copyInto(state.speeds, state.targetSpeeds);
+            }
+            lastRatelimit = now;
 
-            double vx_l = lastSpeeds.vxMetersPerSecond;
-            double vy_l = lastSpeeds.vyMetersPerSecond;
-            double w_l = lastSpeeds.omegaRadiansPerSecond;
+            forwardPerspective.toPerspectiveSpeeds(state.targetSpeeds, lastRobotAngle);
+
+            double vx_l = state.targetSpeeds.vxMetersPerSecond;
+            double vy_l = state.targetSpeeds.vyMetersPerSecond;
+            double v_l = Math.hypot(vx_l, vy_l);
+            double w_l = state.targetSpeeds.omegaRadiansPerSecond;
 
             double dx = speeds.vxMetersPerSecond - vx_l;
             double dy = speeds.vyMetersPerSecond - vy_l;
@@ -295,10 +301,10 @@ public class SwerveAPI implements AutoCloseable {
                 speeds.vyMetersPerSecond = vy_l + (s * dy);
             }
 
-            double norm = Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
-            double a_torque = (config.torqueAccel * config.period) * (1.0 - (state.velocity / config.velocity));
-            if (norm - state.velocity > a_torque) {
-                double s = (state.velocity + a_torque) / norm;
+            double v = Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
+            double a_torque = (config.torqueAccel * config.period) * (1.0 - (v_l / config.velocity));
+            if (v - v_l > a_torque) {
+                double s = (v_l + a_torque) / v;
                 speeds.vxMetersPerSecond *= s;
                 speeds.vyMetersPerSecond *= s;
             }
@@ -312,6 +318,8 @@ public class SwerveAPI implements AutoCloseable {
 
         lastRobotAngle = state.pose.getRotation();
         forwardPerspective.toRobotSpeeds(speeds, lastRobotAngle);
+        Math2.copyInto(speeds, state.targetSpeeds);
+
         applyStates(kinematics.toSwerveModuleStates(speeds));
     }
 
@@ -319,6 +327,10 @@ public class SwerveAPI implements AutoCloseable {
      * Drives the modules to an X formation to stop the robot from moving.
      */
     public void applyLockedWheels() {
+        lastRatelimit = Timer.getFPGATimestamp();
+        state.targetSpeeds.vxMetersPerSecond = 0.0;
+        state.targetSpeeds.vyMetersPerSecond = 0.0;
+        state.targetSpeeds.omegaRadiansPerSecond = 0.0;
         applyStates(lockedStates);
     }
 
@@ -520,7 +532,7 @@ public class SwerveAPI implements AutoCloseable {
                 });
                 thread.setName("SwerveAPI");
                 thread.setDaemon(true);
-                timesync = config.phoenixPro && CANBus.isNetworkFD(config.phoenixCanBus);
+                timesync = config.phoenixPro && config.phoenixCanBus.isNetworkFD();
                 active = true;
                 thread.start();
             } else {
@@ -545,7 +557,7 @@ public class SwerveAPI implements AutoCloseable {
 
             odometryMutex.lock();
             try {
-                if (!timesync) phoenixStatus = BaseStatusSignal.refreshAll(signals);
+                if (!timesync && signals.length > 0) phoenixStatus = BaseStatusSignal.refreshAll(signals);
 
                 lastYaw = imu.getYaw();
 

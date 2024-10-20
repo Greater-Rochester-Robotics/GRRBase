@@ -12,7 +12,7 @@ interface SwerveBaseHardware extends AutoCloseable {
      * utilized for telemetry that is not necessarily required for swerve
      * to function.
      */
-    public static final double TELEMETRY_CAN_PERIOD = 0.2;
+    static final double TELEMETRY_CAN_PERIOD = 0.2;
 
     /**
      * Returns the device's underlying API.

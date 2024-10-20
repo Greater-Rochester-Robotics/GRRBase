@@ -2,6 +2,7 @@ package org.team340.lib.swerve;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -64,8 +65,12 @@ public final class SwerveState {
     public Rotation2d roll;
     /** The current blue origin relative pose of the robot. */
     public Pose2d pose;
+    /** The movement of the robot since the last loop represented as a {@link Twist2d}. */
+    public Twist2d twist;
     /** The current measured robot-relative speeds. */
     public ChassisSpeeds speeds;
+    /** The target robot-relative speeds when using {@code applySpeeds()}. */
+    public ChassisSpeeds targetSpeeds;
     /** The directionless measured velocity of the robot. */
     public double velocity;
 
@@ -76,5 +81,6 @@ public final class SwerveState {
         roll = Rotation2d.kZero;
         pose = Pose2d.kZero;
         speeds = new ChassisSpeeds();
+        targetSpeeds = new ChassisSpeeds();
     }
 }

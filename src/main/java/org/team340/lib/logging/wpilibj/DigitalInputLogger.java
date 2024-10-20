@@ -1,4 +1,4 @@
-package org.team340.lib.logging;
+package org.team340.lib.logging.wpilibj;
 
 import edu.wpi.first.epilogue.CustomLoggerFor;
 import edu.wpi.first.epilogue.logging.ClassSpecificLogger;

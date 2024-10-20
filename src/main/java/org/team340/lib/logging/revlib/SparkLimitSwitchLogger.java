@@ -1,4 +1,4 @@
-package org.team340.lib.logging;
+package org.team340.lib.logging.revlib;
 
 import com.revrobotics.SparkLimitSwitch;
 import edu.wpi.first.epilogue.CustomLoggerFor;

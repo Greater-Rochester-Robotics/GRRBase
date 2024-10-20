@@ -14,11 +14,13 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkAbsoluteEncoder;
 import edu.wpi.first.epilogue.logging.DataLogger;
 import edu.wpi.first.epilogue.logging.errors.ErrorHandler;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.RobotBase;
 import java.util.List;
 import java.util.function.BiFunction;
-import org.team340.lib.logging.CANcoderLogger;
-import org.team340.lib.logging.SparkAbsoluteEncoderLogger;
+import org.team340.lib.logging.phoenix.CANcoderLogger;
+import org.team340.lib.logging.revlib.SparkAbsoluteEncoderLogger;
 import org.team340.lib.swerve.SwerveAPI;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.hardware.SwerveMotors.SwerveMotor;
@@ -195,8 +197,8 @@ public final class SwerveEncoders {
             CANcoder canCoder = new CANcoder(id, config.phoenixCanBus);
             Mutable<Boolean> hookStatus = new Mutable<>(false);
 
-            StatusSignal<Double> position = canCoder.getPosition().clone();
-            StatusSignal<Double> velocity = canCoder.getVelocity().clone();
+            StatusSignal<Angle> position = canCoder.getPosition().clone();
+            StatusSignal<AngularVelocity> velocity = canCoder.getVelocity().clone();
 
             var canCoderConfig = new CANcoderConfiguration();
             canCoderConfig.MagnetSensor.MagnetOffset = offset;
@@ -236,7 +238,7 @@ public final class SwerveEncoders {
             return new SwerveEncoder() {
                 @Override
                 public double getPosition() {
-                    return BaseStatusSignal.getLatencyCompensatedValue(position, velocity);
+                    return BaseStatusSignal.getLatencyCompensatedValueAsDouble(position, velocity);
                 }
 
                 @Override

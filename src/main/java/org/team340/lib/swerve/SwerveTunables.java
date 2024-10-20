@@ -20,60 +20,64 @@ final class SwerveTunables {
     public static void initialize(String name, SwerveAPI api) {
         SwerveConfig config = api.config;
 
-        Tunable.doubleValue(name + "/velocity", config.velocity, v -> config.velocity = v);
-        Tunable.doubleValue(name + "/slipAccel", config.slipAccel, v -> config.slipAccel = v);
-        Tunable.doubleValue(name + "/torqueAccel", config.torqueAccel, v -> config.torqueAccel = v);
-        Tunable.doubleValue(name + "/angularAccel", config.angularAccel, v -> config.angularAccel = v);
-        Tunable.doubleValue(name + "/driverVel", config.driverVel, v -> config.driverVel = v);
-        Tunable.doubleValue(name + "/driverVelExp", config.driverVelExp, v -> config.driverVelExp = v);
-        Tunable.doubleValue(name + "/driverAngularVel", config.driverAngularVel, v -> config.driverAngularVel = v);
-        Tunable.doubleValue(name + "/driverAngularVelExp", config.driverAngularVelExp, v ->
+        Tunable.doubleValue(name + "/Limits/velocity", config.velocity, v -> config.velocity = v);
+        Tunable.doubleValue(name + "/Limits/slipAccel", config.slipAccel, v -> config.slipAccel = v);
+        Tunable.doubleValue(name + "/Limits/torqueAccel", config.torqueAccel, v -> config.torqueAccel = v);
+        Tunable.doubleValue(name + "/Limits/angularAccel", config.angularAccel, v -> config.angularAccel = v);
+
+        Tunable.doubleValue(name + "/DriverProfile/velocity", config.driverVel, v -> config.driverVel = v);
+        Tunable.doubleValue(name + "/DriverProfile/velocityExp", config.driverVelExp, v -> config.driverVelExp = v);
+        Tunable.doubleValue(name + "/DriverProfile/angularVel", config.driverAngularVel, v ->
+            config.driverAngularVel = v
+        );
+        Tunable.doubleValue(name + "/DriverProfile/angularVelExp", config.driverAngularVelExp, v ->
             config.driverAngularVelExp = v
         );
+
         Tunable.doubleValue(name + "/discretizationPeriod", config.discretizationPeriod, v ->
             config.discretizationPeriod = v
         );
 
-        Tunable.doubleValue(name + "/moveMotors/kP", config.movePID[0], v -> {
+        Tunable.doubleValue(name + "/MoveMotors/kP", config.movePID[0], v -> {
             System.out.println(v);
             config.movePID[0] = v;
             reapplyGains(true, api);
         });
-        Tunable.doubleValue(name + "/moveMotors/kI", config.movePID[1], v -> {
+        Tunable.doubleValue(name + "/MoveMotors/kI", config.movePID[1], v -> {
             config.movePID[1] = v;
             reapplyGains(true, api);
         });
-        Tunable.doubleValue(name + "/moveMotors/kD", config.movePID[2], v -> {
+        Tunable.doubleValue(name + "/MoveMotors/kD", config.movePID[2], v -> {
             config.movePID[2] = v;
             reapplyGains(true, api);
         });
-        Tunable.doubleValue(name + "/moveMotors/iZone", config.movePID[3], v -> {
+        Tunable.doubleValue(name + "/MoveMotors/iZone", config.movePID[3], v -> {
             config.movePID[3] = v;
             reapplyGains(true, api);
         });
 
-        Tunable.doubleValue(name + "/moveMotors/kS", config.moveFF[0], v -> {
+        Tunable.doubleValue(name + "/MoveMotors/kS", config.moveFF[0], v -> {
             config.moveFF[0] = v;
             reapplyGains(true, api);
         });
-        Tunable.doubleValue(name + "/moveMotors/kV", config.moveFF[1], v -> {
+        Tunable.doubleValue(name + "/MoveMotors/kV", config.moveFF[1], v -> {
             config.moveFF[1] = v;
             reapplyGains(true, api);
         });
 
-        Tunable.doubleValue(name + "/turnMotors/kP", config.turnPID[0], v -> {
+        Tunable.doubleValue(name + "/TurnMotors/kP", config.turnPID[0], v -> {
             config.turnPID[0] = v;
             reapplyGains(false, api);
         });
-        Tunable.doubleValue(name + "/turnMotors/kI", config.turnPID[1], v -> {
+        Tunable.doubleValue(name + "/TurnMotors/kI", config.turnPID[1], v -> {
             config.turnPID[1] = v;
             reapplyGains(false, api);
         });
-        Tunable.doubleValue(name + "/turnMotors/kD", config.turnPID[2], v -> {
+        Tunable.doubleValue(name + "/TurnMotors/kD", config.turnPID[2], v -> {
             config.turnPID[2] = v;
             reapplyGains(false, api);
         });
-        Tunable.doubleValue(name + "/turnMotors/iZone", config.turnPID[3], v -> {
+        Tunable.doubleValue(name + "/TurnMotors/iZone", config.turnPID[3], v -> {
             config.turnPID[3] = v;
             reapplyGains(false, api);
         });

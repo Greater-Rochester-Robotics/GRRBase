@@ -3,10 +3,13 @@ package org.team340.lib.swerve.hardware;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.Pigeon2;
+import com.reduxrobotics.sensors.canandgyro.Canandgyro;
 import edu.wpi.first.epilogue.logging.DataLogger;
 import edu.wpi.first.epilogue.logging.errors.ErrorHandler;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.ADIS16470_IMU;
 import edu.wpi.first.wpilibj.ADIS16470_IMU.CalibrationTime;
 import edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis;
@@ -15,12 +18,14 @@ import edu.wpi.first.wpilibj.SPI;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import org.team340.lib.logging.ADIS16470Logger;
-import org.team340.lib.logging.Pigeon2Logger;
+import org.team340.lib.logging.phoenix.Pigeon2Logger;
+import org.team340.lib.logging.reduxlib.CanandgyroLogger;
+import org.team340.lib.logging.wpilibj.ADIS16470Logger;
 import org.team340.lib.swerve.SwerveAPI;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.hardware.SwerveIMUs.SwerveIMU.IMUSimHook;
 import org.team340.lib.util.Mutable;
+import org.team340.lib.util.redux.ReduxUtil;
 
 /**
  * Contains implementations for IMUs to be used with the {@link SwerveAPI}.
@@ -131,6 +136,64 @@ public final class SwerveIMUs {
     }
 
     /**
+     * Configures a {@link Canandgyro}.
+     * @param id CAN ID of the device, as configured in Alchemist.
+     */
+    public static SwerveIMU.Ctor canandgyro(int id) {
+        return config -> {
+            var deviceLogger = new CanandgyroLogger();
+            Canandgyro canandgyro = new Canandgyro(id);
+
+            return new SwerveIMU() {
+                @Override
+                public Rotation2d getYaw() {
+                    return Rotation2d.fromRotations(
+                        ReduxUtil.getLatencyCompensatedValue(
+                            canandgyro.getYawFrame(),
+                            canandgyro.getAngularVelocityYaw()
+                        )
+                    );
+                }
+
+                @Override
+                public Rotation2d getPitch() {
+                    return Rotation2d.fromRotations(
+                        ReduxUtil.getLatencyCompensatedPitch(
+                            canandgyro.getAngularPositionFrame(),
+                            canandgyro.getAngularVelocityPitch()
+                        )
+                    );
+                }
+
+                @Override
+                public Rotation2d getRoll() {
+                    return Rotation2d.fromRotations(
+                        ReduxUtil.getLatencyCompensatedRoll(
+                            canandgyro.getAngularPositionFrame(),
+                            canandgyro.getAngularVelocityRoll()
+                        )
+                    );
+                }
+
+                @Override
+                public Object getAPI() {
+                    return canandgyro;
+                }
+
+                @Override
+                public void log(DataLogger logger, ErrorHandler errorHandler) {
+                    deviceLogger.tryUpdate(logger, canandgyro, errorHandler);
+                }
+
+                @Override
+                public void close() {
+                    canandgyro.close();
+                }
+            };
+        };
+    }
+
+    /**
      * Configures a {@link Pigeon2}.
      * @param id CAN ID of the device, as configured in Phoenix Tuner.
      */
@@ -139,12 +202,12 @@ public final class SwerveIMUs {
             var deviceLogger = new Pigeon2Logger();
             Pigeon2 pigeon2 = new Pigeon2(id, config.phoenixCanBus);
 
-            StatusSignal<Double> yaw = pigeon2.getYaw().clone();
-            StatusSignal<Double> pitch = pigeon2.getPitch();
-            StatusSignal<Double> roll = pigeon2.getRoll();
-            StatusSignal<Double> yawVelocity = pigeon2.getAngularVelocityZWorld().clone();
-            StatusSignal<Double> pitchVelocity = pigeon2.getAngularVelocityXWorld();
-            StatusSignal<Double> rollVelocity = pigeon2.getAngularVelocityYWorld();
+            StatusSignal<Angle> yaw = pigeon2.getYaw().clone();
+            StatusSignal<Angle> pitch = pigeon2.getPitch();
+            StatusSignal<Angle> roll = pigeon2.getRoll();
+            StatusSignal<AngularVelocity> yawVelocity = pigeon2.getAngularVelocityZWorld().clone();
+            StatusSignal<AngularVelocity> pitchVelocity = pigeon2.getAngularVelocityXWorld();
+            StatusSignal<AngularVelocity> rollVelocity = pigeon2.getAngularVelocityYWorld();
 
             BaseStatusSignal.setUpdateFrequencyForAll(1.0 / config.odometryPeriod, yaw, yawVelocity);
             BaseStatusSignal.setUpdateFrequencyForAll(1.0 / config.period, pitch, roll, pitchVelocity, rollVelocity);
@@ -153,20 +216,22 @@ public final class SwerveIMUs {
             return new SwerveIMU() {
                 @Override
                 public Rotation2d getYaw() {
-                    return Rotation2d.fromDegrees(BaseStatusSignal.getLatencyCompensatedValue(yaw, yawVelocity));
+                    return Rotation2d.fromDegrees(
+                        BaseStatusSignal.getLatencyCompensatedValueAsDouble(yaw, yawVelocity)
+                    );
                 }
 
                 @Override
                 public Rotation2d getPitch() {
                     return Rotation2d.fromDegrees(
-                        BaseStatusSignal.getLatencyCompensatedValue(pitch.refresh(), pitchVelocity.refresh())
+                        BaseStatusSignal.getLatencyCompensatedValueAsDouble(pitch.refresh(), pitchVelocity.refresh())
                     );
                 }
 
                 @Override
                 public Rotation2d getRoll() {
                     return Rotation2d.fromDegrees(
-                        BaseStatusSignal.getLatencyCompensatedValue(roll.refresh(), rollVelocity.refresh())
+                        BaseStatusSignal.getLatencyCompensatedValueAsDouble(roll.refresh(), rollVelocity.refresh())
                     );
                 }
 

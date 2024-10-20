@@ -3,6 +3,8 @@ package org.team340.lib.dashboard;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.SparkPIDController;
+import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -16,6 +18,7 @@ import java.util.function.Supplier;
  * The Tunable class is used to construct tunable properties of the robot to be modified
  * via NetworkTables, as well as automatically displayed and edited in the dashboard.
  */
+@Logged(strategy = Strategy.OPT_IN)
 public final class Tunable<T> implements Supplier<T>, AutoCloseable {
 
     private static final NetworkTable nt = NetworkTableInstance.getDefault().getTable("GRRDashboard/Tunables");
