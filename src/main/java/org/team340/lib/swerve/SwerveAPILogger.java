@@ -35,13 +35,14 @@ public class SwerveAPILogger extends ClassSpecificLogger<SwerveAPI> {
     }
 
     private void logState(DataLogger logger, SwerveState state) {
+        logger.log("twist", state.twist, Twist2d.struct);
+        logger.log("speeds", state.speeds, ChassisSpeeds.struct);
+        logger.log("targetTwist", state.targetTwist, Twist2d.struct);
+        logger.log("targetSpeeds", state.targetSpeeds, ChassisSpeeds.struct);
+        logger.log("velocity", state.velocity);
         logger.log("pitch", state.pitch, Rotation2d.struct);
         logger.log("roll", state.roll, Rotation2d.struct);
         logger.log("pose", state.pose, Pose2d.struct);
-        logger.log("twist", state.twist, Twist2d.struct);
-        logger.log("speeds", state.speeds, ChassisSpeeds.struct);
-        logger.log("targetSpeeds", state.targetSpeeds, ChassisSpeeds.struct);
-        logger.log("velocity", state.velocity);
 
         var modules = logger.getSubLogger("modules");
         modules.log("positions", state.modules.positions, SwerveModulePosition.struct);

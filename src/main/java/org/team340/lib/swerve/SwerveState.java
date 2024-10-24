@@ -59,28 +59,32 @@ public final class SwerveState {
     public final Modules modules;
     /** The state of the odometry. */
     public final Odometry odometry;
+    /** The movement of the robot since the last loop represented as a {@link Twist2d}. */
+    public final Twist2d twist;
+    /** The current measured robot-relative speeds. */
+    public final ChassisSpeeds speeds;
+    /** The target movement of the robot when using {@code applySpeeds()}. */
+    public final Twist2d targetTwist;
+    /** The target robot-relative speeds when using {@code applySpeeds()}. */
+    public final ChassisSpeeds targetSpeeds;
+    /** The directionless measured velocity of the robot. */
+    public double velocity;
     /** The robot's pitch as reported by the IMU. */
     public Rotation2d pitch;
     /** The robot's roll as reported by the IMU. */
     public Rotation2d roll;
     /** The current blue origin relative pose of the robot. */
     public Pose2d pose;
-    /** The movement of the robot since the last loop represented as a {@link Twist2d}. */
-    public Twist2d twist;
-    /** The current measured robot-relative speeds. */
-    public ChassisSpeeds speeds;
-    /** The target robot-relative speeds when using {@code applySpeeds()}. */
-    public ChassisSpeeds targetSpeeds;
-    /** The directionless measured velocity of the robot. */
-    public double velocity;
 
     SwerveState(SwerveModule[] modules) {
         this.modules = new Modules(modules);
         odometry = new Odometry();
+        twist = new Twist2d();
+        speeds = new ChassisSpeeds();
+        targetTwist = new Twist2d();
+        targetSpeeds = new ChassisSpeeds();
         pitch = Rotation2d.kZero;
         roll = Rotation2d.kZero;
         pose = Pose2d.kZero;
-        speeds = new ChassisSpeeds();
-        targetSpeeds = new ChassisSpeeds();
     }
 }

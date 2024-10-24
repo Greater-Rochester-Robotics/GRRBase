@@ -229,7 +229,7 @@ public class SwerveConfig {
      * all devices must be activated, and intrinsically must all be Phoenix devices (Pigeon2 + TalonFX + CANcoder).
      * This configuration option can be omitted safely if its features are not needed.
      * @param canBus The CAN bus utilized by Phoenix devices.
-     * @param pro {@code true} if Phoenix Pro is active on <i>all</i> devices used by the swerve API.
+     * @param pro {@code true} if Phoenix Pro is active on <i>all</i> CTRE devices used by the swerve API.
      * @param moveFOC If move motors should enable FOC. {@code pro} can still be {@code false} while enabling FOC, provided all move motors are still licensed.
      * @param turnFOC If turn motors should enable FOC. {@code pro} can still be {@code false} while enabling FOC, provided all turn motors are still licensed.
      */

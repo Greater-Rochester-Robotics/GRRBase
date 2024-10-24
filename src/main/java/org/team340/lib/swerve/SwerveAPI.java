@@ -23,7 +23,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.hardware.SwerveIMUs.SwerveIMU;
-import org.team340.lib.util.Alliance;
 import org.team340.lib.util.Math2;
 import org.team340.lib.util.Sleep;
 import org.team340.robot.Robot;
@@ -116,11 +115,11 @@ public class SwerveAPI implements AutoCloseable {
             odometryMutex.unlock();
         }
 
+        Math2.copyInto(kinematics.toTwist2d(lastPositions, state.modules.positions), state.twist);
+        Math2.copyInto(kinematics.toChassisSpeeds(state.modules.states), state.speeds);
+        state.velocity = Math.hypot(state.speeds.vxMetersPerSecond, state.speeds.vyMetersPerSecond);
         state.pitch = imu.getPitch();
         state.roll = imu.getRoll();
-        state.twist = kinematics.toTwist2d(lastPositions, state.modules.positions);
-        state.speeds = kinematics.toChassisSpeeds(state.modules.states);
-        state.velocity = Math.hypot(state.speeds.vxMetersPerSecond, state.speeds.vyMetersPerSecond);
 
         imuSimHook.accept(state.speeds);
     }
@@ -282,6 +281,7 @@ public class SwerveAPI implements AutoCloseable {
             double now = Timer.getFPGATimestamp();
             if (now - lastRatelimit > config.period * 2.0) {
                 Math2.copyInto(state.speeds, state.targetSpeeds);
+                lastRobotAngle = state.pose.getRotation();
             }
             lastRatelimit = now;
 
@@ -311,14 +311,18 @@ public class SwerveAPI implements AutoCloseable {
 
             double dw = speeds.omegaRadiansPerSecond - w_l;
             double a_angular = config.angularAccel * config.period;
-            speeds.omegaRadiansPerSecond = w_l + ((Math.abs(dw) > a_angular ? a_angular / Math.abs(dw) : 1.0) * dw);
+            speeds.omegaRadiansPerSecond = w_l + (Math.min(a_angular / Math.abs(dw), 1.0) * dw);
         }
 
-        if (discretize) ChassisSpeeds.discretize(speeds, config.discretizationPeriod);
+        if (discretize) speeds.discretize(config.discretizationPeriod);
 
         lastRobotAngle = state.pose.getRotation();
         forwardPerspective.toRobotSpeeds(speeds, lastRobotAngle);
+
         Math2.copyInto(speeds, state.targetSpeeds);
+        state.targetTwist.dx = speeds.vxMetersPerSecond * config.period;
+        state.targetTwist.dy = speeds.vyMetersPerSecond * config.period;
+        state.targetTwist.dtheta = speeds.omegaRadiansPerSecond * config.period;
 
         applyStates(kinematics.toSwerveModuleStates(speeds));
     }
@@ -331,6 +335,10 @@ public class SwerveAPI implements AutoCloseable {
         state.targetSpeeds.vxMetersPerSecond = 0.0;
         state.targetSpeeds.vyMetersPerSecond = 0.0;
         state.targetSpeeds.omegaRadiansPerSecond = 0.0;
+        state.targetTwist.dx = 0.0;
+        state.targetTwist.dy = 0.0;
+        state.targetTwist.dtheta = 0.0;
+
         applyStates(lockedStates);
     }
 
@@ -379,119 +387,6 @@ public class SwerveAPI implements AutoCloseable {
             for (var module : modules) module.close();
             imu.close();
         } catch (Exception e) {}
-    }
-
-    /**
-     * Specifies the X+ direction of chassis speeds.
-     */
-    public static enum ForwardPerspective {
-        // TODO Remove copyInto, mutate in place: blocked by upstream PR https://github.com/wpilibsuite/allwpilib/pull/7115
-
-        /**
-         * The speeds are relative to the operator's perspective. If the robot
-         * is on the blue alliance, X+ drives towards the red alliance. If the
-         * robot is on the red alliance, X+ drives towards the blue alliance.
-         */
-        OPERATOR {
-            @Override
-            void toRobotSpeeds(ChassisSpeeds speeds, Rotation2d robotAngle) {
-                (Alliance.isBlue() ? BLUE_ALLIANCE : RED_ALLIANCE).toRobotSpeeds(speeds, robotAngle);
-            }
-
-            @Override
-            void toPerspectiveSpeeds(ChassisSpeeds speeds, Rotation2d robotAngle) {
-                (Alliance.isBlue() ? BLUE_ALLIANCE : RED_ALLIANCE).toPerspectiveSpeeds(speeds, robotAngle);
-            }
-
-            @Override
-            Rotation2d getTareRotation() {
-                return (Alliance.isBlue() ? BLUE_ALLIANCE : RED_ALLIANCE).getTareRotation();
-            }
-        },
-
-        /**
-         * The speeds are relative to the blue alliance perspective.
-         * X+ drives towards the red alliance.
-         */
-        BLUE_ALLIANCE {
-            @Override
-            void toRobotSpeeds(ChassisSpeeds speeds, Rotation2d robotAngle) {
-                var newSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, robotAngle);
-                Math2.copyInto(newSpeeds, speeds);
-            }
-
-            @Override
-            void toPerspectiveSpeeds(ChassisSpeeds speeds, Rotation2d robotAngle) {
-                var newSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(speeds, robotAngle);
-                Math2.copyInto(newSpeeds, speeds);
-            }
-
-            @Override
-            Rotation2d getTareRotation() {
-                return Rotation2d.kZero;
-            }
-        },
-
-        /**
-         * The speeds are relative to the red alliance perspective.
-         * X+ drives towards the blue alliance.
-         */
-        RED_ALLIANCE {
-            @Override
-            void toRobotSpeeds(ChassisSpeeds speeds, Rotation2d robotAngle) {
-                var newSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, robotAngle.rotateBy(Rotation2d.kPi));
-                Math2.copyInto(newSpeeds, speeds);
-            }
-
-            @Override
-            void toPerspectiveSpeeds(ChassisSpeeds speeds, Rotation2d robotAngle) {
-                var newSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(speeds, robotAngle.rotateBy(Rotation2d.kPi));
-                Math2.copyInto(newSpeeds, speeds);
-            }
-
-            @Override
-            Rotation2d getTareRotation() {
-                return Rotation2d.kPi;
-            }
-        },
-
-        /**
-         * The speeds are relative to the robot's perspective.
-         * X+ drives forwards relative to the chassis.
-         */
-        ROBOT {
-            @Override
-            void toRobotSpeeds(ChassisSpeeds speeds, Rotation2d robotAngle) {}
-
-            @Override
-            void toPerspectiveSpeeds(ChassisSpeeds speeds, Rotation2d robotAngle) {}
-
-            @Override
-            Rotation2d getTareRotation() {
-                // Will no-op downstream.
-                return null;
-            }
-        };
-
-        /**
-         * Converts perspective relative speeds to robot relative speeds.
-         * @param speeds The perspective relative speeds to convert.
-         * @param robotAngle The blue origin relative angle of the robot.
-         */
-        abstract void toRobotSpeeds(ChassisSpeeds speeds, Rotation2d robotAngle);
-
-        /**
-         * Converts robot relative speeds to the perspective relative speeds.
-         * @param speeds The robot relative speeds to convert.
-         * @param robotAngle The blue origin relative angle of the robot.
-         */
-        abstract void toPerspectiveSpeeds(ChassisSpeeds speeds, Rotation2d robotAngle);
-
-        /**
-         * Gets the rotation to apply as the new zero when
-         * taring the robot's rotation to the perspective.
-         */
-        abstract Rotation2d getTareRotation();
     }
 
     /**

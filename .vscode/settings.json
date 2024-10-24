@@ -6,7 +6,8 @@
     "edu.wpi.first.math.util.Units.*",
     "(initialValue)",
     "(magnitude)",
-    "(value)"
+    "(value)",
+    "(e)"
   ],
   "java.server.launchMode": "Standard",
   "java.test.config": [

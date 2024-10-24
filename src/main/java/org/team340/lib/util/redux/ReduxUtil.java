@@ -2,14 +2,155 @@ package org.team340.lib.util.redux;
 
 import com.reduxrobotics.frames.DoubleFrame;
 import com.reduxrobotics.frames.Frame;
+import com.reduxrobotics.sensors.canandgyro.Canandgyro;
 import com.reduxrobotics.sensors.canandgyro.QuaternionFrame;
+import com.reduxrobotics.sensors.canandgyro.Vec3Frame;
+import com.reduxrobotics.sensors.canandmag.Canandmag;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import java.util.Map;
 
-public class ReduxUtil {
+public final class ReduxUtil {
 
     private ReduxUtil() {
         throw new AssertionError("This is a utility class!");
+    }
+
+    /**
+     * Applies settings to a Canandmag and checks for errors.
+     * Will try up to 3 times if settings fail to apply.
+     * @param canandmag The Canandmag.
+     * @param settings The settings to apply.
+     * @return {@code true} if success, {@code false} otherwise.
+     */
+    public static boolean applySettings(Canandmag canandmag, Canandmag.Settings settings) {
+        return applySettings(canandmag, settings, 3);
+    }
+
+    /**
+     * Applies settings to a Canandmag and checks for errors.
+     * @param canandmag The Canandmag.
+     * @param settings The settings to apply.
+     * @param maxTries The number of times to try to apply settings before failing. {@code 1} only tries once.
+     * @return {@code true} if success, {@code false} otherwise.
+     */
+    public static boolean applySettings(Canandmag canandmag, Canandmag.Settings settings, int maxTries) {
+        String results = "";
+        for (int i = 0; i < maxTries; i++) {
+            boolean result = canandmag.setSettings(settings, 0.05);
+            if (!result) {
+                results += (results.isEmpty() ? "" : ", ") + "setSettings() Failure";
+                continue;
+            }
+
+            boolean failed = false;
+            Map<Integer, Long> device = canandmag.getSettings(0.5).getFilteredMap();
+            for (var entry : settings.getFilteredMap().entrySet()) {
+                if (device.get(entry.getKey()) != entry.getValue()) failed = true;
+            }
+
+            if (!failed) return true;
+            results += (results.isEmpty() ? "" : ", ") + "Failed check";
+        }
+
+        DriverStation.reportError(
+            "[ReduxUtil] Canandmag (ID " + canandmag.getAddress().getDeviceId() + "): " + results,
+            false
+        );
+        return false;
+    }
+
+    /**
+     * Applies settings to a Canandgyro and checks for errors.
+     * Will try up to 3 times if settings fail to apply.
+     * @param canandgyro The Canandgyro.
+     * @param settings The settings to apply.
+     * @return {@code true} if success, {@code false} otherwise.
+     */
+    public static boolean applySettings(Canandgyro canandgyro, Canandgyro.Settings settings) {
+        return applySettings(canandgyro, settings, 3);
+    }
+
+    /**
+     * Applies settings to a Canandgyro and checks for errors.
+     * @param canandgyro The Canandgyro.
+     * @param settings The settings to apply.
+     * @param maxTries The number of times to try to apply settings before failing. {@code 1} only tries once.
+     * @return {@code true} if success, {@code false} otherwise.
+     */
+    public static boolean applySettings(Canandgyro canandgyro, Canandgyro.Settings settings, int maxTries) {
+        String results = "";
+        for (int i = 0; i < maxTries; i++) {
+            boolean result = canandgyro.setSettings(settings, 0.05);
+            if (!result) {
+                results += (results.isEmpty() ? "" : ", ") + "setSettings() Failure";
+                continue;
+            }
+
+            boolean failed = false;
+            Map<Integer, Long> device = canandgyro.getSettings(0.5).getFilteredMap();
+            for (var entry : settings.getFilteredMap().entrySet()) {
+                if (device.get(entry.getKey()) != entry.getValue()) failed = true;
+            }
+
+            if (!failed) return true;
+            results += (results.isEmpty() ? "" : ", ") + "Failed check";
+        }
+
+        DriverStation.reportError(
+            "[ReduxUtil] Canandgyro (ID " + canandgyro.getAddress().getDeviceId() + "): " + results,
+            false
+        );
+        return false;
+    }
+
+    /**
+     * Performs latency compensation on the X component of the provided 3D vector frame
+     * using the {@code slope} to determine the magnitude of the compensation.
+     * @param frame The frame to compensate.
+     * @param slope The rate of change of the frame's data.
+     */
+    public static double latencyCompensateVec3X(Vec3Frame frame, double slope) {
+        double value, timestamp;
+        synchronized (frame) {
+            value = frame.getX();
+            timestamp = frame.getTimestamp();
+        }
+
+        return latencyCompensate(value, timestamp, slope);
+    }
+
+    /**
+     * Performs latency compensation on the Y component of the provided 3D vector frame
+     * using the {@code slope} to determine the magnitude of the compensation.
+     * @param frame The frame to compensate.
+     * @param slope The rate of change of the frame's data.
+     */
+    public static double latencyCompensateVec3Y(Vec3Frame frame, double slope) {
+        double value, timestamp;
+        synchronized (frame) {
+            value = frame.getY();
+            timestamp = frame.getTimestamp();
+        }
+
+        return latencyCompensate(value, timestamp, slope);
+    }
+
+    /**
+     * Performs latency compensation on the Z component of the provided 3D vector frame
+     * using the {@code slope} to determine the magnitude of the compensation.
+     * @param frame The frame to compensate.
+     * @param slope The rate of change of the frame's data.
+     */
+    public static double latencyCompensateVec3Z(Vec3Frame frame, double slope) {
+        double value, timestamp;
+        synchronized (frame) {
+            value = frame.getZ();
+            timestamp = frame.getTimestamp();
+        }
+
+        return latencyCompensate(value, timestamp, slope);
     }
 
     /**
@@ -18,14 +159,14 @@ public class ReduxUtil {
      * @param frame The frame to compensate.
      * @param slope The rate of change of the frame's data.
      */
-    public static double getLatencyCompensatedYaw(QuaternionFrame frame, double slope) {
+    public static double latencyCompensateQuaternionYaw(QuaternionFrame frame, double slope) {
         double value, timestamp;
         synchronized (frame) {
             value = frame.getYaw();
             timestamp = frame.getTimestamp();
         }
 
-        return getLatencyCompensatedValue(value, timestamp, slope);
+        return latencyCompensate(value, timestamp, slope);
     }
 
     /**
@@ -34,14 +175,14 @@ public class ReduxUtil {
      * @param frame The frame to compensate.
      * @param slope The rate of change of the frame's data.
      */
-    public static double getLatencyCompensatedPitch(QuaternionFrame frame, double slope) {
+    public static double latencyCompensateQuaternionPitch(QuaternionFrame frame, double slope) {
         double value, timestamp;
         synchronized (frame) {
             value = frame.getPitch();
             timestamp = frame.getTimestamp();
         }
 
-        return getLatencyCompensatedValue(value, timestamp, slope);
+        return latencyCompensate(value, timestamp, slope);
     }
 
     /**
@@ -50,14 +191,14 @@ public class ReduxUtil {
      * @param frame The frame to compensate.
      * @param slope The rate of change of the frame's data.
      */
-    public static double getLatencyCompensatedRoll(QuaternionFrame frame, double slope) {
+    public static double latencyCompensateQuaternionRoll(QuaternionFrame frame, double slope) {
         double value, timestamp;
         synchronized (frame) {
             value = frame.getRoll();
             timestamp = frame.getTimestamp();
         }
 
-        return getLatencyCompensatedValue(value, timestamp, slope);
+        return latencyCompensate(value, timestamp, slope);
     }
 
     /**
@@ -66,14 +207,14 @@ public class ReduxUtil {
      * @param frame The frame to compensate.
      * @param slope The rate of change of the frame's data.
      */
-    public static double getLatencyCompensatedValue(DoubleFrame<Double> frame, double slope) {
+    public static double latencyCompensate(DoubleFrame<Double> frame, double slope) {
         double value, timestamp;
         synchronized (frame) {
             value = frame.getData();
             timestamp = frame.getTimestamp();
         }
 
-        return getLatencyCompensatedValue(value, timestamp, slope);
+        return latencyCompensate(value, timestamp, slope);
     }
 
     /**
@@ -82,14 +223,14 @@ public class ReduxUtil {
      * @param frame The frame to compensate.
      * @param slope The rate of change of the frame's data.
      */
-    public static double getLatencyCompensatedValue(Frame<Double> frame, double slope) {
+    public static double latencyCompensate(Frame<Double> frame, double slope) {
         double value, timestamp;
         synchronized (frame) {
             value = frame.getValue();
             timestamp = frame.getTimestamp();
         }
 
-        return getLatencyCompensatedValue(value, timestamp, slope);
+        return latencyCompensate(value, timestamp, slope);
     }
 
     /**
@@ -99,7 +240,7 @@ public class ReduxUtil {
      * @param timestamp The timestamp of the frame.
      * @param slope The rate of change of the frame's data.
      */
-    public static double getLatencyCompensatedValue(double value, double timestamp, double slope) {
+    public static double latencyCompensate(double value, double timestamp, double slope) {
         double latency = MathUtil.clamp(Timer.getFPGATimestamp() - timestamp, 0.0, 0.2);
         return value + (slope * latency);
     }

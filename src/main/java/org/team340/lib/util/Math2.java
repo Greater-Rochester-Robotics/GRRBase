@@ -7,6 +7,7 @@ import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import java.util.Optional;
 
 /**
  * Math utilities.
@@ -55,6 +56,35 @@ public final class Math2 {
     }
 
     /**
+     * Check if two optional values are equal within the accuracy of the default epsilon.
+     * If one option is empty and the other is present, or both options are present and
+     * unequal, {@code false} is returned. If both options empty, or both options are
+     * present and equal, {@code true} is returned.
+     * @param a The first value to compare.
+     * @param b The second value to compare.
+     * @return {@code true} if the values are equal.
+     */
+    public static boolean epsilonEquals(Optional<Double> a, Optional<Double> b) {
+        return epsilonEquals(a, b, EPSILON);
+    }
+
+    /**
+     * Check if two optional values are equal within the accuracy of the default epsilon.
+     * If one option is empty and the other is present, or both options are present and
+     * unequal, {@code false} is returned. If both options empty, or both options are
+     * present and equal, {@code true} is returned.
+     * @param a The first value to compare.
+     * @param b The second value to compare.
+     * @param epsilon Epsilon value to compare with.
+     * @return {@code true} if the values are equal.
+     */
+    public static boolean epsilonEquals(Optional<Double> a, Optional<Double> b, double epsilon) {
+        if (a == b) return true;
+        if (a.isEmpty() || b.isEmpty()) return a.isEmpty() && b.isEmpty();
+        return epsilonEquals(a.get(), b.get(), epsilon);
+    }
+
+    /**
      * Check if two values are equal within the accuracy of the default epsilon.
      * @param a The first value to compare.
      * @param b The second value to compare.
@@ -81,8 +111,8 @@ public final class Math2 {
      * @param b The second value to compare.
      * @return {@code true} if the values are equal.
      */
-    public static boolean translationEpsilonEquals(Translation2d a, Translation2d b) {
-        return translationEpsilonEquals(a, b, EPSILON);
+    public static boolean epsilonEquals(Translation2d a, Translation2d b) {
+        return epsilonEquals(a, b, EPSILON);
     }
 
     /**
@@ -92,7 +122,7 @@ public final class Math2 {
      * @param epsilon Epsilon value to compare with.
      * @return {@code true} if the values are equal.
      */
-    public static boolean translationEpsilonEquals(Translation2d a, Translation2d b, double epsilon) {
+    public static boolean epsilonEquals(Translation2d a, Translation2d b, double epsilon) {
         return (epsilonEquals(a.getX(), b.getX(), epsilon) && epsilonEquals(a.getY(), b.getY(), epsilon));
     }
 
@@ -102,8 +132,8 @@ public final class Math2 {
      * @param b The second value to compare.
      * @return {@code true} if the values are equal.
      */
-    public static boolean transformEpsilonEquals(Transform2d a, Transform2d b) {
-        return transformEpsilonEquals(a, b, EPSILON);
+    public static boolean epsilonEquals(Transform2d a, Transform2d b) {
+        return epsilonEquals(a, b, EPSILON);
     }
 
     /**
@@ -113,7 +143,7 @@ public final class Math2 {
      * @param epsilon Epsilon value to compare with.
      * @return {@code true} if the values are equal.
      */
-    public static boolean transformEpsilonEquals(Transform2d a, Transform2d b, double epsilon) {
+    public static boolean epsilonEquals(Transform2d a, Transform2d b, double epsilon) {
         return (
             epsilonEquals(a.getX(), b.getX(), epsilon) &&
             epsilonEquals(a.getY(), b.getY(), epsilon) &&
@@ -127,8 +157,8 @@ public final class Math2 {
      * @param b The second value to compare.
      * @return {@code true} if the values are equal.
      */
-    public static boolean poseEpsilonEquals(Pose2d a, Pose2d b) {
-        return poseEpsilonEquals(a, b, EPSILON);
+    public static boolean epsilonEquals(Pose2d a, Pose2d b) {
+        return epsilonEquals(a, b, EPSILON);
     }
 
     /**
@@ -138,7 +168,7 @@ public final class Math2 {
      * @param epsilon Epsilon value to compare with.
      * @return {@code true} if the values are equal.
      */
-    public static boolean poseEpsilonEquals(Pose2d a, Pose2d b, double epsilon) {
+    public static boolean epsilonEquals(Pose2d a, Pose2d b, double epsilon) {
         return (
             epsilonEquals(a.getX(), b.getX(), epsilon) &&
             epsilonEquals(a.getY(), b.getY(), epsilon) &&
@@ -152,8 +182,8 @@ public final class Math2 {
      * @param b The second value to compare.
      * @return {@code true} if the values are equal.
      */
-    public static boolean twistEpsilonEquals(Twist2d a, Twist2d b) {
-        return twistEpsilonEquals(a, b, EPSILON);
+    public static boolean epsilonEquals(Twist2d a, Twist2d b) {
+        return epsilonEquals(a, b, EPSILON);
     }
 
     /**
@@ -163,12 +193,25 @@ public final class Math2 {
      * @param epsilon Epsilon value to compare with.
      * @return {@code true} if the values are equal.
      */
-    public static boolean twistEpsilonEquals(Twist2d a, Twist2d b, double epsilon) {
+    public static boolean epsilonEquals(Twist2d a, Twist2d b, double epsilon) {
         return (
             epsilonEquals(a.dx, b.dx, epsilon) &&
             epsilonEquals(a.dy, b.dy, epsilon) &&
             epsilonEquals(a.dtheta, b.dtheta, epsilon)
         );
+    }
+
+    /**
+     * Copies values from a source {@link Twist2d} object to another.
+     * @param source The twist to copy from.
+     * @param output The twist to copy into.
+     * @return The output twist.
+     */
+    public static Twist2d copyInto(Twist2d source, Twist2d output) {
+        output.dx = source.dx;
+        output.dy = source.dy;
+        output.dtheta = source.dtheta;
+        return output;
     }
 
     /**
@@ -206,5 +249,14 @@ public final class Math2 {
         output.speedMetersPerSecond = source.speedMetersPerSecond;
         output.angle = source.angle;
         return output;
+    }
+
+    /**
+     * Formats radians to be human readable by converting
+     * to degrees and rounding to 2 decimal points.
+     * @param radians The radians to format.
+     */
+    public String formatRadians(double radians) {
+        return String.format("%.2f", Math.toDegrees(radians));
     }
 }

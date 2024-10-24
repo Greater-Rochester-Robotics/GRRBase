@@ -223,30 +223,37 @@ public final class Tunable<T> implements Supplier<T>, AutoCloseable {
         controller.getConfigurator().refresh(config);
 
         doubleValue(name + "/kP", config.kP, v -> {
+            controller.getConfigurator().refresh(config);
             config.kP = v;
             controller.getConfigurator().apply(config);
         });
         doubleValue(name + "/kI", config.kI, v -> {
+            controller.getConfigurator().refresh(config);
             config.kI = v;
             controller.getConfigurator().apply(config);
         });
         doubleValue(name + "/kD", config.kD, v -> {
+            controller.getConfigurator().refresh(config);
             config.kD = v;
             controller.getConfigurator().apply(config);
         });
         doubleValue(name + "/kS", config.kS, v -> {
+            controller.getConfigurator().refresh(config);
             config.kS = v;
             controller.getConfigurator().apply(config);
         });
         doubleValue(name + "/kV", config.kV, v -> {
+            controller.getConfigurator().refresh(config);
             config.kV = v;
             controller.getConfigurator().apply(config);
         });
         doubleValue(name + "/kA", config.kA, v -> {
+            controller.getConfigurator().refresh(config);
             config.kA = v;
             controller.getConfigurator().apply(config);
         });
         doubleValue(name + "/kG", config.kG, v -> {
+            controller.getConfigurator().refresh(config);
             config.kG = v;
             controller.getConfigurator().apply(config);
         });

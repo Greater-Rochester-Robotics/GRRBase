@@ -1,7 +1,7 @@
 package org.team340.lib.dashboard;
 
-import com.choreo.lib.ChoreoTrajectory;
-import com.choreo.lib.ChoreoTrajectoryState;
+import choreo.trajectory.SwerveSample;
+import choreo.trajectory.Trajectory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.networktables.BooleanSubscriber;
@@ -61,17 +61,7 @@ public final class GRRDashboard {
      * @param command The auto's command.
      */
     public static String addAuto(String label, Command command) {
-        return addAuto(label, command, new ChoreoTrajectory[] {});
-    }
-
-    /**
-     * Adds an auto to the dashboard.
-     * @param label The label for the auto.
-     * @param command The auto's command.
-     * @param trajectory The trajectory utilized by the auto.
-     */
-    public static String addAuto(String label, Command command, ChoreoTrajectory trajectory) {
-        return addAuto(label, command, new ChoreoTrajectory[] { trajectory });
+        return addAuto(label, command, new Trajectory<SwerveSample>("", List.of(), List.of(), List.of()));
     }
 
     /**
@@ -80,43 +70,29 @@ public final class GRRDashboard {
      * @param command The auto's command.
      * @param trajectories Trajectories utilized by the auto.
      */
-    public static String addAuto(String label, Command command, List<ChoreoTrajectory> trajectories) {
-        return addAuto(label, command, trajectories.stream().toArray(ChoreoTrajectory[]::new));
-    }
-
-    /**
-     * Adds an auto to the dashboard.
-     * @param label The label for the auto.
-     * @param command The auto's command.
-     * @param trajectories Trajectories utilized by the auto.
-     */
-    public static String addAuto(String label, Command command, ChoreoTrajectory[] trajectories) {
+    @SafeVarargs
+    public static String addAuto(String label, Command command, Trajectory<SwerveSample>... trajectories) {
         String id = UUID.randomUUID().toString();
-        List<BigDecimal[]> points = new ArrayList<>();
+        List<BigDecimal[]> samples = new ArrayList<>();
 
-        double lastTimestamp = 0.0;
+        double time = 0.0;
         for (int i = 0; i < trajectories.length; i++) {
-            ChoreoTrajectoryState[] states = trajectories[i].getStates();
-            if (i > 0 && trajectories[i - 1].getStates().length > 0) lastTimestamp +=
-            trajectories[i - 1].getFinalState().timestamp;
-            for (ChoreoTrajectoryState state : states) {
-                points.add(
+            for (SwerveSample sample : trajectories[i].sampleArray()) {
+                samples.add(
                     new BigDecimal[] {
-                        new BigDecimal(state.x).setScale(3, RoundingMode.HALF_UP),
-                        new BigDecimal(state.y).setScale(3, RoundingMode.HALF_UP),
-                        new BigDecimal(state.heading).setScale(2, RoundingMode.HALF_UP),
-                        new BigDecimal(state.timestamp + lastTimestamp).setScale(3, RoundingMode.HALF_UP)
+                        new BigDecimal(sample.x).setScale(3, RoundingMode.HALF_UP),
+                        new BigDecimal(sample.y).setScale(3, RoundingMode.HALF_UP),
+                        new BigDecimal(sample.heading).setScale(2, RoundingMode.HALF_UP),
+                        new BigDecimal(sample.t + time).setScale(3, RoundingMode.HALF_UP)
                     }
                 );
             }
+
+            SwerveSample finalSample = trajectories[i].getFinalSample();
+            if (finalSample != null) time += finalSample.t;
         }
 
-        ChoreoTrajectory lastTrajectory = trajectories.length > 0
-            ? trajectories[trajectories.length - 1]
-            : new ChoreoTrajectory();
-        double time =
-            lastTimestamp + (lastTrajectory.getStates().length > 0 ? lastTrajectory.getFinalState().timestamp : 0.0);
-
+        double t = time;
         String json = "";
         try {
             json = new ObjectMapper()
@@ -125,8 +101,8 @@ public final class GRRDashboard {
                         {
                             put("id", id);
                             put("label", label);
-                            put("points", points);
-                            put("time", time);
+                            put("samples", samples);
+                            put("time", t);
                         }
                     }
                 );
@@ -135,7 +111,10 @@ public final class GRRDashboard {
             json = "";
         }
 
-        if (json.isEmpty()) json = "{ \"id\": \"" + id + "\", \"label\": \"" + label + "\", \"points\": [] }";
+        if (json.isEmpty()) {
+            json = "{ \"id\": \"" + id + "\", \"label\": \"" + label + "\", \"samples\": [], \"time\": 0 }";
+        }
+
         autoOptions.put(id, Pair.of(command, json));
         autoOptionsPub.set(autoOptions.values().stream().map(entry -> entry.getSecond()).toArray(String[]::new));
         return id;

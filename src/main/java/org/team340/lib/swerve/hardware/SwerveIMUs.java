@@ -144,21 +144,27 @@ public final class SwerveIMUs {
             var deviceLogger = new CanandgyroLogger();
             Canandgyro canandgyro = new Canandgyro(id);
 
+            var settings = new Canandgyro.Settings()
+                .setAccelerationFramePeriod(config.period)
+                .setAngularPositionFramePeriod(config.period)
+                .setAngularVelocityFramePeriod(config.odometryPeriod)
+                .setStatusFramePeriod(config.period)
+                .setYawFramePeriod(config.odometryPeriod);
+
+            ReduxUtil.applySettings(canandgyro, settings);
+
             return new SwerveIMU() {
                 @Override
                 public Rotation2d getYaw() {
                     return Rotation2d.fromRotations(
-                        ReduxUtil.getLatencyCompensatedValue(
-                            canandgyro.getYawFrame(),
-                            canandgyro.getAngularVelocityYaw()
-                        )
+                        ReduxUtil.latencyCompensate(canandgyro.getYawFrame(), canandgyro.getAngularVelocityYaw())
                     );
                 }
 
                 @Override
                 public Rotation2d getPitch() {
                     return Rotation2d.fromRotations(
-                        ReduxUtil.getLatencyCompensatedPitch(
+                        ReduxUtil.latencyCompensateQuaternionPitch(
                             canandgyro.getAngularPositionFrame(),
                             canandgyro.getAngularVelocityPitch()
                         )
@@ -168,7 +174,7 @@ public final class SwerveIMUs {
                 @Override
                 public Rotation2d getRoll() {
                     return Rotation2d.fromRotations(
-                        ReduxUtil.getLatencyCompensatedRoll(
+                        ReduxUtil.latencyCompensateQuaternionRoll(
                             canandgyro.getAngularPositionFrame(),
                             canandgyro.getAngularVelocityRoll()
                         )
@@ -288,7 +294,7 @@ public final class SwerveIMUs {
 
             @Override
             public Object getAPI() {
-                return imu;
+                return imu.getAPI();
             }
 
             @Override
