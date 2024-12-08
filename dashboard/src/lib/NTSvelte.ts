@@ -613,11 +613,7 @@ export class NTSvelteClient {
      * @param settings Subscription settings. Ignored if a subscription with the same key is currently active.
      * @returns The value of the topic as a readable.
      */
-    public subscribe<T extends NTType>(
-        key: string,
-        defaultValue: T | null = null,
-        settings?: Partial<NTSubscriberSettings>,
-    ): Readable<T | null> {
+    public subscribe<T extends NTType>(key: string, defaultValue: T, settings?: Partial<NTSubscriberSettings>): Readable<T> {
         return readable(defaultValue, (set) => {
             const listener = (value: any) => set(value ?? defaultValue);
 
