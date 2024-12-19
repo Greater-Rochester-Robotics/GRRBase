@@ -180,8 +180,9 @@ logs/
 ctre_sim/
 
 # Dashboard
-dashboard/dist/
+dashboard/build/
 dashboard/node_modules/
 dashboard/src-tauri/target/
+dashboard/src-tauri/gen/schemas/
 dashboard/src-tauri/Cargo.lock
 dashboard/package-lock.json
