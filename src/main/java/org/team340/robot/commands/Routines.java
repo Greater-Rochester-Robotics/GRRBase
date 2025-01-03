@@ -1,23 +1,30 @@
 package org.team340.robot.commands;
 
 import static edu.wpi.first.wpilibj2.command.Commands.*;
-import static org.team340.robot.RobotContainer.*;
 
+import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.wpilibj2.command.Command;
+import org.team340.robot.Robot;
+import org.team340.robot.subsystems.Swerve;
 
 /**
- * This class is used to declare commands that require multiple subsystems.
+ * The Routines class contains command compositions, such as sequences
+ * or parallel command groups, that require multiple subsystems.
  */
-public class Routines {
+@Logged(strategy = Strategy.OPT_IN)
+public final class Routines {
 
-    private Routines() {
-        throw new UnsupportedOperationException("This is a utility class!");
+    private final Swerve swerve;
+
+    public Routines(Robot robot) {
+        swerve = robot.swerve;
     }
 
     /**
      * An example routine.
      */
-    public static Command example() {
-        return sequence(swerve.drive(() -> 0.1, () -> 0.0, () -> 0.0, true).withTimeout(1.0));
+    public Command example() {
+        return sequence(print("Hello!"), swerve.stop(true).withTimeout(1.0)).withName("Routines.example()");
     }
 }

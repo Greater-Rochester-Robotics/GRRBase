@@ -1,16 +1,10 @@
 package org.team340.lib.util;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.geometry.Twist2d;
-import edu.wpi.first.math.geometry.Twist3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
+import java.util.Optional;
 
 /**
  * Math utilities.
@@ -19,96 +13,72 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 public final class Math2 {
 
     private Math2() {
-        throw new UnsupportedOperationException("This is a utility class!");
+        throw new AssertionError("This is a utility class!");
+    }
+
+    /** Shared maximum accuracy floating point. */
+    public static final double kEpsilon = 1e-6;
+    /** {@code PI/6} (30deg) */
+    public static final double kSixthPi = Math.PI / 6.0;
+    /** {@code PI/4} (45deg) */
+    public static final double kQuarterPi = Math.PI / 4.0;
+    /** {@code PI/3} (60deg) */
+    public static final double kThirdPi = Math.PI / 3.0;
+    /** {@code PI/2} (90deg) */
+    public static final double kHalfPi = Math.PI / 2.0;
+    /** {@code 2PI/3} (120deg) */
+    public static final double kTwoThirdsPi = (2.0 * Math.PI) / 3.0;
+    /** {@code 3PI/4} (135deg) */
+    public static final double kThreeQuartersPi = (3.0 * Math.PI) / 4.0;
+    /** {@code 5PI/6} (150deg) */
+    public static final double kFiveSixthsPi = (5.0 * Math.PI) / 6.0;
+    /** {@code PI*2} (360deg) */
+    public static final double kTwoPi = Math.PI * 2.0;
+
+    /**
+     * Returns a random double from {@code 0.0} to {@code max}.
+     * @param max The maximum value to return.
+     */
+    public static double random(double max) {
+        return Math.random() * max;
     }
 
     /**
-     * Shared maximum accuracy floating point.
+     * Returns a random double from {@code min} to {@code max}.
+     * @param min The minimum value to return.
+     * @param max The maximum value to return.
      */
-    public static final double DEFAULT_EPSILON = 1e-9;
-    /**
-     * {@code PI * 2}
-     */
-    public static final double TWO_PI = Math.PI * 2.0;
-    /**
-     * {@code PI / 2}
-     */
-    public static final double HALF_PI = Math.PI / 2.0;
-    /**
-     * {@code PI / 4}
-     */
-    public static final double QUARTER_PI = Math.PI / 4.0;
+    public static double random(double min, double max) {
+        return (Math.random() * (max - min)) + min;
+    }
 
     /**
-     * Identity {@link Translation2d}.
+     * Check if two optional values are equal within the accuracy of the default epsilon.
+     * If one option is empty and the other is present, or both options are present and
+     * unequal, {@code false} is returned. If both options empty, or both options are
+     * present and equal, {@code true} is returned.
+     * @param a The first value to compare.
+     * @param b The second value to compare.
+     * @return {@code true} if the values are equal.
      */
-    public static final Translation2d TRANSLATION2D_0 = new Translation2d();
-    /**
-     * Identity {@link Translation3d}.
-     */
-    public static final Translation3d TRANSLATION3D_0 = new Translation3d();
-    /**
-     * Identity {@link Rotation2d}.
-     */
-    public static final Rotation2d ROTATION2D_0 = new Rotation2d();
-    /**
-     * A {@link Rotation2d} with a value of {@code 1/2 PI}.
-     */
-    public static final Rotation2d ROTATION2D_HALF_PI = new Rotation2d(HALF_PI);
-    /**
-     * A {@link Rotation2d} with a value of {@code PI}.
-     */
-    public static final Rotation2d ROTATION2D_PI = new Rotation2d(Math.PI);
-    /**
-     * A {@link Rotation2d} with a value of {@code -1/2 PI}.
-     */
-    public static final Rotation2d ROTATION2D_NEG_HALF_PI = new Rotation2d(-HALF_PI);
-    /**
-     * A {@link Rotation2d} with a value of {@code -PI}.
-     */
-    public static final Rotation2d ROTATION2D_NEG_PI = new Rotation2d(-Math.PI);
-    /**
-     * Identity {@link Rotation3d}.
-     */
-    public static final Rotation3d ROTATION3D_0 = new Rotation3d();
-    /**
-     * Identity {@link Transform2d}.
-     */
-    public static final Transform2d TRANSFORM2D_0 = new Transform2d();
-    /**
-     * Identity {@link Transform3d}.
-     */
-    public static final Transform3d TRANSFORM3D_0 = new Transform3d();
-    /**
-     * Identity {@link Twist2d}.
-     */
-    public static final Twist2d TWIST2D_0 = new Twist2d();
-    /**
-     * Identity {@link Twist3d}.
-     */
-    public static final Twist3d TWIST3D_0 = new Twist3d();
-    /**
-     * Identity {@link Pose2d}.
-     */
-    public static final Pose2d POSE2D_0 = new Pose2d();
-    /**
-     * Identity {@link Pose3d}.
-     */
-    public static final Pose3d POSE3D_0 = new Pose3d();
-    /**
-     * Identity {@link ChassisSpeeds}.
-     */
-    public static final ChassisSpeeds CHASSIS_SPEEDS_0 = new ChassisSpeeds();
+    public static boolean epsilonEquals(Optional<Double> a, Optional<Double> b) {
+        return epsilonEquals(a, b, kEpsilon);
+    }
 
     /**
-     * Wraps an angle within {@code +-PI} of a reference.
-     * @param ref The reference angle in radians.
-     * @param angle The angle to wrap in radians.
-     * @return The wrapped angle in radians.
+     * Check if two optional values are equal within the accuracy of the default epsilon.
+     * If one option is empty and the other is present, or both options are present and
+     * unequal, {@code false} is returned. If both options empty, or both options are
+     * present and equal, {@code true} is returned.
+     * @param a The first value to compare.
+     * @param b The second value to compare.
+     * @param epsilon Epsilon value to compare with.
+     * @return {@code true} if the values are equal.
      */
-    public static double wrapAbout(double ref, double angle) {
-        double diff = angle - ref;
-        if (diff > Math.PI) return angle - (Math2.TWO_PI); else if (diff < -Math.PI) return angle + (Math2.TWO_PI); else return angle;
+    public static boolean epsilonEquals(Optional<Double> a, Optional<Double> b, double epsilon) {
+        if (a == b) return true;
+        if (a.isEmpty() || b.isEmpty()) return a.isEmpty() && b.isEmpty();
+        return epsilonEquals(a.get(), b.get(), epsilon);
     }
 
     /**
@@ -118,7 +88,7 @@ public final class Math2 {
      * @return {@code true} if the values are equal.
      */
     public static boolean epsilonEquals(double a, double b) {
-        return epsilonEquals(a, b, DEFAULT_EPSILON);
+        return epsilonEquals(a, b, kEpsilon);
     }
 
     /**
@@ -133,78 +103,76 @@ public final class Math2 {
     }
 
     /**
-     * Checks if two {@link Twist2d}s are equal within the accuracy of the default epsilon.
-     * @param a The first value to compare.
-     * @param b The second value to compare.
-     * @return {@code true} if the values are equal.
+     * Copies values from a source {@link Twist2d} object to another.
+     * @param source The twist to copy from.
+     * @param output The twist to copy into.
+     * @return The output twist.
      */
-    public static boolean twist2dEpsilonEquals(Twist2d a, Twist2d b) {
-        return twist2dEpsilonEquals(a, b, DEFAULT_EPSILON);
+    public static Twist2d copyInto(Twist2d source, Twist2d output) {
+        output.dx = source.dx;
+        output.dy = source.dy;
+        output.dtheta = source.dtheta;
+        return output;
     }
 
     /**
-     * Checks if two {@link Twist2d}s are equal within the accuracy of a provided epsilon.
-     * @param a The first value to compare.
-     * @param b The second value to compare.
-     * @param epsilon Epsilon value to compare with.
-     * @return {@code true} if the values are equal.
+     * Copies values from a source {@link ChassisSpeeds} object to another.
+     * @param source The speeds to copy from.
+     * @param output The speeds to copy into.
+     * @return The output speeds.
      */
-    public static boolean twist2dEpsilonEquals(Twist2d a, Twist2d b, double epsilon) {
-        return epsilonEquals(a.dx, b.dx, epsilon) && epsilonEquals(a.dy, b.dy, epsilon) && epsilonEquals(a.dtheta, b.dtheta, epsilon);
+    public static ChassisSpeeds copyInto(ChassisSpeeds source, ChassisSpeeds output) {
+        output.vxMetersPerSecond = source.vxMetersPerSecond;
+        output.vyMetersPerSecond = source.vyMetersPerSecond;
+        output.omegaRadiansPerSecond = source.omegaRadiansPerSecond;
+        return output;
     }
 
     /**
-     * Rounds a value to a fixed point of 3 decimal places.
-     * @param value The value to round.
-     * @return The rounded value.
+     * Copies values from a source {@link SwerveModulePosition} object to another.
+     * @param source The swerve module position to copy from.
+     * @param output The swerve module position to copy into.
+     * @return The output position.
      */
-    public static double toFixed(double value) {
-        return toFixed(value, 1e-3);
+    public static SwerveModulePosition copyInto(SwerveModulePosition source, SwerveModulePosition output) {
+        output.distanceMeters = source.distanceMeters;
+        output.angle = source.angle;
+        return output;
     }
 
     /**
-     * Rounds a value to a fixed point.
-     * @param value The value to round.
-     * @param precision The fixed point precision to round to as a decimal. For example, {@code 1e-3} rounds to 3 decimal places. This must be a power of {@code 10}.
-     * @return The rounded value.
+     * Copies values from a source {@link SwerveModuleState} object to another.
+     * @param source The swerve module state to copy from.
+     * @param output The swerve module state to copy into.
+     * @return The output state.
      */
-    public static double toFixed(double value, double precision) {
-        return Math.round(value / precision) * precision;
+    public static SwerveModuleState copyInto(SwerveModuleState source, SwerveModuleState output) {
+        output.speedMetersPerSecond = source.speedMetersPerSecond;
+        output.angle = source.angle;
+        return output;
     }
 
     /**
-     * Definition of a 2D parametric function.
+     * Zeroes a {@link ChassisSpeeds} object in place.
+     * @param speeds The speeds to zero.
+     * @return The provided speeds object.
      */
-    @FunctionalInterface
-    public static interface Parametric {
-        public double f(double x, double y);
+    public static ChassisSpeeds zero(ChassisSpeeds speeds) {
+        speeds.vxMetersPerSecond = 0.0;
+        speeds.vyMetersPerSecond = 0.0;
+        speeds.omegaRadiansPerSecond = 0.0;
+        return speeds;
     }
 
     /**
-     * Finds the root of a 2D parametric function with the false position method (regula falsi).
-     * @param func The function to take the root of.
-     * @param x0 {@code x} value of the lower bracket.
-     * @param y0 {@code y} value of the lower bracket.
-     * @param f0 value of {@code func} at {@code x0}, {@code y0}.
-     * @param x1 {@code x} value of the upper bracket.
-     * @param y1 {@code y} value of the upper bracket.
-     * @param f1 value of {@code func} at {@code x1}, {@code y1}.
-     * @param iterationsLeft Number of iterations of root finding remaining.
-     * @return The parameter value {@code s} that interpolating between {@code 0.0} and {@code 1.0} that corresponds with the approximate root.
+     * Zeroes a {@link Twist2d} object in place.
+     * @param twist The twist to zero.
+     * @return The provided twist object.
      */
-    public static double findRoot(Parametric func, double x0, double y0, double f0, double x1, double y1, double f1, int iterationsLeft) {
-        if (iterationsLeft < 0 || epsilonEquals(f0, f1)) return 1.0;
-        iterationsLeft--;
-
-        double sGuess = Math.max(0.0, Math.min(1.0, -f0 / (f1 - f0)));
-        double xGuess = (x1 - x0) * sGuess + x0;
-        double yGuess = (y1 - y0) * sGuess + y0;
-        double fGuess = func.f(xGuess, yGuess);
-
-        if (Math.signum(f0) == Math.signum(fGuess)) {
-            return sGuess + (1.0 - sGuess) * findRoot(func, xGuess, yGuess, fGuess, x1, y1, f1, iterationsLeft);
-        } else {
-            return sGuess * findRoot(func, x0, y0, f0, xGuess, yGuess, fGuess, iterationsLeft);
-        }
+    public static Twist2d zero(Twist2d twist) {
+        twist.dx = 0.0;
+        twist.dy = 0.0;
+        twist.dtheta = 0.0;
+        return twist;
     }
 }
