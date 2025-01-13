@@ -1,7 +1,7 @@
 plugins {
     id "java"
-    id "edu.wpi.first.GradleRIO" version "2024.2.1"
-    id "com.diffplug.spotless" version "6.23.3"
+    id "edu.wpi.first.GradleRIO" version "2025.2.1"
+    id "com.diffplug.spotless" version "6.25.0"
 }
 
 java {
@@ -34,6 +34,7 @@ deploy {
                 frcStaticFileDeploy(getArtifactTypeClass('FileTreeArtifact')) {
                     files = project.fileTree('src/main/deploy')
                     directory = '/home/lvuser/deploy'
+                    deleteOldFiles = true
                 }
             }
         }
@@ -51,6 +52,7 @@ def includeDesktopSupport = true
 // Defining my dependencies. In this case, WPILib (+ friends), and vendor libraries.
 // Also defines JUnit 5.
 dependencies {
+    annotationProcessor wpi.java.deps.wpilibAnnotations()
     implementation wpi.java.deps.wpilib()
     implementation wpi.java.vendor.java()
 
@@ -70,8 +72,6 @@ dependencies {
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-    implementation 'com.google.code.gson:gson:2.10.1'
 }
 
 // Code formatting via spotless
@@ -86,8 +86,15 @@ spotless {
         endWithNewline()
         removeUnusedImports()
         trimTrailingWhitespace()
-        prettier(['prettier': '2.8.8', 'prettier-plugin-java': '2.2.0'])
-            .config(['parser': 'java', tabWidth: 4, useTabs: false, printWidth: 140 ])
+        prettier(['prettier': '3.4.2', 'prettier-plugin-java': '2.6.5'])
+            .config([
+                'parser': 'java',
+                'plugins': ['prettier-plugin-java'],
+                printWidth: 120,
+                tabWidth: 4,
+                useTabs: false,
+                trailingComma: "none"
+            ])
     }
 }
 

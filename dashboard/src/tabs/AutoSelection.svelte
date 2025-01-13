@@ -2,14 +2,12 @@
     import { onDestroy } from "svelte";
     import { derived } from "svelte/store";
     import field24 from "../assets/field24.png";
-    import { FIELD_HEIGHT, FIELD_WIDTH } from "../constants";
+    import { FIELD_HEIGHT, FIELD_WIDTH, ROBOT_SIZE } from "../constants";
     import { AutosActive, AutosOptions, AutosSelected, RobotBlueAlliance } from "../ntStores";
 
     // import field22 from '../assets/field22.png';
     // import field23 from '../assets/field23.png';
     const field = field24;
-
-    const ROBOT = 0.8382;
 
     // Option typings.
     type Option = {
@@ -22,7 +20,7 @@
     // Parses options from NT value.
     const options = derived(AutosOptions, ($value) => {
         return (
-            $value?.map((option) => {
+            $value.map((option) => {
                 try {
                     const parsed = { ...JSON.parse(option) };
                     if (![`id`, `label`, `points`].every((v) => Object.keys(parsed).includes(v)))
@@ -53,8 +51,8 @@
                 const y = lerp(start![1], end![1], a);
                 const heading = lerp(start![2], end![2], a);
                 newReplay[i] = {
-                    x: $RobotBlueAlliance ? x - ROBOT / 2 : FIELD_WIDTH - (x + ROBOT / 2),
-                    y: FIELD_HEIGHT - y - ROBOT / 2,
+                    x: $RobotBlueAlliance ? x - ROBOT_SIZE / 2 : FIELD_WIDTH - (x + ROBOT_SIZE / 2),
+                    y: FIELD_HEIGHT - y - ROBOT_SIZE / 2,
                     heading: ($RobotBlueAlliance ? Math.PI - heading : heading) * (180 / Math.PI),
                 };
             }
@@ -104,9 +102,9 @@
                             {/each}
 
                             {#if replay[i] && replay[i].x !== Number.MIN_SAFE_INTEGER}
-                                <g transform="rotate({replay[i].heading}, {replay[i].x + ROBOT / 2}, {replay[i].y + ROBOT / 2})">
-                                    <rect x="{replay[i].x}" y="{replay[i].y}" width="{ROBOT}" height="{ROBOT}"></rect>
-                                    <circle cx="{replay[i].x}" cy="{replay[i].y + ROBOT / 2}" r="0.1"></circle>
+                                <g transform="rotate({replay[i].heading}, {replay[i].x + ROBOT_SIZE / 2}, {replay[i].y + ROBOT_SIZE / 2})">
+                                    <rect x="{replay[i].x}" y="{replay[i].y}" width="{ROBOT_SIZE}" height="{ROBOT_SIZE}"></rect>
+                                    <circle cx="{replay[i].x}" cy="{replay[i].y + ROBOT_SIZE / 2}" r="0.1"></circle>
                                 </g>
                             {/if}
                         </svg>
@@ -144,15 +142,15 @@
     }
 
     .auto-selection {
-        background-color: var(--background-tertiary);
         padding: 2rem 2rem 0 2rem;
+        background-color: var(--background-tertiary);
+        color: inherit;
+        font-family: inherit;
+        font-size: inherit;
         border: 3px solid transparent;
         border-radius: 1.5rem;
-        cursor: pointer;
-        color: inherit;
-        font-size: inherit;
-        font-family: inherit;
         box-shadow: 0.2rem 0.2rem 0.5rem var(--background-shadow);
+        cursor: pointer;
         transition:
             border-color 0.1s,
             transform 0.2s,
