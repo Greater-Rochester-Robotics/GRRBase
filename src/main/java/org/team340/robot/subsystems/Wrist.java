@@ -1,41 +1,99 @@
 package org.team340.robot.subsystems;
 
-import com.revrobotics.CANSparkBase.ControlType;
-import com.revrobotics.CANSparkBase.IdleMode;
-import com.revrobotics.CANSparkLowLevel.MotorType;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.SparkAbsoluteEncoder;
-import com.revrobotics.SparkAbsoluteEncoder.Type;
-import com.revrobotics.SparkPIDController;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
-import org.team340.lib.GRRSubsystem;
 import org.team340.lib.util.Math2;
+import org.team340.lib.util.command.GRRSubsystem;
 import org.team340.robot.Constants;
-import org.team340.robot.Constants.WristConstants;
-import org.team340.robot.Constants.WristConstants.WristPosition;
+import org.team340.robot.Constants.RobotMap;
+
+import com.reduxrobotics.frames.Frame;
+import com.revrobotics.AbsoluteEncoder;
+import com.revrobotics.spark.SparkAbsoluteEncoder;
+import com.revrobotics.spark.SparkBase;
+import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
 
 /**
  * The wrist subsystem.
  * Responsible for pivoting the wrist.
  */
 public class Wrist extends GRRSubsystem {
+    // Limits
+    public static final double MIN_POS = Math.toRadians(20.0);
+    public static final double MAX_POS = Math.toRadians(140.0);
 
-    private final CANSparkMax motor;
+    // Positions
+    public enum WristPosition {
+        INTAKE(Math.toRadians(132.0)),
+        SAFE(Math.toRadians(25.0)),
+        SHOOT_SHORT(Math.toRadians(80.0)),
+        SHOOT_MEDIUM(Math.toRadians(55.0)),
+        SHOOT_FAR(Math.toRadians(45.0));
+
+        public final double value;
+
+        private WristPosition(double value) {
+            this.value = value;
+        }
+    }
+
+    // Misc
+    public static final double CLOSED_LOOP_ERR = Math.toRadians(4.0);
+
+    // Hardware Configs
+    public static final class Configs {
+
+        // Encoder Conversion Factor
+        private static final double ENC_FACTOR = Math2.TWO_PI;
+
+        public static final SparkMaxConfig MOTOR = new SparkMaxConfig()
+            .clearFaults()
+            .restoreFactoryDefaults()
+            .enableVoltageCompensation(VOLTAGE)
+            .setSmartCurrentLimit(30)
+            .setIdleMode(IdleMode.kBrake)
+            .setInverted(true)
+            .setClosedLoopRampRate(0.3)
+            .setOpenLoopRampRate(0.8)
+            .setPeriodicFramePeriod(Frame.S0, 20)
+            .setPeriodicFramePeriod(Frame.S1, 20)
+            .setPeriodicFramePeriod(Frame.S2, 20)
+            .setPeriodicFramePeriod(Frame.S3, 10000)
+            .setPeriodicFramePeriod(Frame.S4, 10000)
+            .setPeriodicFramePeriod(Frame.S5, 20)
+            .setPeriodicFramePeriod(Frame.S6, 20);
+
+        public static final SparkAbsoluteEncoderConfig ENCODER = new SparkAbsoluteEncoderConfig()
+            .setPositionConversionFactor(ENC_FACTOR)
+            .setVelocityConversionFactor(ENC_FACTOR / 60)
+            .setInverted(true)
+            .setZeroOffset(0.0);
+
+        public static final SparkPIDControllerConfig PID = new SparkPIDControllerConfig()
+            .setPID(1.85, 0.0, 0.3)
+            .setIZone(0.0)
+            .setPositionPIDWrappingEnabled(false);
+    }
+    private final SparkMax motor;
     private final SparkAbsoluteEncoder encoder;
-    private final SparkPIDController pid;
 
     private double maintain = 0.0;
     private boolean maintainEnabled = false;
     private double target = 0.0;
 
     public Wrist() {
-        super("Wrist");
-        motor = createSparkMax("Wrist NEO", Constants.RobotMap.WRIST_MOTOR, MotorType.kBrushless);
-        encoder = createSparkMaxAbsoluteEncoder("Wrist Through Bore Encoder", motor, Type.kDutyCycle);
-        pid = motor.getPIDController();
+        // motor = createSparkMax("Wrist NEO", Constants.RobotMap.WRIST_MOTOR, MotorType.kBrushless);
+        // TODO: figure out what to do with this.
+        motor = new SparkMax(RobotMap.kWristMotor, MotorType.kBrushless);
+        // TODO: figure out this line.
+        // encoder = createSparkMaxAbsoluteEncoder("Wrist Through Bore Encoder", motor, Type.kDutyCycle);
+        pid = motor.get
 
         pid.setFeedbackDevice(encoder);
 
@@ -131,6 +189,7 @@ public class Wrist extends GRRSubsystem {
         return commandBuilder()
             .onInitialize(() -> {
                 motor.setIdleMode(IdleMode.kCoast);
+                motor.
                 motor.stopMotor();
             })
             .onExecute(() -> maintain = encoder.getPosition())
