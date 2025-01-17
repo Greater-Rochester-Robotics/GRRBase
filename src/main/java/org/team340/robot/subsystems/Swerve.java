@@ -3,6 +3,7 @@ package org.team340.robot.subsystems;
 import choreo.auto.AutoFactory;
 import choreo.trajectory.SwerveSample;
 import com.ctre.phoenix6.CANBus;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.NotLogged;
 import edu.wpi.first.math.controller.PIDController;
@@ -33,29 +34,29 @@ public final class Swerve extends GRRSubsystem {
     private static final SwerveModuleConfig kFrontLeft = new SwerveModuleConfig()
         .setName("frontLeft")
         .setLocation(0.28, 0.28)
-        .setMoveMotor(SwerveMotors.talonFX(RobotMap.kFlMove, true))
-        .setTurnMotor(SwerveMotors.talonFX(RobotMap.kFlTurn, true))
+        .setMoveMotor(SwerveMotors.sparkMax(RobotMap.kFlMove, MotorType.kBrushless, true))
+        .setTurnMotor(SwerveMotors.sparkMax(RobotMap.kFlTurn, MotorType.kBrushless, true))
         .setEncoder(SwerveEncoders.canCoder(RobotMap.kFlEncoder, 0.0, true));
 
     private static final SwerveModuleConfig kFrontRight = new SwerveModuleConfig()
         .setName("frontRight")
         .setLocation(0.28, -0.28)
-        .setMoveMotor(SwerveMotors.talonFX(RobotMap.kFrMove, true))
-        .setTurnMotor(SwerveMotors.talonFX(RobotMap.kFrTurn, true))
+        .setMoveMotor(SwerveMotors.sparkMax(RobotMap.kFrMove, MotorType.kBrushless, true))
+        .setTurnMotor(SwerveMotors.sparkMax(RobotMap.kFrTurn, MotorType.kBrushless, true))
         .setEncoder(SwerveEncoders.canCoder(RobotMap.kFrEncoder, 0.0, true));
 
     private static final SwerveModuleConfig kBackLeft = new SwerveModuleConfig()
         .setName("backLeft")
         .setLocation(-0.28, 0.28)
-        .setMoveMotor(SwerveMotors.talonFX(RobotMap.kBlMove, true))
-        .setTurnMotor(SwerveMotors.talonFX(RobotMap.kBlTurn, true))
+        .setMoveMotor(SwerveMotors.sparkMax(RobotMap.kBlMove, MotorType.kBrushless, true))
+        .setTurnMotor(SwerveMotors.sparkMax(RobotMap.kBlTurn, MotorType.kBrushless, true))
         .setEncoder(SwerveEncoders.canCoder(RobotMap.kBlEncoder, 0.0, true));
 
     private static final SwerveModuleConfig kBackRight = new SwerveModuleConfig()
         .setName("backRight")
         .setLocation(-0.28, -0.28)
-        .setMoveMotor(SwerveMotors.talonFX(RobotMap.kBrMove, true))
-        .setTurnMotor(SwerveMotors.talonFX(RobotMap.kBrTurn, true))
+        .setMoveMotor(SwerveMotors.sparkMax(RobotMap.kBrMove, MotorType.kBrushless, true))
+        .setTurnMotor(SwerveMotors.sparkMax(RobotMap.kBrTurn, MotorType.kBrushless, true))
         .setEncoder(SwerveEncoders.canCoder(RobotMap.kBrEncoder, 0.0, true));
 
     private static final SwerveConfig kConfig = new SwerveConfig()
