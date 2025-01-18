@@ -36,10 +36,9 @@ public final class Constants {
 
         public static final int kCanandgyro = 14;
 
-        public static final int kWristMotor = 15;
-
-        public static final int kUpperMotor = 16;
-        public static final int kLowerMotor = 17;
-        public static final int kInnerMotor = 18;
+        public static final int kWristMotor = 20;
+        public static final int kUpperMotor = 21;
+        public static final int kLowerMotor = 22;
+        public static final int kInnerMotor = 23;
     }
 }
