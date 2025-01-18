@@ -29,6 +29,13 @@ public final class Routines {
         intake = robot.intake;
     }
 
+    /**
+     * Moves the wrist and runs the rollers to intake.
+     */
+    public Command intake() {
+        return parallel(wrist.goTo(WristPosition.kIntake, false), intake.intake()).withName("Routines.intake()");
+    }
+
     private Command shoot(IntakeSpeed shootSpeed, WristPosition wristPosition) {
         return sequence(
             deadline(

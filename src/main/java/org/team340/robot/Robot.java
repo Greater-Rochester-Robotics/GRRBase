@@ -12,7 +12,6 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import org.team340.lib.util.GRRDashboard;
-import org.team340.lib.util.Math2;
 import org.team340.lib.util.Profiler;
 import org.team340.lib.util.Tunable;
 import org.team340.robot.commands.Autos;
@@ -76,16 +75,16 @@ public final class Robot extends TimedRobot {
         driver.povLeft().onTrue(swerve.tareRotation());
 
         // A => Intake (Hold)
-        driver.a().whileTrue(Routines.intake()).onFalse(wrist.goTo(WristPosition.kSafe));
+        driver.a().whileTrue(routines.intake()).onFalse(wrist.goTo(WristPosition.kSafe));
 
         // B => Shoot short (Hold)
-        driver.b().whileTrue(Routines.shootShort()).onFalse(wrist.goTo(WristPosition.kSafe));
+        driver.b().whileTrue(routines.shootShort()).onFalse(wrist.goTo(WristPosition.kSafe));
 
         // X => Shoot medium (Hold)
-        driver.x().whileTrue(Routines.shootMedium()).onFalse(wrist.goTo(WristPosition.kSafe));
+        driver.x().whileTrue(routines.shootMedium()).onFalse(wrist.goTo(WristPosition.kSafe));
 
         // Y => Shoot far (Hold)
-        driver.y().whileTrue(Routines.shootFar()).onFalse(wrist.goTo(WristPosition.kSafe));
+        driver.y().whileTrue(routines.shootFar()).onFalse(wrist.goTo(WristPosition.kSafe));
     }
 
     @Override
