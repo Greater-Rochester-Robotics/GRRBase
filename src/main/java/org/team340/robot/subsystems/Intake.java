@@ -2,8 +2,13 @@ package org.team340.robot.subsystems;
 
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import org.team340.lib.util.command.GRRSubsystem;
+import org.team340.lib.util.vendors.RevUtil;
+import org.team340.robot.Constants;
 import org.team340.robot.Constants.RobotMap;
 
 /**
@@ -46,6 +51,108 @@ public class Intake extends GRRSubsystem {
         // IntakeConstants.Configs.UPPER_MOTOR.apply(upperMotor);
         // IntakeConstants.Configs.LOWER_MOTOR.apply(lowerMotor);
         // IntakeConstants.Configs.INNER_MOTOR.apply(innerMotor);
+
+        SparkMaxConfig upperConfig = new SparkMaxConfig();
+
+        upperConfig
+            .voltageCompensation(Constants.kVoltage)
+            .smartCurrentLimit(30)
+            .idleMode(IdleMode.kBrake)
+            .inverted(false)
+            .closedLoopRampRate(0.3)
+            .openLoopRampRate(0.8);
+
+        upperConfig.signals
+            .absoluteEncoderPositionPeriodMs(20)
+            .absoluteEncoderVelocityPeriodMs(20)
+            .analogPositionPeriodMs(20)
+            .analogVelocityPeriodMs(20)
+            .analogVoltagePeriodMs(20)
+            .appliedOutputPeriodMs(20)
+            .busVoltagePeriodMs(20)
+            .faultsPeriodMs(250)
+            .iAccumulationPeriodMs(20)
+            .limitsPeriodMs(20)
+            .motorTemperaturePeriodMs(1000)
+            .outputCurrentPeriodMs(20)
+            .primaryEncoderPositionPeriodMs(20)
+            .primaryEncoderVelocityPeriodMs(20)
+            .warningsPeriodMs(250);
+
+       
+        upperConfig.closedLoop.pid(1.85, 0.0, 0.3).iZone(0.0).positionWrappingEnabled(false);
+
+        RevUtil.config(upperMotor, upperConfig);
+
+
+        
+        SparkMaxConfig lowerConfig = new SparkMaxConfig();
+
+        lowerConfig
+            .voltageCompensation(Constants.kVoltage)
+            .smartCurrentLimit(30)
+            .idleMode(IdleMode.kBrake)
+            .inverted(true)
+            .closedLoopRampRate(0.3)
+            .openLoopRampRate(0.8)
+            .follow(upperMotor, true);
+
+        lowerConfig.signals
+            .absoluteEncoderPositionPeriodMs(20)
+            .absoluteEncoderVelocityPeriodMs(20)
+            .analogPositionPeriodMs(20)
+            .analogVelocityPeriodMs(20)
+            .analogVoltagePeriodMs(20)
+            .appliedOutputPeriodMs(20)
+            .busVoltagePeriodMs(20)
+            .faultsPeriodMs(250)
+            .iAccumulationPeriodMs(20)
+            .limitsPeriodMs(20)
+            .motorTemperaturePeriodMs(1000)
+            .outputCurrentPeriodMs(20)
+            .primaryEncoderPositionPeriodMs(20)
+            .primaryEncoderVelocityPeriodMs(20)
+            .warningsPeriodMs(250);
+
+       
+        lowerConfig.closedLoop.pid(1.85, 0.0, 0.3).iZone(0.0).positionWrappingEnabled(false);
+
+        RevUtil.config(lowerMotor, lowerConfig);
+
+
+
+        SparkMaxConfig innerConfig = new SparkMaxConfig();
+
+        innerConfig
+            .voltageCompensation(Constants.kVoltage)
+            .smartCurrentLimit(30)
+            .idleMode(IdleMode.kBrake)
+            .inverted(false)
+            .closedLoopRampRate(0.3)
+            .openLoopRampRate(0.8);
+
+        innerConfig.signals
+            .absoluteEncoderPositionPeriodMs(20)
+            .absoluteEncoderVelocityPeriodMs(20)
+            .analogPositionPeriodMs(20)
+            .analogVelocityPeriodMs(20)
+            .analogVoltagePeriodMs(20)
+            .appliedOutputPeriodMs(20)
+            .busVoltagePeriodMs(20)
+            .faultsPeriodMs(250)
+            .iAccumulationPeriodMs(20)
+            .limitsPeriodMs(20)
+            .motorTemperaturePeriodMs(1000)
+            .outputCurrentPeriodMs(20)
+            .primaryEncoderPositionPeriodMs(20)
+            .primaryEncoderVelocityPeriodMs(20)
+            .warningsPeriodMs(250);
+
+       
+        innerConfig.closedLoop.pid(1.85, 0.0, 0.3).iZone(0.0).positionWrappingEnabled(false);
+
+        RevUtil.config(innerMotor, innerConfig);
+
     }
 
     /**
