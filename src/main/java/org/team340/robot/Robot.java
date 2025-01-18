@@ -16,6 +16,7 @@ import org.team340.lib.util.Profiler;
 import org.team340.lib.util.Tunable;
 import org.team340.robot.commands.Autos;
 import org.team340.robot.commands.Routines;
+import org.team340.robot.subsystems.Intake;
 import org.team340.robot.subsystems.Swerve;
 import org.team340.robot.subsystems.Wrist;
 
@@ -24,6 +25,7 @@ public final class Robot extends TimedRobot {
 
     public final Swerve swerve;
     public final Wrist wrist;
+    public final Intake intake;
 
     public final Routines routines;
     public final Autos autos;
@@ -43,6 +45,7 @@ public final class Robot extends TimedRobot {
         // Initialize subsystems
         swerve = new Swerve();
         wrist = new Wrist();
+        intake = new Intake();
 
         // Initialize compositions
         routines = new Routines(this);
