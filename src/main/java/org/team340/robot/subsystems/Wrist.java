@@ -31,7 +31,7 @@ public class Wrist extends GRRSubsystem {
     private static final double MAX_POS = Math.toRadians(140.0);
 
     // Positions
-    private enum WristPosition {
+    public enum WristPosition {
         kIntake(Math.toRadians(132.0)),
         kSafe(Math.toRadians(25.0)),
         kShootShort(Math.toRadians(80.0)),

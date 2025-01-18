@@ -42,6 +42,7 @@ public class Intake extends GRRSubsystem {
         upperMotor = new SparkMax(RobotMap.kUpperMotor, MotorType.kBrushless);
         lowerMotor = new SparkMax(RobotMap.kLowerMotor, MotorType.kBrushless);
         innerMotor = new SparkMax(RobotMap.kInnerMotor, MotorType.kBrushless);
+
         // IntakeConstants.Configs.UPPER_MOTOR.apply(upperMotor);
         // IntakeConstants.Configs.LOWER_MOTOR.apply(lowerMotor);
         // IntakeConstants.Configs.INNER_MOTOR.apply(innerMotor);

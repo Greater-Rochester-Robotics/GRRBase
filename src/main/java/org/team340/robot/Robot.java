@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import org.team340.lib.util.GRRDashboard;
+import org.team340.lib.util.Math2;
 import org.team340.lib.util.Profiler;
 import org.team340.lib.util.Tunable;
 import org.team340.robot.commands.Autos;
@@ -19,6 +20,7 @@ import org.team340.robot.commands.Routines;
 import org.team340.robot.subsystems.Intake;
 import org.team340.robot.subsystems.Swerve;
 import org.team340.robot.subsystems.Wrist;
+import org.team340.robot.subsystems.Wrist.WristPosition;
 
 @Logged
 public final class Robot extends TimedRobot {
@@ -56,6 +58,7 @@ public final class Robot extends TimedRobot {
         coDriver = new CommandXboxController(Constants.kCoDriver);
 
         // Set default commands
+        intake.setDefaultCommand(intake.hold());
         swerve.setDefaultCommand(
             swerve.drive(
                 driver::getLeftX,
@@ -68,10 +71,21 @@ public final class Robot extends TimedRobot {
         RobotModeTriggers.autonomous().whileTrue(GRRDashboard.runSelectedAuto());
 
         // Driver bindings
+
+        // POV Left => Zero swerve
         driver.povLeft().onTrue(swerve.tareRotation());
 
-        // Co-driver bindings
-        coDriver.a().onTrue(none());
+        // A => Intake (Hold)
+        driver.a().whileTrue(Routines.intake()).onFalse(wrist.goTo(WristPosition.kSafe));
+
+        // B => Shoot short (Hold)
+        driver.b().whileTrue(Routines.shootShort()).onFalse(wrist.goTo(WristPosition.kSafe));
+
+        // X => Shoot medium (Hold)
+        driver.x().whileTrue(Routines.shootMedium()).onFalse(wrist.goTo(WristPosition.kSafe));
+
+        // Y => Shoot far (Hold)
+        driver.y().whileTrue(Routines.shootFar()).onFalse(wrist.goTo(WristPosition.kSafe));
     }
 
     @Override
