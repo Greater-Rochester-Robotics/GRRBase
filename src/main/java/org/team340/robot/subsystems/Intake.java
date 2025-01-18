@@ -1,12 +1,11 @@
 package org.team340.robot.subsystems;
 
-import com.revrobotics.CANSparkLowLevel.MotorType;
-import com.revrobotics.CANSparkMax;
 import edu.wpi.first.wpilibj2.command.Command;
-import org.team340.lib.GRRSubsystem;
-import org.team340.robot.Constants.IntakeConstants;
-import org.team340.robot.Constants.IntakeConstants.IntakeSpeed;
 import org.team340.robot.Constants.RobotMap;
+
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
+import org.team340.lib.util.command.GRRSubsystem;
 
 /**
  * The intake subsystem.
@@ -14,19 +13,18 @@ import org.team340.robot.Constants.RobotMap;
  */
 public class Intake extends GRRSubsystem {
 
-    private final CANSparkMax upperMotor;
-    private final CANSparkMax lowerMotor;
-    private final CANSparkMax innerMotor;
+    private final SparkMax upperMotor;
+    private final SparkMax lowerMotor;
+    private final SparkMax innerMotor;
 
     public Intake() {
-        super("Intake");
-        upperMotor = createSparkMax("Intake Upper NEO", RobotMap.INTAKE_UPPER_MOTOR, MotorType.kBrushless);
-        lowerMotor = createSparkMax("Intake Lower NEO", RobotMap.INTAKE_LOWER_MOTOR, MotorType.kBrushless);
-        innerMotor = createSparkMax("Intake Inner NEO", RobotMap.INTAKE_INNER_MOTOR, MotorType.kBrushless);
+        upperMotor = new SparkMax(RobotMap.kUpperMotor, MotorType.kBrushless);
+        lowerMotor = new SparkMax(RobotMap.kLowerMotor, MotorType.kBrushless);
+        innerMotor = new SparkMax(RobotMap.kInnerMotor, MotorType.kBrushless);
 
-        IntakeConstants.Configs.UPPER_MOTOR.apply(upperMotor);
-        IntakeConstants.Configs.LOWER_MOTOR.apply(lowerMotor);
-        IntakeConstants.Configs.INNER_MOTOR.apply(innerMotor);
+        // IntakeConstants.Configs.UPPER_MOTOR.apply(upperMotor);
+        // IntakeConstants.Configs.LOWER_MOTOR.apply(lowerMotor);
+        // IntakeConstants.Configs.INNER_MOTOR.apply(innerMotor);
     }
 
     /**
