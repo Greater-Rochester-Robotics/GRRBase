@@ -1,113 +1,120 @@
 package org.team340.robot.subsystems;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj2.command.Command;
-import org.team340.lib.util.Math2;
-import org.team340.lib.util.command.GRRSubsystem;
-import org.team340.robot.Constants;
-import org.team340.robot.Constants.RobotMap;
-
-import com.reduxrobotics.frames.Frame;
-import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.spark.SparkAbsoluteEncoder;
-import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj2.command.Command;
+import org.team340.lib.util.Math2;
+import org.team340.lib.util.Tunable;
+import org.team340.lib.util.Tunable.TunableDouble;
+import org.team340.lib.util.command.GRRSubsystem;
+import org.team340.lib.util.vendors.RevUtil;
+import org.team340.robot.Constants;
+import org.team340.robot.Constants.RobotMap;
 
 /**
  * The wrist subsystem.
  * Responsible for pivoting the wrist.
  */
+@Logged
 public class Wrist extends GRRSubsystem {
+
     // Limits
-    public static final double MIN_POS = Math.toRadians(20.0);
-    public static final double MAX_POS = Math.toRadians(140.0);
+    private static final double MIN_POS = Math.toRadians(20.0);
+    private static final double MAX_POS = Math.toRadians(140.0);
 
     // Positions
-    public enum WristPosition {
-        INTAKE(Math.toRadians(132.0)),
-        SAFE(Math.toRadians(25.0)),
-        SHOOT_SHORT(Math.toRadians(80.0)),
-        SHOOT_MEDIUM(Math.toRadians(55.0)),
-        SHOOT_FAR(Math.toRadians(45.0));
+    private enum WristPosition {
+        kIntake(Math.toRadians(132.0)),
+        kSafe(Math.toRadians(25.0)),
+        kShootShort(Math.toRadians(80.0)),
+        kShootMedium(Math.toRadians(55.0)),
+        kShootFar(Math.toRadians(45.0));
 
-        public final double value;
+        public final TunableDouble position;
 
-        private WristPosition(double value) {
-            this.value = value;
+        private WristPosition(double position) {
+            this.position = Tunable.doubleValue("wristPosition", position);
+        }
+
+        public double getPosition() {
+            return position.value();
         }
     }
 
     // Misc
-    public static final double CLOSED_LOOP_ERR = Math.toRadians(4.0);
+    private static final double CLOSED_LOOP_ERR = Math.toRadians(4.0);
 
-    // Hardware Configs
-    public static final class Configs {
+    // Encoder Conversion Factor
+    private static final double ENC_FACTOR = Math.PI * 2;
 
-        // Encoder Conversion Factor
-        private static final double ENC_FACTOR = Math2.TWO_PI;
-
-        public static final SparkMaxConfig MOTOR = new SparkMaxConfig()
-            .clearFaults()
-            .restoreFactoryDefaults()
-            .enableVoltageCompensation(VOLTAGE)
-            .setSmartCurrentLimit(30)
-            .setIdleMode(IdleMode.kBrake)
-            .setInverted(true)
-            .setClosedLoopRampRate(0.3)
-            .setOpenLoopRampRate(0.8)
-            .setPeriodicFramePeriod(Frame.S0, 20)
-            .setPeriodicFramePeriod(Frame.S1, 20)
-            .setPeriodicFramePeriod(Frame.S2, 20)
-            .setPeriodicFramePeriod(Frame.S3, 10000)
-            .setPeriodicFramePeriod(Frame.S4, 10000)
-            .setPeriodicFramePeriod(Frame.S5, 20)
-            .setPeriodicFramePeriod(Frame.S6, 20);
-
-        public static final SparkAbsoluteEncoderConfig ENCODER = new SparkAbsoluteEncoderConfig()
-            .setPositionConversionFactor(ENC_FACTOR)
-            .setVelocityConversionFactor(ENC_FACTOR / 60)
-            .setInverted(true)
-            .setZeroOffset(0.0);
-
-        public static final SparkPIDControllerConfig PID = new SparkPIDControllerConfig()
-            .setPID(1.85, 0.0, 0.3)
-            .setIZone(0.0)
-            .setPositionPIDWrappingEnabled(false);
-    }
     private final SparkMax motor;
     private final SparkAbsoluteEncoder encoder;
+    private final SparkClosedLoopController pid;
 
     private double maintain = 0.0;
     private boolean maintainEnabled = false;
+
+    // This is logged by epilog.
+    @SuppressWarnings("unused")
     private double target = 0.0;
 
     public Wrist() {
         // motor = createSparkMax("Wrist NEO", Constants.RobotMap.WRIST_MOTOR, MotorType.kBrushless);
         // TODO: figure out what to do with this.
         motor = new SparkMax(RobotMap.kWristMotor, MotorType.kBrushless);
+
         // TODO: figure out this line.
-        // encoder = createSparkMaxAbsoluteEncoder("Wrist Through Bore Encoder", motor, Type.kDutyCycle);
-        pid = motor.get
+        encoder = motor.getAbsoluteEncoder();
+        motor.clearFaults();
 
-        pid.setFeedbackDevice(encoder);
+        pid = motor.getClosedLoopController();
 
-        WristConstants.Configs.MOTOR.apply(motor);
-        WristConstants.Configs.ENCODER.apply(motor, encoder);
-        WristConstants.Configs.PID.apply(motor, pid);
-    }
+        SparkMaxConfig config = new SparkMaxConfig();
 
-    @Override
-    public void initSendable(SendableBuilder builder) {
-        super.initSendable(builder);
-        builder.addDoubleProperty("maintain", () -> maintain, null);
-        builder.addBooleanProperty("maintainEnabled", () -> maintainEnabled, null);
-        builder.addDoubleProperty("target", () -> target, null);
+        config
+            .voltageCompensation(Constants.kVoltage)
+            .smartCurrentLimit(30)
+            .idleMode(IdleMode.kBrake)
+            .inverted(true)
+            .closedLoopRampRate(0.3)
+            .openLoopRampRate(0.8);
+
+        config.signals
+            .absoluteEncoderPositionPeriodMs(20)
+            .absoluteEncoderVelocityPeriodMs(20)
+            .analogPositionPeriodMs(20)
+            .analogVelocityPeriodMs(20)
+            .analogVoltagePeriodMs(20)
+            .appliedOutputPeriodMs(20)
+            .busVoltagePeriodMs(20)
+            .faultsPeriodMs(250)
+            .iAccumulationPeriodMs(20)
+            .limitsPeriodMs(20)
+            .motorTemperaturePeriodMs(1000)
+            .outputCurrentPeriodMs(20)
+            .primaryEncoderPositionPeriodMs(20)
+            .primaryEncoderVelocityPeriodMs(20)
+            .warningsPeriodMs(250);
+
+        config.absoluteEncoder
+            .positionConversionFactor(ENC_FACTOR)
+            .velocityConversionFactor(ENC_FACTOR / 60.0)
+            .inverted(true)
+            .zeroOffset(0.0);
+
+        config.closedLoop.pid(1.85, 0.0, 0.3).iZone(0.0).positionWrappingEnabled(false);
+
+        RevUtil.config(motor, config);
+
+        Tunable.pidController("Wrist/pid", motor);
     }
 
     /**
@@ -117,8 +124,8 @@ public class Wrist extends GRRSubsystem {
     private boolean atPosition(WristPosition position) {
         return Math2.epsilonEquals(
             MathUtil.angleModulus(encoder.getPosition()),
-            position.value,
-            WristConstants.CLOSED_LOOP_ERR
+            position.getPosition(),
+            CLOSED_LOOP_ERR
         );
     }
 
@@ -128,14 +135,15 @@ public class Wrist extends GRRSubsystem {
      * @param position The position to set, in radians.
      */
     private void applyPosition(double position) {
-        if (position < WristConstants.MIN_POS || position > WristConstants.MAX_POS) {
+        if (position < MIN_POS || position > MAX_POS) {
             DriverStation.reportWarning(
                 "Invalid wrist position. " +
-                Math2.formatRadians(position) +
-                " degrees is not between " +
-                Math2.formatRadians(WristConstants.MIN_POS) +
-                " and " +
-                Math2.formatRadians(WristConstants.MAX_POS),
+                position +
+                " radians is not between the minimum position (" +
+                MIN_POS +
+                " radians) and the maximum position (" +
+                MAX_POS +
+                " radians).",
                 false
             );
         } else {
@@ -159,14 +167,14 @@ public class Wrist extends GRRSubsystem {
      * @param willFinish If {@code true}, the command will end after the position is reached.
      */
     public Command goTo(WristPosition position, boolean willFinish) {
-        return commandBuilder("wrist.toPosition(" + Math2.formatRadians(position.value) + ", " + willFinish + ")")
+        return commandBuilder("wrist.toPosition(" + position.name() + ", " + willFinish + ")")
             .onExecute(() -> {
-                applyPosition(position.value);
+                applyPosition(position.getPosition());
                 maintain = encoder.getPosition();
             })
             .isFinished(() -> willFinish && atPosition(position))
             .onEnd(interrupted -> {
-                if (!interrupted || atPosition(position)) maintain = position.value;
+                if (!interrupted || atPosition(position)) maintain = position.getPosition();
                 motor.stopMotor();
             });
     }
@@ -186,14 +194,19 @@ public class Wrist extends GRRSubsystem {
      * Should be ran while disabled, and cancelled when enabled.
      */
     public Command onDisable() {
+        final SparkMaxConfig kBreakMode = new SparkMaxConfig();
+        kBreakMode.idleMode(IdleMode.kBrake);
+
+        final SparkMaxConfig kCoastMode = new SparkMaxConfig();
+        kCoastMode.idleMode(IdleMode.kCoast);
+
         return commandBuilder()
             .onInitialize(() -> {
-                motor.setIdleMode(IdleMode.kCoast);
-                motor.
+                RevUtil.configEphemeral(motor, kCoastMode);
                 motor.stopMotor();
             })
             .onExecute(() -> maintain = encoder.getPosition())
-            .onEnd(() -> motor.setIdleMode(IdleMode.kBrake))
+            .onEnd(() -> RevUtil.configEphemeral(motor, kBreakMode))
             .ignoringDisable(true)
             .withName("wrist.onDisable()");
     }

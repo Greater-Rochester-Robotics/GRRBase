@@ -17,11 +17,13 @@ import org.team340.lib.util.Tunable;
 import org.team340.robot.commands.Autos;
 import org.team340.robot.commands.Routines;
 import org.team340.robot.subsystems.Swerve;
+import org.team340.robot.subsystems.Wrist;
 
 @Logged
 public final class Robot extends TimedRobot {
 
     public final Swerve swerve;
+    public final Wrist wrist;
 
     public final Routines routines;
     public final Autos autos;
@@ -40,6 +42,7 @@ public final class Robot extends TimedRobot {
 
         // Initialize subsystems
         swerve = new Swerve();
+        wrist = new Wrist();
 
         // Initialize compositions
         routines = new Routines(this);
