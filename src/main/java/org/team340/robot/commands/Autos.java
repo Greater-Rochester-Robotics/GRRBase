@@ -4,7 +4,6 @@ import static edu.wpi.first.wpilibj2.command.Commands.*;
 
 import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
-import choreo.auto.AutoTrajectory;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -38,10 +37,6 @@ public final class Autos {
 
     private Command example() {
         AutoRoutine routine = factory.newRoutine("Example");
-        AutoTrajectory exampleTraj = routine.trajectory("example");
-
-        routine.active().onTrue(sequence(exampleTraj.resetOdometry(), exampleTraj.cmd()));
-        exampleTraj.done().onTrue(sequence(routines.example(), swerve.finishAuto()));
 
         return routine.cmd();
     }

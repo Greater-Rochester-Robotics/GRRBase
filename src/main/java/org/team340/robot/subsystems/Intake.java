@@ -4,7 +4,6 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
-
 import edu.wpi.first.wpilibj2.command.Command;
 import org.team340.lib.util.command.GRRSubsystem;
 import org.team340.lib.util.vendors.RevUtil;
@@ -47,7 +46,6 @@ public class Intake extends GRRSubsystem {
         upperMotor = new SparkMax(RobotMap.kUpperMotor, MotorType.kBrushless);
         lowerMotor = new SparkMax(RobotMap.kLowerMotor, MotorType.kBrushless);
         innerMotor = new SparkMax(RobotMap.kInnerMotor, MotorType.kBrushless);
-
         // IntakeConstants.Configs.UPPER_MOTOR.apply(upperMotor);
         // IntakeConstants.Configs.LOWER_MOTOR.apply(lowerMotor);
         // IntakeConstants.Configs.INNER_MOTOR.apply(innerMotor);
@@ -79,13 +77,10 @@ public class Intake extends GRRSubsystem {
             .primaryEncoderVelocityPeriodMs(20)
             .warningsPeriodMs(250);
 
-       
         upperConfig.closedLoop.pid(1.85, 0.0, 0.3).iZone(0.0).positionWrappingEnabled(false);
 
         RevUtil.config(upperMotor, upperConfig);
 
-
-        
         SparkMaxConfig lowerConfig = new SparkMaxConfig();
 
         lowerConfig
@@ -114,12 +109,9 @@ public class Intake extends GRRSubsystem {
             .primaryEncoderVelocityPeriodMs(20)
             .warningsPeriodMs(250);
 
-       
         lowerConfig.closedLoop.pid(1.85, 0.0, 0.3).iZone(0.0).positionWrappingEnabled(false);
 
         RevUtil.config(lowerMotor, lowerConfig);
-
-
 
         SparkMaxConfig innerConfig = new SparkMaxConfig();
 
@@ -148,11 +140,9 @@ public class Intake extends GRRSubsystem {
             .primaryEncoderVelocityPeriodMs(20)
             .warningsPeriodMs(250);
 
-       
         innerConfig.closedLoop.pid(1.85, 0.0, 0.3).iZone(0.0).positionWrappingEnabled(false);
 
         RevUtil.config(innerMotor, innerConfig);
-
     }
 
     /**
