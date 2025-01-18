@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import org.team340.robot.Robot;
 import org.team340.robot.subsystems.Intake;
 import org.team340.robot.subsystems.Intake.IntakeSpeed;
-import org.team340.robot.subsystems.Swerve;
 import org.team340.robot.subsystems.Wrist;
 import org.team340.robot.subsystems.Wrist.WristPosition;
 
@@ -19,12 +18,10 @@ import org.team340.robot.subsystems.Wrist.WristPosition;
 @Logged(strategy = Strategy.OPT_IN)
 public final class Routines {
 
-    private final Swerve swerve;
     private final Wrist wrist;
     private final Intake intake;
 
     public Routines(Robot robot) {
-        swerve = robot.swerve;
         wrist = robot.wrist;
         intake = robot.intake;
     }

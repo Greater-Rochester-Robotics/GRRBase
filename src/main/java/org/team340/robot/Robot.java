@@ -1,7 +1,5 @@
 package org.team340.robot;
 
-import static edu.wpi.first.wpilibj2.command.Commands.*;
-
 import com.ctre.phoenix6.SignalLogger;
 import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
@@ -32,7 +30,6 @@ public final class Robot extends TimedRobot {
     public final Autos autos;
 
     private final CommandXboxController driver;
-    private final CommandXboxController coDriver;
 
     public Robot() {
         DriverStation.silenceJoystickConnectionWarning(true);
@@ -52,9 +49,8 @@ public final class Robot extends TimedRobot {
         routines = new Routines(this);
         autos = new Autos(this);
 
-        // Initialize controllers
+        // Initialize controller
         driver = new CommandXboxController(Constants.kDriver);
-        coDriver = new CommandXboxController(Constants.kCoDriver);
 
         // Set default commands
         intake.setDefaultCommand(intake.hold());
