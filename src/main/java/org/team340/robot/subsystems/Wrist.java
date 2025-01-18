@@ -67,11 +67,8 @@ public class Wrist extends GRRSubsystem {
     private double target = 0.0;
 
     public Wrist() {
-        // motor = createSparkMax("Wrist NEO", Constants.RobotMap.WRIST_MOTOR, MotorType.kBrushless);
-        // TODO: figure out what to do with this.
         motor = new SparkMax(RobotMap.kWristMotor, MotorType.kBrushless);
 
-        // TODO: figure out this line.
         encoder = motor.getAbsoluteEncoder();
         motor.clearFaults();
 
