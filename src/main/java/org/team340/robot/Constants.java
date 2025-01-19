@@ -18,8 +18,6 @@ public final class Constants {
      */
     public static final class RobotMap {
 
-        public static final String kSwerveCANBus = "Swerve";
-
         public static final int kFlMove = 2;
         public static final int kFlTurn = 3;
         public static final int kFrMove = 4;
