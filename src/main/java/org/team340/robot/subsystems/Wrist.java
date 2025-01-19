@@ -41,7 +41,7 @@ public class Wrist extends GRRSubsystem {
         public final TunableDouble position;
 
         private WristPosition(double position) {
-            this.position = Tunable.doubleValue("wristPosition", position);
+            this.position = Tunable.doubleValue("wristPosition " + name().substring(1), position);
         }
 
         public double getPosition() {
@@ -104,8 +104,8 @@ public class Wrist extends GRRSubsystem {
         config.absoluteEncoder
             .positionConversionFactor(ENC_FACTOR)
             .velocityConversionFactor(ENC_FACTOR / 60.0)
-            .inverted(true)
-            .zeroOffset(0.0);
+            .inverted(false)
+            .zeroOffset(0.8);
 
         config.closedLoop.pid(1.85, 0.0, 0.3).iZone(0.0).positionWrappingEnabled(false);
 

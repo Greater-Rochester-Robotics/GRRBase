@@ -36,28 +36,28 @@ public final class Swerve extends GRRSubsystem {
     private static final SwerveModuleConfig kFrontLeft = new SwerveModuleConfig()
         .setName("frontLeft")
         .setLocation(0.28, 0.28)
-        .setMoveMotor(SwerveMotors.sparkMax(RobotMap.kFlMove, MotorType.kBrushless, true))
+        .setMoveMotor(SwerveMotors.sparkMax(RobotMap.kFlMove, MotorType.kBrushless, false))
         .setTurnMotor(SwerveMotors.sparkMax(RobotMap.kFlTurn, MotorType.kBrushless, true))
         .setEncoder(SwerveEncoders.canCoder(RobotMap.kFlEncoder, 0.402588, false));
 
     private static final SwerveModuleConfig kFrontRight = new SwerveModuleConfig()
         .setName("frontRight")
         .setLocation(0.28, -0.28)
-        .setMoveMotor(SwerveMotors.sparkMax(RobotMap.kFrMove, MotorType.kBrushless, true))
+        .setMoveMotor(SwerveMotors.sparkMax(RobotMap.kFrMove, MotorType.kBrushless, false))
         .setTurnMotor(SwerveMotors.sparkMax(RobotMap.kFrTurn, MotorType.kBrushless, true))
         .setEncoder(SwerveEncoders.canCoder(RobotMap.kFrEncoder, -0.222168, false));
 
     private static final SwerveModuleConfig kBackLeft = new SwerveModuleConfig()
         .setName("backLeft")
         .setLocation(-0.28, 0.28)
-        .setMoveMotor(SwerveMotors.sparkMax(RobotMap.kBlMove, MotorType.kBrushless, true))
+        .setMoveMotor(SwerveMotors.sparkMax(RobotMap.kBlMove, MotorType.kBrushless, false))
         .setTurnMotor(SwerveMotors.sparkMax(RobotMap.kBlTurn, MotorType.kBrushless, true))
         .setEncoder(SwerveEncoders.canCoder(RobotMap.kBlEncoder, 0.497803, false));
 
     private static final SwerveModuleConfig kBackRight = new SwerveModuleConfig()
         .setName("backRight")
         .setLocation(-0.28, -0.28)
-        .setMoveMotor(SwerveMotors.sparkMax(RobotMap.kBrMove, MotorType.kBrushless, true))
+        .setMoveMotor(SwerveMotors.sparkMax(RobotMap.kBrMove, MotorType.kBrushless, false))
         .setTurnMotor(SwerveMotors.sparkMax(RobotMap.kBrTurn, MotorType.kBrushless, true))
         .setEncoder(SwerveEncoders.canCoder(RobotMap.kBrEncoder, -0.003662, false));
 
