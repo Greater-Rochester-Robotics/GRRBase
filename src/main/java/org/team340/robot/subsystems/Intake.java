@@ -17,13 +17,13 @@ import org.team340.robot.Constants.RobotMap;
 public class Intake extends GRRSubsystem {
 
     public enum IntakeSpeed {
-        HOLD_INNER(0.05),
-        INTAKE_OUTER(0.4),
-        INTAKE_INNER(0.3),
-        SHOOT_SHORT(-0.25, 0.6),
-        SHOOT_MEDIUM(-0.3, 0.7),
-        SHOOT_FAR(-1.0, 2.0),
-        SHOOT_INNER(-1.0);
+        kHoldInner(0.05),
+        kIntakeOuter(0.4),
+        kIntakeInner(0.3),
+        kShootShort(-0.25, 0.6),
+        kShootMedium(-0.3, 0.7),
+        kShootFar(-1.0, 2.0),
+        kShootInner(-1.0);
 
         public final double value;
         public final double spinTime;
@@ -152,7 +152,7 @@ public class Intake extends GRRSubsystem {
         return commandBuilder("intake.hold()")
             .onInitialize(() -> {
                 upperMotor.stopMotor();
-                innerMotor.set(IntakeSpeed.HOLD_INNER.value);
+                innerMotor.set(IntakeSpeed.kHoldInner.value);
             })
             .onEnd(() -> {
                 innerMotor.stopMotor();
@@ -165,8 +165,8 @@ public class Intake extends GRRSubsystem {
     public Command intake() {
         return commandBuilder("intake.intake()")
             .onInitialize(() -> {
-                upperMotor.set(IntakeSpeed.INTAKE_OUTER.value);
-                innerMotor.set(IntakeSpeed.INTAKE_INNER.value);
+                upperMotor.set(IntakeSpeed.kIntakeOuter.value);
+                innerMotor.set(IntakeSpeed.kIntakeInner.value);
             })
             .onEnd(() -> {
                 upperMotor.stopMotor();
@@ -183,7 +183,7 @@ public class Intake extends GRRSubsystem {
         return commandBuilder("intake.shoot(" + shootSpeed + ")")
             .onInitialize(() -> {
                 upperMotor.set(shootSpeed.value);
-                innerMotor.set(IntakeSpeed.HOLD_INNER.value);
+                innerMotor.set(IntakeSpeed.kHoldInner.value);
             })
             .onEnd(() -> {
                 upperMotor.stopMotor();
@@ -199,7 +199,7 @@ public class Intake extends GRRSubsystem {
         return commandBuilder("intake.shoot(" + shootSpeed + ")")
             .onInitialize(() -> {
                 upperMotor.set(shootSpeed.value);
-                innerMotor.set(IntakeSpeed.SHOOT_INNER.value);
+                innerMotor.set(IntakeSpeed.kShootInner.value);
             })
             .onEnd(() -> {
                 upperMotor.stopMotor();

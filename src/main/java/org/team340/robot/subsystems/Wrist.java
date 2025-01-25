@@ -27,8 +27,8 @@ import org.team340.robot.Constants.RobotMap;
 public class Wrist extends GRRSubsystem {
 
     // Limits
-    private static final double MIN_POS = Math.toRadians(20.0);
-    private static final double MAX_POS = Math.toRadians(140.0);
+    private static final double kMinPos = Math.toRadians(20.0);
+    private static final double kMaxPos = Math.toRadians(140.0);
 
     // Positions
     public enum WristPosition {
@@ -104,7 +104,7 @@ public class Wrist extends GRRSubsystem {
         config.absoluteEncoder
             .positionConversionFactor(ENC_FACTOR)
             .velocityConversionFactor(ENC_FACTOR / 60.0)
-            .inverted(false)
+            .inverted(true)
             .zeroOffset(0.8);
 
         config.closedLoop.pid(1.85, 0.0, 0.3).iZone(0.0).positionWrappingEnabled(false);
@@ -128,18 +128,18 @@ public class Wrist extends GRRSubsystem {
 
     /**
      * Modifies the setpoint of the {@link #pid wrist's PID controller} to the specified position, if it is
-     * within the {@link WristConstants#MIN_POS minimum} and {@link WristConstants#MAX_POS maximum} range.
+     * within the {@link WristConstants#MIN_POS minimum} and {@link WristConstants#kMaxPos maximum} range.
      * @param position The position to set, in radians.
      */
     private void applyPosition(double position) {
-        if (position < MIN_POS || position > MAX_POS) {
+        if (position < kMinPos || position > kMaxPos) {
             DriverStation.reportWarning(
                 "Invalid wrist position. " +
                 position +
                 " radians is not between the minimum position (" +
-                MIN_POS +
+                kMinPos +
                 " radians) and the maximum position (" +
-                MAX_POS +
+                kMaxPos +
                 " radians).",
                 false
             );
@@ -167,11 +167,14 @@ public class Wrist extends GRRSubsystem {
         return commandBuilder("wrist.toPosition(" + position.name() + ", " + willFinish + ")")
             .onExecute(() -> {
                 applyPosition(position.getPosition());
-                maintain = encoder.getPosition();
             })
-            .isFinished(() -> willFinish && atPosition(position))
+            .isFinished(willFinish ? () -> atPosition(position) : () -> false)
             .onEnd(interrupted -> {
-                if (!interrupted || atPosition(position)) maintain = position.getPosition();
+                if (!interrupted || atPosition(position)) {
+                    maintain = position.getPosition();
+                } else {
+                    maintain = encoder.getPosition();
+                }
                 motor.stopMotor();
             });
     }

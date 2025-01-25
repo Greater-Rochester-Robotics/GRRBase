@@ -40,28 +40,28 @@ public final class Routines {
                 intake.prepShoot(shootSpeed)
             ),
             intake.shoot(shootSpeed)
-        ).withName("Routines.shoot(" + shootSpeed.name() + ")");
+        ).withName("Routines.shoot(" + shootSpeed.name() + ", " + wristPosition.name() + ")");
     }
 
     /**
      * Shoots the configured short distance.
      */
     public Command shootShort() {
-        return shoot(IntakeSpeed.SHOOT_SHORT, WristPosition.kShootShort);
+        return shoot(IntakeSpeed.kShootShort, WristPosition.kShootShort);
     }
 
     /**
      * Shoots the configured medium distance.
      */
     public Command shootMedium() {
-        return shoot(IntakeSpeed.SHOOT_MEDIUM, WristPosition.kShootMedium);
+        return shoot(IntakeSpeed.kShootMedium, WristPosition.kShootMedium);
     }
 
     /**
      * Shoots the configured far distance.
      */
     public Command shootFar() {
-        return shoot(IntakeSpeed.SHOOT_FAR, WristPosition.kShootFar);
+        return shoot(IntakeSpeed.kShootFar, WristPosition.kShootFar);
     }
 
     /**
