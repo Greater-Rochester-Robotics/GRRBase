@@ -5,6 +5,7 @@ import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.epilogue.Logged;
@@ -32,7 +33,7 @@ public class Wrist extends GRRSubsystem {
 
     // Positions
     public enum WristPosition {
-        kIntake(Math.toRadians(132.0)),
+        kIntake(Math.toRadians(120.0)),
         kSafe(Math.toRadians(25.0)),
         kShootShort(Math.toRadians(80.0)),
         kShootMedium(Math.toRadians(55.0)),
@@ -107,7 +108,11 @@ public class Wrist extends GRRSubsystem {
             .inverted(true)
             .zeroOffset(0.8);
 
-        config.closedLoop.pid(1.85, 0.0, 0.3).iZone(0.0).positionWrappingEnabled(false);
+        config.closedLoop
+            .pid(1.85, 0.0, 0.3)
+            .iZone(0.0)
+            .positionWrappingEnabled(false)
+            .feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
 
         RevUtil.config(motor, config);
 
@@ -167,9 +172,11 @@ public class Wrist extends GRRSubsystem {
         return commandBuilder("wrist.toPosition(" + position.name() + ", " + willFinish + ")")
             .onExecute(() -> {
                 applyPosition(position.getPosition());
+                System.out.println("Target: " + position.getPosition() + " current: " + encoder.getPosition());
             })
             .isFinished(willFinish ? () -> atPosition(position) : () -> false)
             .onEnd(interrupted -> {
+                System.out.println("The goTo on end was triggered");
                 if (!interrupted || atPosition(position)) {
                     maintain = position.getPosition();
                 } else {
