@@ -46,9 +46,6 @@ public class Intake extends GRRSubsystem {
         upperMotor = new SparkMax(RobotMap.kUpperMotor, MotorType.kBrushless);
         lowerMotor = new SparkMax(RobotMap.kLowerMotor, MotorType.kBrushless);
         innerMotor = new SparkMax(RobotMap.kInnerMotor, MotorType.kBrushless);
-        // IntakeConstants.Configs.UPPER_MOTOR.apply(upperMotor);
-        // IntakeConstants.Configs.LOWER_MOTOR.apply(lowerMotor);
-        // IntakeConstants.Configs.INNER_MOTOR.apply(innerMotor);
 
         SparkMaxConfig upperConfig = new SparkMaxConfig();
 
@@ -146,7 +143,7 @@ public class Intake extends GRRSubsystem {
     }
 
     /**
-     * Sets the rollers to hold. Does not end.
+     * Sets the rollers to hold.
      */
     public Command hold() {
         return commandBuilder("intake.hold()")
@@ -160,7 +157,7 @@ public class Intake extends GRRSubsystem {
     }
 
     /**
-     * Sets the rollers to intake. Does not end.
+     * Sets the rollers to intake.
      */
     public Command intake() {
         return commandBuilder("intake.intake()")
@@ -175,6 +172,19 @@ public class Intake extends GRRSubsystem {
             });
     }
 
+    // *************** Helper Functions ***************
+
+    /**
+     * Stops the intake.
+     */
+    private void stop() {
+        upperMotor.stopMotor();
+        lowerMotor.stopMotor();
+        innerMotor.stopMotor();
+    }
+
+    // *************** Commands ***************
+
     /**
      * Sets the outer rollers to shoot, while keeping the inner rollers stopped. Does not end.
      * @param shootSpeed The speed to apply to the outer rollers.
@@ -185,10 +195,7 @@ public class Intake extends GRRSubsystem {
                 upperMotor.set(shootSpeed.value);
                 innerMotor.set(IntakeSpeed.kHoldInner.value);
             })
-            .onEnd(() -> {
-                upperMotor.stopMotor();
-                lowerMotor.stopMotor();
-            });
+            .onEnd(this::stop);
     }
 
     /**
@@ -201,24 +208,13 @@ public class Intake extends GRRSubsystem {
                 upperMotor.set(shootSpeed.value);
                 innerMotor.set(IntakeSpeed.kShootInner.value);
             })
-            .onEnd(() -> {
-                upperMotor.stopMotor();
-                lowerMotor.stopMotor();
-                innerMotor.stopMotor();
-            });
+            .onEnd(this::stop);
     }
 
     /**
      * Should be ran while disabled, and cancelled when enabled.
      */
     public Command onDisable() {
-        return commandBuilder()
-            .onInitialize(() -> {
-                upperMotor.stopMotor();
-                lowerMotor.stopMotor();
-                innerMotor.stopMotor();
-            })
-            .ignoringDisable(true)
-            .withName("intake.onDisable()");
+        return commandBuilder().onInitialize(this::stop).ignoringDisable(true).withName("intake.onDisable()");
     }
 }
