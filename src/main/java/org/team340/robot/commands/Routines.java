@@ -9,7 +9,7 @@ import org.team340.robot.Robot;
 import org.team340.robot.subsystems.Intake;
 import org.team340.robot.subsystems.Intake.IntakeSpeed;
 import org.team340.robot.subsystems.Wrist;
-import org.team340.robot.subsystems.Wrist.WristPosition;
+import org.team340.robot.subsystems.Wrist.Position;
 
 /**
  * The Routines class contains command compositions, such as sequences
@@ -30,10 +30,10 @@ public final class Routines {
      * Moves the wrist and runs the rollers to intake.
      */
     public Command intake() {
-        return parallel(wrist.goTo(WristPosition.kIntake, false), intake.intake()).withName("Routines.intake()");
+        return parallel(wrist.goTo(Position.kIntake, false), intake.intake()).withName("Routines.intake()");
     }
 
-    private Command shoot(IntakeSpeed shootSpeed, WristPosition wristPosition) {
+    private Command shoot(IntakeSpeed shootSpeed, Position wristPosition) {
         return sequence(
             deadline(
                 parallel(wrist.goTo(wristPosition).asProxy(), waitSeconds(shootSpeed.spinTime)),
@@ -47,21 +47,21 @@ public final class Routines {
      * Shoots the configured short distance.
      */
     public Command shootShort() {
-        return shoot(IntakeSpeed.kShootShort, WristPosition.kShootShort);
+        return shoot(IntakeSpeed.kShootShort, Position.kShootShort);
     }
 
     /**
      * Shoots the configured medium distance.
      */
     public Command shootMedium() {
-        return shoot(IntakeSpeed.kShootMedium, WristPosition.kShootMedium);
+        return shoot(IntakeSpeed.kShootMedium, Position.kShootMedium);
     }
 
     /**
      * Shoots the configured far distance.
      */
     public Command shootFar() {
-        return shoot(IntakeSpeed.kShootFar, WristPosition.kShootFar);
+        return shoot(IntakeSpeed.kShootFar, Position.kShootFar);
     }
 
     /**

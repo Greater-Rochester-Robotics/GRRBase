@@ -17,7 +17,7 @@ import org.team340.robot.commands.Routines;
 import org.team340.robot.subsystems.Intake;
 import org.team340.robot.subsystems.Swerve;
 import org.team340.robot.subsystems.Wrist;
-import org.team340.robot.subsystems.Wrist.WristPosition;
+import org.team340.robot.subsystems.Wrist.Position;
 
 @Logged
 public final class Robot extends TimedRobot {
@@ -71,16 +71,16 @@ public final class Robot extends TimedRobot {
         driver.povLeft().onTrue(swerve.tareRotation());
 
         // A => Intake (Hold)
-        driver.a().whileTrue(routines.intake()).onFalse(wrist.goTo(WristPosition.kSafe));
+        driver.a().whileTrue(routines.intake()).onFalse(wrist.goTo(Position.kSafe));
 
         // B => Shoot short (Hold)
-        driver.b().whileTrue(routines.shootShort()).onFalse(wrist.goTo(WristPosition.kSafe));
+        driver.b().whileTrue(routines.shootShort()).onFalse(wrist.goTo(Position.kSafe));
 
         // X => Shoot medium (Hold)
-        driver.x().whileTrue(routines.shootMedium()).onFalse(wrist.goTo(WristPosition.kSafe));
+        driver.x().whileTrue(routines.shootMedium()).onFalse(wrist.goTo(Position.kSafe));
 
         // Y => Shoot far (Hold)
-        driver.y().whileTrue(routines.shootFar()).onFalse(wrist.goTo(WristPosition.kSafe));
+        driver.y().whileTrue(routines.shootFar()).onFalse(wrist.goTo(Position.kSafe));
     }
 
     @Override

@@ -12,6 +12,7 @@ import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
+
 import org.team340.lib.util.Math2;
 import org.team340.lib.util.Tunable;
 import org.team340.lib.util.Tunable.TunableDouble;
@@ -32,29 +33,26 @@ public class Wrist extends GRRSubsystem {
     private static final double kMaxPos = Math.toRadians(140.0);
 
     // Positions
-    public enum WristPosition {
-        kIntake(Math.toRadians(120.0)),
-        kSafe(Math.toRadians(25.0)),
-        kShootShort(Math.toRadians(80.0)),
-        kShootMedium(Math.toRadians(55.0)),
-        kShootFar(Math.toRadians(45.0));
+    public enum Position {
+        kIntake(0.333333333333333),
+        kSafe(0.0961538461538462),
+        kShootShort(0.222222222222222),
+        kShootMedium(0.152777777777778),
+        kShootFar(0.125);
 
-        public final TunableDouble position;
+        public final TunableDouble kRotations;
 
-        private WristPosition(double position) {
-            this.position = Tunable.doubleValue("wristPosition " + name().substring(1), position);
+        private Position(double rotations) {
+            kRotations = Tunable.doubleValue("Wrist/Position/" + name(), rotations);
         }
 
-        public double getPosition() {
-            return position.value();
+        public double getRotations() {
+            return kRotations.value();
         }
     }
 
     // Misc
     private static final double CLOSED_LOOP_ERR = Math.toRadians(4.0);
-
-    // Encoder Conversion Factor
-    private static final double ENC_FACTOR = Math.PI * 2;
 
     private final SparkMax motor;
     private final SparkAbsoluteEncoder encoder;
@@ -103,8 +101,7 @@ public class Wrist extends GRRSubsystem {
             .warningsPeriodMs(250);
 
         config.absoluteEncoder
-            .positionConversionFactor(ENC_FACTOR)
-            .velocityConversionFactor(ENC_FACTOR / 60.0)
+            .velocityConversionFactor(1.0 / 60.0)
             .inverted(true)
             .zeroOffset(0.8);
 
@@ -119,14 +116,23 @@ public class Wrist extends GRRSubsystem {
         Tunable.pidController("Wrist/pid", motor);
     }
 
+    // *************** Helper Functions ***************
+
+    /**
+     * Stops the Wrist
+     */
+    private void stop() {
+        motor.stopMotor();
+    }
+
     /**
      * Returns {@code true} if the wrist is at the specified position.
      * @param position The position to check for in radians.
      */
-    private boolean atPosition(WristPosition position) {
+    private boolean atPosition(Position position) {
         return Math2.epsilonEquals(
-            MathUtil.angleModulus(encoder.getPosition()),
-            position.getPosition(),
+            MathUtil.inputModulus(encoder.getPosition(), -0.5,  0.5),
+            position.getRotations(),
             CLOSED_LOOP_ERR
         );
     }
@@ -134,55 +140,55 @@ public class Wrist extends GRRSubsystem {
     /**
      * Modifies the setpoint of the {@link #pid wrist's PID controller} to the specified position, if it is
      * within the {@link WristConstants#MIN_POS minimum} and {@link WristConstants#kMaxPos maximum} range.
-     * @param position The position to set, in radians.
+     * @param position The position to set, in rotations.
      */
-    private void applyPosition(double position) {
-        if (position < kMinPos || position > kMaxPos) {
+    private void applyPosition(double rotations) {
+        if (rotations < kMinPos || rotations > kMaxPos) {
             DriverStation.reportWarning(
-                "Invalid wrist position. " +
-                position +
-                " radians is not between the minimum position (" +
+                "Invalid wrist rotations. " +
+                rotations +
+                " rotations is not between the minimum position (" +
                 kMinPos +
-                " radians) and the maximum position (" +
+                " rotations) and the maximum position (" +
                 kMaxPos +
-                " radians).",
+                " rotations).",
                 false
             );
         } else {
-            target = position;
+            target = rotations;
             maintainEnabled = true;
-            pid.setReference(position, ControlType.kPosition);
+            pid.setReference(rotations, ControlType.kPosition);
         }
     }
 
+    // *************** Commands ***************
+
     /**
      * Goes to a position. Ends after the position is reached.
-     * @param position The position for the wrist to move to.
+     * @param rotations The position for the wrist to move to.
      */
-    public Command goTo(WristPosition position) {
-        return goTo(position, true);
+    public Command goTo(Position rotations) {
+        return goTo(rotations, true).withName("Wrist.goTo(" + rotations.name() + ")");
     }
 
     /**
-     * Goes to a position.
-     * @param position The position for the wrist to move to.
+     * Moves the wrist to predetermined positions.
+     * @param rotations The position for the wrist to move to.
      * @param willFinish If {@code true}, the command will end after the position is reached.
      */
-    public Command goTo(WristPosition position, boolean willFinish) {
-        return commandBuilder("wrist.toPosition(" + position.name() + ", " + willFinish + ")")
+    public Command goTo(Position rotations, boolean willFinish) {
+        return commandBuilder("wrist.toPosition(" + rotations.name() + ", " + willFinish + ")")
             .onExecute(() -> {
-                applyPosition(position.getPosition());
-                System.out.println("Target: " + position.getPosition() + " current: " + encoder.getPosition());
+                applyPosition(rotations.getRotations());
             })
-            .isFinished(willFinish ? () -> atPosition(position) : () -> false)
+            .isFinished(willFinish ? () -> atPosition(rotations) : () -> false)
             .onEnd(interrupted -> {
-                System.out.println("The goTo on end was triggered");
-                if (!interrupted || atPosition(position)) {
-                    maintain = position.getPosition();
+                stop();
+                if (!interrupted || atPosition(rotations)) {
+                    maintain = rotations.getRotations();
                 } else {
                     maintain = encoder.getPosition();
                 }
-                motor.stopMotor();
             });
     }
 
@@ -194,7 +200,7 @@ public class Wrist extends GRRSubsystem {
             .onExecute(() -> {
                 if (maintainEnabled) applyPosition(maintain);
             })
-            .onEnd(() -> motor.stopMotor());
+            .onEnd(this::stop);
     }
 
     /**
