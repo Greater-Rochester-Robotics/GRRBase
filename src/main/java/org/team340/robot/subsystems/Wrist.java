@@ -12,7 +12,6 @@ import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
-
 import org.team340.lib.util.Math2;
 import org.team340.lib.util.Tunable;
 import org.team340.lib.util.Tunable.TunableDouble;
@@ -100,10 +99,7 @@ public class Wrist extends GRRSubsystem {
             .primaryEncoderVelocityPeriodMs(20)
             .warningsPeriodMs(250);
 
-        config.absoluteEncoder
-            .velocityConversionFactor(1.0 / 60.0)
-            .inverted(true)
-            .zeroOffset(0.8);
+        config.absoluteEncoder.velocityConversionFactor(1.0 / 60.0).inverted(true).zeroOffset(0.8);
 
         config.closedLoop
             .pid(7.0, 0.0, 0.3)
