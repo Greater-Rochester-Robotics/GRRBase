@@ -2,13 +2,16 @@ package org.team340.robot.subsystems;
 
 import choreo.auto.AutoFactory;
 import choreo.trajectory.SwerveSample;
-import com.ctre.phoenix6.CANBus;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.NotLogged;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.ADIS16470_IMU.CalibrationTime;
+import edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis;
+import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import java.util.function.DoubleSupplier;
@@ -33,44 +36,43 @@ public final class Swerve extends GRRSubsystem {
     private static final SwerveModuleConfig kFrontLeft = new SwerveModuleConfig()
         .setName("frontLeft")
         .setLocation(0.28, 0.28)
-        .setMoveMotor(SwerveMotors.talonFX(RobotMap.kFlMove, true))
-        .setTurnMotor(SwerveMotors.talonFX(RobotMap.kFlTurn, true))
-        .setEncoder(SwerveEncoders.canCoder(RobotMap.kFlEncoder, 0.0, true));
+        .setMoveMotor(SwerveMotors.sparkMax(RobotMap.kFlMove, MotorType.kBrushless, false))
+        .setTurnMotor(SwerveMotors.sparkMax(RobotMap.kFlTurn, MotorType.kBrushless, true))
+        .setEncoder(SwerveEncoders.canCoder(RobotMap.kFlEncoder, 0.402588, false));
 
     private static final SwerveModuleConfig kFrontRight = new SwerveModuleConfig()
         .setName("frontRight")
         .setLocation(0.28, -0.28)
-        .setMoveMotor(SwerveMotors.talonFX(RobotMap.kFrMove, true))
-        .setTurnMotor(SwerveMotors.talonFX(RobotMap.kFrTurn, true))
-        .setEncoder(SwerveEncoders.canCoder(RobotMap.kFrEncoder, 0.0, true));
+        .setMoveMotor(SwerveMotors.sparkMax(RobotMap.kFrMove, MotorType.kBrushless, false))
+        .setTurnMotor(SwerveMotors.sparkMax(RobotMap.kFrTurn, MotorType.kBrushless, true))
+        .setEncoder(SwerveEncoders.canCoder(RobotMap.kFrEncoder, -0.222168, false));
 
     private static final SwerveModuleConfig kBackLeft = new SwerveModuleConfig()
         .setName("backLeft")
         .setLocation(-0.28, 0.28)
-        .setMoveMotor(SwerveMotors.talonFX(RobotMap.kBlMove, true))
-        .setTurnMotor(SwerveMotors.talonFX(RobotMap.kBlTurn, true))
-        .setEncoder(SwerveEncoders.canCoder(RobotMap.kBlEncoder, 0.0, true));
+        .setMoveMotor(SwerveMotors.sparkMax(RobotMap.kBlMove, MotorType.kBrushless, false))
+        .setTurnMotor(SwerveMotors.sparkMax(RobotMap.kBlTurn, MotorType.kBrushless, true))
+        .setEncoder(SwerveEncoders.canCoder(RobotMap.kBlEncoder, 0.497803, false));
 
     private static final SwerveModuleConfig kBackRight = new SwerveModuleConfig()
         .setName("backRight")
         .setLocation(-0.28, -0.28)
-        .setMoveMotor(SwerveMotors.talonFX(RobotMap.kBrMove, true))
-        .setTurnMotor(SwerveMotors.talonFX(RobotMap.kBrTurn, true))
-        .setEncoder(SwerveEncoders.canCoder(RobotMap.kBrEncoder, 0.0, true));
+        .setMoveMotor(SwerveMotors.sparkMax(RobotMap.kBrMove, MotorType.kBrushless, false))
+        .setTurnMotor(SwerveMotors.sparkMax(RobotMap.kBrTurn, MotorType.kBrushless, true))
+        .setEncoder(SwerveEncoders.canCoder(RobotMap.kBrEncoder, -0.003662, false));
 
     private static final SwerveConfig kConfig = new SwerveConfig()
         .setTimings(TimedRobot.kDefaultPeriod, 0.004, 0.02)
         .setMovePID(0.01, 0.0, 0.0)
         .setMoveFF(0.05, 0.1)
-        .setTurnPID(0.2, 0.0, 0.1)
+        .setTurnPID(0.03, 0.0, 0.09)
         .setBrakeMode(true, true)
         .setLimits(5.0, 13.0, 7.0, 27.5)
         .setDriverProfile(4.5, 1.0, 0.15, 4.2, 2.0, 0.05)
         .setPowerProperties(Constants.kVoltage, 80.0, 60.0)
         .setMechanicalProperties(5.4, 12.1, 4.5, Units.inchesToMeters(4.0))
         .setOdometryStd(0.1, 0.1, 0.1)
-        .setIMU(SwerveIMUs.canandgyro(RobotMap.kCanandgyro))
-        .setPhoenixFeatures(new CANBus(RobotMap.kSwerveCANBus), true, true, true)
+        .setIMU(SwerveIMUs.adis16470(IMUAxis.kZ, IMUAxis.kX, IMUAxis.kY, Port.kOnboardCS0, CalibrationTime._4s))
         .setModules(kFrontLeft, kFrontRight, kBackLeft, kBackRight);
 
     private static final double kAutoKp = 7.0;
