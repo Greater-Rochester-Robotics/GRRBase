@@ -6,7 +6,10 @@ import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.Logged.Strategy;
 import edu.wpi.first.wpilibj2.command.Command;
 import org.team340.robot.Robot;
-import org.team340.robot.subsystems.Swerve;
+import org.team340.robot.subsystems.Intake;
+import org.team340.robot.subsystems.Intake.IntakeSpeed;
+import org.team340.robot.subsystems.Wrist;
+import org.team340.robot.subsystems.Wrist.Position;
 
 /**
  * The Routines class contains command compositions, such as sequences
@@ -15,16 +18,57 @@ import org.team340.robot.subsystems.Swerve;
 @Logged(strategy = Strategy.OPT_IN)
 public final class Routines {
 
-    private final Swerve swerve;
+    private final Wrist wrist;
+    private final Intake intake;
 
     public Routines(Robot robot) {
-        swerve = robot.swerve;
+        wrist = robot.wrist;
+        intake = robot.intake;
     }
 
     /**
-     * An example routine.
+     * Moves the wrist and runs the rollers to intake.
      */
-    public Command example() {
-        return sequence(print("Hello!"), swerve.stop(true).withTimeout(1.0)).withName("Routines.example()");
+    public Command intake() {
+        return parallel(wrist.goTo(Position.kIntake, false), intake.intake()).withName("Routines.intake()");
+    }
+
+    private Command shoot(IntakeSpeed shootSpeed, Position wristPosition) {
+        return sequence(
+            deadline(
+                parallel(wrist.goTo(wristPosition).asProxy(), waitSeconds(shootSpeed.spinTime)),
+                intake.prepShoot(shootSpeed)
+            ),
+            intake.shoot(shootSpeed)
+        ).withName("Routines.shoot(" + shootSpeed.name() + ", " + wristPosition.name() + ")");
+    }
+
+    /**
+     * Shoots the configured short distance.
+     */
+    public Command shootShort() {
+        return shoot(IntakeSpeed.kShootShort, Position.kShootShort);
+    }
+
+    /**
+     * Shoots the configured medium distance.
+     */
+    public Command shootMedium() {
+        return shoot(IntakeSpeed.kShootMedium, Position.kShootMedium);
+    }
+
+    /**
+     * Shoots the configured far distance.
+     */
+    public Command shootFar() {
+        return shoot(IntakeSpeed.kShootFar, Position.kShootFar);
+    }
+
+    /**
+     * Should be ran while disabled, and cancelled when enabled.
+     * Calls {@code onDisable()} for all subsystems.
+     */
+    public Command onDisable() {
+        return parallel(intake.onDisable(), wrist.onDisable()).withName("Routines.onDisable()");
     }
 }
