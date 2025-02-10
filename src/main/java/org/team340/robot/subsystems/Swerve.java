@@ -105,7 +105,7 @@ public final class Swerve extends GRRSubsystem {
         Tunable.pidController("swerve/autoPID", autoPIDy);
         Tunable.pidController("swerve/autoPIDangular", autoPIDangular);
 
-        tareRotation();
+        api.tareRotation(Perspective.kOperator);
     }
 
     @Override

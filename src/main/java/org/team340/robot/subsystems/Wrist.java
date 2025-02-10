@@ -28,13 +28,13 @@ import org.team340.robot.Constants.RobotMap;
 public class Wrist extends GRRSubsystem {
 
     // Limits
-    private static final double kMinPos = 0.0555555555555556;
+    private static final double kMinPos = 0.024;
     private static final double kMaxPos = 0.337;
 
     // Positions
     public enum Position {
         kIntake(0.337),
-        kSafe(0.0961538461538462),
+        kSafe(0.03),
         kShootShort(0.222222222222222),
         kShootMedium(0.152777777777778),
         kShootFar(0.125);
