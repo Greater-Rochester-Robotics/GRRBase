@@ -84,8 +84,8 @@ spotless {
 
         toggleOffOn()
         endWithNewline()
-        removeUnusedImports()
         trimTrailingWhitespace()
+        // removeUnusedImports()
         prettier(['prettier': '3.4.2', 'prettier-plugin-java': '2.6.5'])
             .config([
                 'parser': 'java',

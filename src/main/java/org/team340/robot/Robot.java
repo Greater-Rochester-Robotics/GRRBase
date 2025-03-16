@@ -1,7 +1,5 @@
 package org.team340.robot;
 
-import static edu.wpi.first.wpilibj2.command.Commands.*;
-
 import com.ctre.phoenix6.SignalLogger;
 import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
@@ -16,18 +14,22 @@ import org.team340.lib.util.Profiler;
 import org.team340.lib.util.Tunable;
 import org.team340.robot.commands.Autos;
 import org.team340.robot.commands.Routines;
+import org.team340.robot.subsystems.Intake;
 import org.team340.robot.subsystems.Swerve;
+import org.team340.robot.subsystems.Wrist;
+import org.team340.robot.subsystems.Wrist.Position;
 
 @Logged
 public final class Robot extends TimedRobot {
 
     public final Swerve swerve;
+    public final Wrist wrist;
+    public final Intake intake;
 
     public final Routines routines;
     public final Autos autos;
 
     private final CommandXboxController driver;
-    private final CommandXboxController coDriver;
 
     public Robot() {
         DriverStation.silenceJoystickConnectionWarning(true);
@@ -40,16 +42,18 @@ public final class Robot extends TimedRobot {
 
         // Initialize subsystems
         swerve = new Swerve();
+        wrist = new Wrist();
+        intake = new Intake();
 
         // Initialize compositions
         routines = new Routines(this);
         autos = new Autos(this);
 
-        // Initialize controllers
+        // Initialize controller
         driver = new CommandXboxController(Constants.kDriver);
-        coDriver = new CommandXboxController(Constants.kCoDriver);
 
         // Set default commands
+        intake.setDefaultCommand(intake.hold());
         swerve.setDefaultCommand(
             swerve.drive(
                 driver::getLeftX,
@@ -62,10 +66,21 @@ public final class Robot extends TimedRobot {
         RobotModeTriggers.autonomous().whileTrue(GRRDashboard.runSelectedAuto());
 
         // Driver bindings
+
+        // POV Left => Zero swerve
         driver.povLeft().onTrue(swerve.tareRotation());
 
-        // Co-driver bindings
-        coDriver.a().onTrue(none());
+        // A => Intake (Hold)
+        driver.a().whileTrue(routines.intake()).onFalse(wrist.goTo(Position.kSafe));
+
+        // B => Shoot short (Hold)
+        driver.b().whileTrue(routines.shootShort()).onFalse(wrist.goTo(Position.kSafe));
+
+        // X => Shoot medium (Hold)
+        driver.x().whileTrue(routines.shootMedium()).onFalse(wrist.goTo(Position.kSafe));
+
+        // Y => Shoot far (Hold)
+        driver.y().whileTrue(routines.shootFar()).onFalse(wrist.goTo(Position.kSafe));
     }
 
     @Override
