@@ -139,9 +139,7 @@ public final class SwerveMotors {
 
             sparkConfig.encoder
                 .positionConversionFactor(1.0)
-                .velocityConversionFactor(1.0 / 60.0)
-                .uvwMeasurementPeriod(isMoveMotor ? 16 : 32)
-                .uvwAverageDepth(isMoveMotor ? 2 : 8);
+                .velocityConversionFactor(1.0 / 60.0);
 
             sparkConfig.signals
                 .appliedOutputPeriodMs((int) (config.period * 1000.0))
