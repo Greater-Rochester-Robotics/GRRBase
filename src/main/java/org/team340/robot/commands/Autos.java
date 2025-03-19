@@ -2,13 +2,15 @@ package org.team340.robot.commands;
 
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 
+import choreo.auto.AutoChooser;
+import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.Logged.Strategy;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import org.team340.lib.util.GRRDashboard;
 import org.team340.robot.Robot;
 import org.team340.robot.subsystems.Swerve;
 
@@ -16,6 +18,7 @@ import org.team340.robot.subsystems.Swerve;
  * The Autos class declares autonomous modes, and adds them
  * to the dashboard to be selected by the drive team.
  */
+@SuppressWarnings("unused")
 @Logged(strategy = Strategy.OPT_IN)
 public final class Autos {
 
@@ -23,6 +26,7 @@ public final class Autos {
     private final Routines routines;
 
     private final AutoFactory factory;
+    private final AutoChooser chooser;
 
     public Autos(Robot robot) {
         swerve = robot.swerve;
@@ -30,19 +34,26 @@ public final class Autos {
 
         // Create the auto factory
         factory = new AutoFactory(swerve::getPose, swerve::resetPose, swerve::followTrajectory, true, swerve);
+        chooser = new AutoChooser();
 
         // Add autonomous modes to the dashboard
-        GRRDashboard.setTrajectoryCache(factory.cache());
-        GRRDashboard.addAuto("Example", "example", example());
+        chooser.addRoutine("Example", this::example);
+        SmartDashboard.putData("autos", chooser);
     }
 
-    private Command example() {
+    /**
+     * Returns a command that when scheduled will run the currently selected auto.
+     */
+    public Command runSelectedAuto() {
+        return chooser.selectedCommandScheduler();
+    }
+
+    private AutoRoutine example() {
         AutoRoutine routine = factory.newRoutine("Example");
-        AutoTrajectory exampleTraj = routine.trajectory("example");
+        AutoTrajectory exampleTraj = routine.trajectory("ExampleTrajectory");
 
-        routine.active().onTrue(sequence(exampleTraj.resetOdometry(), exampleTraj.cmd()));
-        exampleTraj.done().onTrue(sequence(routines.example(), swerve.finishAuto()));
+        routine.active().onTrue(sequence(exampleTraj.resetOdometry(), exampleTraj.spawnCmd()));
 
-        return routine.cmd();
+        return routine;
     }
 }

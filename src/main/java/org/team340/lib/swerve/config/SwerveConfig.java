@@ -21,6 +21,8 @@ public class SwerveConfig {
     public double odometryPeriod = -1.0;
     /** The period to look ahead for discretizing chassis speeds in seconds. */
     public double discretizationPeriod = -1.0;
+    /** The default frame period for unused CAN signals in seconds. */
+    public double defaultFramePeriod = -1.0;
     /** PID gains for move motors, as a tuple of {@code [kP, kI, kD]}. */
     public double[] movePID;
     /** Feed forward gains for move motors, as a tuple of {@code [kS, kV]}. */
@@ -33,6 +35,8 @@ public class SwerveConfig {
     public boolean turnBrakeMode = false;
     /** The maximum forward velocity the robot is capable of in meters/second. */
     public double velocity = -1.0;
+    /** The minimum velocity required for a swerve module to accept a commanded output. */
+    public double velDeadband = -1.0;
     /** The maximum acceleration the robot is capable of relevant to carpet slip in meters/second/second. */
     public double slipAccel = -1.0;
     /** The maximum acceleration the robot is capable of relevant to motor torque in meters/second/second. */
@@ -53,10 +57,14 @@ public class SwerveConfig {
     public double driverAngularVelDeadband = -1.0;
     /** The robot's nominal voltage. Typically {@code 12.0}. */
     public double voltage = -1.0;
-    /** The current limit in amps for move motors. */
-    public double moveCurrentLimit = -1.0;
-    /** The current limit in amps for turn motors. */
-    public double turnCurrentLimit = -1.0;
+    /** The stator current limit in amps for move motors. */
+    public double moveStatorLimit = -1.0;
+    /** The supply current limit in amps for move motors. */
+    public double moveSupplyLimit = -1.0;
+    /** The stator current limit in amps for turn motors. */
+    public double turnStatorLimit = -1.0;
+    /** The supply current limit in amps for turn motors. */
+    public double turnSupplyLimit = -1.0;
     /** The move gear ratio, in motor rotations/wheel rotation. */
     public double moveGearRatio = -1.0;
     /** The turn gear ratio, in motor rotations/module rotation. */
@@ -85,11 +93,13 @@ public class SwerveConfig {
      * @param period The robot's main loop period in seconds.
      * @param odometry The period to update odometry in seconds.
      * @param discretization The period to look ahead for discretizing chassis speeds in seconds.
+     * @param defaultFramePeriod The default frame period for unused CAN signals in seconds.
      */
-    public SwerveConfig setTimings(double period, double odometry, double discretization) {
+    public SwerveConfig setTimings(double period, double odometry, double discretization, double defaultFramePeriod) {
         this.period = period;
         odometryPeriod = odometry;
         discretizationPeriod = discretization;
+        this.defaultFramePeriod = defaultFramePeriod;
         return this;
     }
 
@@ -146,12 +156,20 @@ public class SwerveConfig {
      * It is recommended that these values are found empirically using an actual robot. An easy way to do so is to configure infeasible limits, then analyze telemetry.
      *
      * @param velocity The maximum forward velocity the robot is capable of in meters/second. More specifically, the maximum velocity a move motor is capable of.
+     * @param velDeadband The minimum velocity required for a swerve module to accept a commanded output.
      * @param slipAccel The maximum acceleration the robot is capable of relevant to carpet slip in meters/second/second.
      * @param torqueAccel The maximum acceleration the robot is capable of relevant to motor torque in meters/second/second.
      * @param angularAccel The maximum angular acceleration the robot is capable of in radians/second/second.
      */
-    public SwerveConfig setLimits(double velocity, double slipAccel, double torqueAccel, double angularAccel) {
+    public SwerveConfig setLimits(
+        double velocity,
+        double velDeadband,
+        double slipAccel,
+        double torqueAccel,
+        double angularAccel
+    ) {
         this.velocity = velocity;
+        this.velDeadband = velDeadband;
         this.slipAccel = slipAccel;
         this.torqueAccel = torqueAccel;
         this.angularAccel = angularAccel;
@@ -187,13 +205,23 @@ public class SwerveConfig {
     /**
      * Sets power properties.
      * @param voltage The robot's nominal voltage. Typically {@code 12.0}.
-     * @param moveCurrentLimit The current limit in amps for move motors.
-     * @param turnCurrentLimit The current limit in amps for turn motors.
+     * @param moveStatorLimit The stator current limit in amps for move motors.
+     * @param moveSupplyLimit The supply current limit in amps for move motors. Note that this value is ignored for REV devices.
+     * @param turnStatorLimit The stator current limit in amps for turn motors.
+     * @param turnSupplyLimit The supply current limit in amps for turn motors. Note that this value is ignored for REV devices.
      */
-    public SwerveConfig setPowerProperties(double voltage, double moveCurrentLimit, double turnCurrentLimit) {
+    public SwerveConfig setPowerProperties(
+        double voltage,
+        double moveStatorLimit,
+        double moveSupplyLimit,
+        double turnStatorLimit,
+        double turnSupplyLimit
+    ) {
         this.voltage = voltage;
-        this.moveCurrentLimit = moveCurrentLimit;
-        this.turnCurrentLimit = turnCurrentLimit;
+        this.moveStatorLimit = moveStatorLimit;
+        this.moveSupplyLimit = moveSupplyLimit;
+        this.turnStatorLimit = turnStatorLimit;
+        this.turnSupplyLimit = turnSupplyLimit;
         return this;
     }
 
@@ -273,10 +301,12 @@ public class SwerveConfig {
         if (period == -1.0) missing.add("Period");
         if (odometryPeriod == -1.0) missing.add("Odometry Period");
         if (discretizationPeriod == -1.0) missing.add("Discretization Period");
+        if (defaultFramePeriod == -1.0) missing.add("Default Frame Period");
         if (movePID == null) missing.add("Move PID");
         if (moveFF == null) missing.add("Move FF");
         if (turnPID == null) missing.add("Turn PID");
         if (velocity == -1.0) missing.add("Velocity");
+        if (velDeadband == -1.0) missing.add("Velocity Deadband");
         if (slipAccel == -1.0) missing.add("Slip Acceleration");
         if (torqueAccel == -1.0) missing.add("Torque Acceleration");
         if (angularAccel == -1.0) missing.add("Angular Acceleration");
@@ -287,8 +317,10 @@ public class SwerveConfig {
         if (driverAngularVelExp == -1.0) missing.add("Driver Angular Velocity Exponential");
         if (driverAngularVelDeadband == -1.0) missing.add("Driver Angular Velocity Deadband");
         if (voltage == -1.0) missing.add("Voltage");
-        if (moveCurrentLimit == -1.0) missing.add("Move Current Limit");
-        if (turnCurrentLimit == -1.0) missing.add("Turn Current Limit");
+        if (moveStatorLimit == -1.0) missing.add("Move Stator Current Limit");
+        if (moveSupplyLimit == -1.0) missing.add("Move Supply Current Limit");
+        if (turnStatorLimit == -1.0) missing.add("Turn Stator Current Limit");
+        if (turnSupplyLimit == -1.0) missing.add("Turn Supply Current Limit");
         if (moveGearRatio == -1.0) missing.add("Move Gear Ratio");
         if (turnGearRatio == -1.0) missing.add("Turn Gear Ratio");
         if (couplingRatio == -1.0) missing.add("Coupling Ratio");
