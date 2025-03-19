@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import java.util.function.DoubleSupplier;
 import org.team340.lib.swerve.Perspective;
 import org.team340.lib.swerve.SwerveAPI;
+import org.team340.lib.swerve.SwerveState;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.config.SwerveModuleConfig;
 import org.team340.lib.swerve.hardware.SwerveEncoders;
@@ -30,72 +31,72 @@ import org.team340.robot.Constants.RobotMap;
 @Logged
 public final class Swerve extends GRRSubsystem {
 
+    private static final double kMoveRatio = (54.0 / 10.0) * (18.0 / 38.0) * (45.0 / 15.0);
+    private static final double kTurnRatio = (22.0 / 10.0) * (88.0 / 16.0);
+    private static final double kModuleOffset = Units.inchesToMeters(12.5);
+
     private static final SwerveModuleConfig kFrontLeft = new SwerveModuleConfig()
         .setName("frontLeft")
-        .setLocation(0.28, 0.28)
+        .setLocation(kModuleOffset, kModuleOffset)
         .setMoveMotor(SwerveMotors.talonFX(RobotMap.kFlMove, true))
         .setTurnMotor(SwerveMotors.talonFX(RobotMap.kFlTurn, true))
-        .setEncoder(SwerveEncoders.canCoder(RobotMap.kFlEncoder, 0.0, true));
+        .setEncoder(SwerveEncoders.canCoder(RobotMap.kFlEncoder, 0.0, false));
 
     private static final SwerveModuleConfig kFrontRight = new SwerveModuleConfig()
         .setName("frontRight")
-        .setLocation(0.28, -0.28)
+        .setLocation(kModuleOffset, -kModuleOffset)
         .setMoveMotor(SwerveMotors.talonFX(RobotMap.kFrMove, true))
         .setTurnMotor(SwerveMotors.talonFX(RobotMap.kFrTurn, true))
-        .setEncoder(SwerveEncoders.canCoder(RobotMap.kFrEncoder, 0.0, true));
+        .setEncoder(SwerveEncoders.canCoder(RobotMap.kFrEncoder, 0.0, false));
 
     private static final SwerveModuleConfig kBackLeft = new SwerveModuleConfig()
         .setName("backLeft")
-        .setLocation(-0.28, 0.28)
+        .setLocation(-kModuleOffset, kModuleOffset)
         .setMoveMotor(SwerveMotors.talonFX(RobotMap.kBlMove, true))
         .setTurnMotor(SwerveMotors.talonFX(RobotMap.kBlTurn, true))
-        .setEncoder(SwerveEncoders.canCoder(RobotMap.kBlEncoder, 0.0, true));
+        .setEncoder(SwerveEncoders.canCoder(RobotMap.kBlEncoder, 0.0, false));
 
     private static final SwerveModuleConfig kBackRight = new SwerveModuleConfig()
         .setName("backRight")
-        .setLocation(-0.28, -0.28)
+        .setLocation(-kModuleOffset, -kModuleOffset)
         .setMoveMotor(SwerveMotors.talonFX(RobotMap.kBrMove, true))
         .setTurnMotor(SwerveMotors.talonFX(RobotMap.kBrTurn, true))
-        .setEncoder(SwerveEncoders.canCoder(RobotMap.kBrEncoder, 0.0, true));
+        .setEncoder(SwerveEncoders.canCoder(RobotMap.kBrEncoder, 0.0, false));
 
     private static final SwerveConfig kConfig = new SwerveConfig()
-        .setTimings(TimedRobot.kDefaultPeriod, 0.004, 0.02)
-        .setMovePID(0.01, 0.0, 0.0)
-        .setMoveFF(0.05, 0.1)
-        .setTurnPID(0.2, 0.0, 0.1)
-        .setBrakeMode(true, true)
-        .setLimits(5.0, 13.0, 7.0, 27.5)
-        .setDriverProfile(4.5, 1.0, 0.15, 4.2, 2.0, 0.05)
-        .setPowerProperties(Constants.kVoltage, 80.0, 60.0)
-        .setMechanicalProperties(5.4, 12.1, 4.5, Units.inchesToMeters(4.0))
+        .setTimings(TimedRobot.kDefaultPeriod, 0.004, 0.02, 0.01)
+        .setMovePID(0.25, 0.0, 0.0)
+        .setMoveFF(0.0, 0.125)
+        .setTurnPID(100.0, 0.0, 0.2)
+        .setBrakeMode(false, true)
+        .setLimits(4.5, 0.05, 17.5, 14.0, 30.0)
+        .setDriverProfile(4.0, 1.5, 0.15, 4.75, 2.0, 0.05)
+        .setPowerProperties(Constants.kVoltage, 100.0, 80.0, 60.0, 60.0)
+        .setMechanicalProperties(kMoveRatio, kTurnRatio, 0.0, Units.inchesToMeters(4.0))
         .setOdometryStd(0.1, 0.1, 0.1)
         .setIMU(SwerveIMUs.canandgyro(RobotMap.kCanandgyro))
-        .setPhoenixFeatures(new CANBus(RobotMap.kSwerveCANBus), true, true, true)
+        .setPhoenixFeatures(new CANBus(RobotMap.kLowerCANBus), true, true, true)
         .setModules(kFrontLeft, kFrontRight, kBackLeft, kBackRight);
 
-    private static final double kAutoKp = 7.0;
-    private static final double kAutoKi = 0.0;
-    private static final double kAutoKd = 0.0;
-
-    private static final double kAutoAngularKp = 5.0;
-    private static final double kAutoAngularKi = 0.0;
-    private static final double kAutoAngularKd = 0.0;
-
     private final SwerveAPI api;
+    private final SwerveState state;
 
     private final PIDController autoPIDx;
     private final PIDController autoPIDy;
     private final PIDController autoPIDangular;
 
+    @SuppressWarnings("unused")
     private Pose2d autoLast = null;
+
     private Pose2d autoNext = null;
 
     public Swerve() {
         api = new SwerveAPI(kConfig);
+        state = api.state;
 
-        autoPIDx = new PIDController(kAutoKp, kAutoKi, kAutoKd);
-        autoPIDy = new PIDController(kAutoKp, kAutoKi, kAutoKd);
-        autoPIDangular = new PIDController(kAutoAngularKp, kAutoAngularKi, kAutoAngularKd);
+        autoPIDx = new PIDController(10.0, 0.0, 0.0);
+        autoPIDy = new PIDController(10.0, 0.0, 0.0);
+        autoPIDangular = new PIDController(10.0, 0.0, 0.0);
         autoPIDangular.enableContinuousInput(-Math.PI, Math.PI);
 
         api.enableTunables("swerve/api");
@@ -114,7 +115,7 @@ public final class Swerve extends GRRSubsystem {
      */
     @NotLogged
     public Pose2d getPose() {
-        return api.state.pose;
+        return state.pose;
     }
 
     /**
@@ -156,25 +157,16 @@ public final class Swerve extends GRRSubsystem {
     }
 
     /**
-     * Stops the robot from moving, and cleans up auto-related telemetry.
-     * This command should be ran at the end of an autonomous routine.
-     */
-    public Command finishAuto() {
-        return commandBuilder("Swerve.finishAuto()")
-            .onInitialize(() -> {
-                autoLast = null;
-                autoNext = autoLast;
-            })
-            .onExecute(() -> api.applyStop(false));
-    }
-
-    /**
      * Resets the pose of the robot, inherently seeding field-relative movement. This
      * method is not intended for use outside of creating an {@link AutoFactory}.
      * @param pose The new blue origin relative pose to apply to the pose estimator.
      */
     public void resetPose(Pose2d pose) {
         api.resetPose(pose);
+
+        autoPIDx.reset();
+        autoPIDy.reset();
+        autoPIDangular.reset();
     }
 
     /**
@@ -186,7 +178,7 @@ public final class Swerve extends GRRSubsystem {
         autoLast = autoNext;
         autoNext = sample.getPose();
 
-        Pose2d pose = api.state.pose;
+        Pose2d pose = state.pose;
         api.applySpeeds(
             new ChassisSpeeds(
                 sample.vx + autoPIDx.calculate(pose.getX(), sample.x),

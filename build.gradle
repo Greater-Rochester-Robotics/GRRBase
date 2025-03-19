@@ -1,7 +1,7 @@
 plugins {
     id "java"
-    id "edu.wpi.first.GradleRIO" version "2025.2.1"
-    id "com.diffplug.spotless" version "6.25.0"
+    id "edu.wpi.first.GradleRIO" version "2025.3.2"
+    id "com.diffplug.spotless" version "7.0.2"
 }
 
 java {
@@ -27,7 +27,16 @@ deploy {
                 // First part is artifact name, 2nd is artifact type
                 // getTargetTypeClass is a shortcut to get the class type using a string
 
+                // Configure the JVM to optimize GC
+                // This should be removed if using a RoboRIO 1
                 frcJava(getArtifactTypeClass('FRCJavaArtifact')) {
+                    jvmArgs.add("-XX:+UnlockExperimentalVMOptions")
+                    jvmArgs.add("-Xmx100M")
+                    jvmArgs.add("-Xms100M")
+                    jvmArgs.add("-XX:GCTimeRatio=5")
+                    jvmArgs.add("-XX:+UseSerialGC")
+                    jvmArgs.add("-XX:MaxGCPauseMillis=50")
+                    jvmArgs.add("-XX:+AlwaysPreTouch")
                 }
 
                 // Static files artifact
@@ -72,6 +81,8 @@ dependencies {
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    implementation 'com.google.code.gson:gson:2.11.0'
 }
 
 // Code formatting via spotless
@@ -86,7 +97,7 @@ spotless {
         endWithNewline()
         removeUnusedImports()
         trimTrailingWhitespace()
-        prettier(['prettier': '3.4.2', 'prettier-plugin-java': '2.6.5'])
+        prettier(['prettier': '3.5.3', 'prettier-plugin-java': '2.6.7'])
             .config([
                 'parser': 'java',
                 'plugins': ['prettier-plugin-java'],

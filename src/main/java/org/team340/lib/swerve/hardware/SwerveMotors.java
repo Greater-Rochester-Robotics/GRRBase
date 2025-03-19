@@ -2,7 +2,6 @@ package org.team340.lib.swerve.hardware;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
-import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
@@ -109,13 +108,12 @@ public final class SwerveMotors {
     /**
      * Configures a {@link CANSparkMax Spark Max}.
      * @param id CAN ID of the device, as configured in the REV Hardware Client.
-     * @param type The motor type connected to the controller.
      * @param inverted If the motor is inverted.
      */
-    public static SwerveMotor.Ctor sparkMax(int id, MotorType type, boolean inverted) {
+    public static SwerveMotor.Ctor sparkMax(int id, boolean inverted) {
         return (config, isMoveMotor) -> {
             var deviceLogger = new SparkMaxLogger();
-            SparkMax sparkMax = new SparkMax(id, type);
+            SparkMax sparkMax = new SparkMax(id, MotorType.kBrushless);
             RelativeEncoder relativeEncoder = sparkMax.getEncoder();
             SparkClosedLoopController pid = sparkMax.getClosedLoopController();
             ClosedLoopSlot pidSlot = ClosedLoopSlot.kSlot0;
@@ -127,7 +125,7 @@ public final class SwerveMotors {
 
             sparkConfig
                 .voltageCompensation(config.voltage)
-                .smartCurrentLimit((int) (isMoveMotor ? config.moveCurrentLimit : config.turnCurrentLimit))
+                .smartCurrentLimit((int) (isMoveMotor ? config.moveStatorLimit : config.turnStatorLimit))
                 .idleMode(
                     (isMoveMotor ? config.moveBrakeMode : config.turnBrakeMode) ? IdleMode.kBrake : IdleMode.kCoast
                 )
@@ -137,14 +135,12 @@ public final class SwerveMotors {
                 .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
                 .pid(pidGains[0], pidGains[1], pidGains[2], pidSlot);
 
-            sparkConfig.encoder
-                .positionConversionFactor(1.0)
-                .velocityConversionFactor(1.0 / 60.0);
+            sparkConfig.encoder.positionConversionFactor(1.0).velocityConversionFactor(1.0 / 60.0);
 
             sparkConfig.signals
-                .appliedOutputPeriodMs((int) (config.period * 1000.0))
+                .appliedOutputPeriodMs((int) (config.defaultFramePeriod * 1000.0))
                 .faultsAlwaysOn(true)
-                .faultsPeriodMs((int) (config.period * 1000.0))
+                .faultsPeriodMs((int) (config.defaultFramePeriod * 1000.0))
                 .primaryEncoderPositionAlwaysOn(true)
                 .primaryEncoderPositionPeriodMs((int) (config.odometryPeriod * 1000.0))
                 .primaryEncoderVelocityAlwaysOn(true)
@@ -227,13 +223,12 @@ public final class SwerveMotors {
     /**
      * Configures a {@link CANSparkFlex Spark Flex}.
      * @param id CAN ID of the device, as configured in the REV Hardware Client.
-     * @param type The motor type connected to the controller.
      * @param inverted If the motor is inverted.
      */
-    public static SwerveMotor.Ctor sparkFlex(int id, MotorType type, boolean inverted) {
+    public static SwerveMotor.Ctor sparkFlex(int id, boolean inverted) {
         return (config, isMoveMotor) -> {
             var deviceLogger = new SparkFlexLogger();
-            SparkFlex sparkFlex = new SparkFlex(id, type);
+            SparkFlex sparkFlex = new SparkFlex(id, MotorType.kBrushless);
             RelativeEncoder relativeEncoder = sparkFlex.getEncoder();
             SparkClosedLoopController pid = sparkFlex.getClosedLoopController();
             ClosedLoopSlot pidSlot = ClosedLoopSlot.kSlot0;
@@ -245,7 +240,7 @@ public final class SwerveMotors {
 
             sparkConfig
                 .voltageCompensation(config.voltage)
-                .smartCurrentLimit((int) (isMoveMotor ? config.moveCurrentLimit : config.turnCurrentLimit))
+                .smartCurrentLimit((int) (isMoveMotor ? config.moveStatorLimit : config.turnStatorLimit))
                 .idleMode(
                     (isMoveMotor ? config.moveBrakeMode : config.turnBrakeMode) ? IdleMode.kBrake : IdleMode.kCoast
                 )
@@ -262,9 +257,9 @@ public final class SwerveMotors {
                 .quadratureAverageDepth(isMoveMotor ? 8 : 64);
 
             sparkConfig.signals
-                .appliedOutputPeriodMs((int) (config.period * 1000.0))
+                .appliedOutputPeriodMs((int) (config.defaultFramePeriod * 1000.0))
                 .faultsAlwaysOn(true)
-                .faultsPeriodMs((int) (config.period * 1000.0))
+                .faultsPeriodMs((int) (config.defaultFramePeriod * 1000.0))
                 .primaryEncoderPositionAlwaysOn(true)
                 .primaryEncoderPositionPeriodMs((int) (config.odometryPeriod * 1000.0))
                 .primaryEncoderVelocityAlwaysOn(true)
@@ -358,30 +353,32 @@ public final class SwerveMotors {
             StatusSignal<AngularVelocity> velocity = talonFX.getVelocity().clone();
 
             boolean enableFOC = isMoveMotor ? config.phoenixMoveFOC : config.phoenixTurnFOC;
-            boolean timesync = config.phoenixPro && config.phoenixCanBus.isNetworkFD();
 
             PositionVoltage positionControl = new PositionVoltage(0.0);
             positionControl.EnableFOC = enableFOC;
-            positionControl.UseTimesync = timesync;
             positionControl.UpdateFreqHz = 0.0;
 
             VelocityVoltage velocityControl = new VelocityVoltage(0.0);
             velocityControl.EnableFOC = enableFOC;
-            velocityControl.UseTimesync = timesync;
             velocityControl.UpdateFreqHz = 0.0;
 
-            VoltageOut voltageControl = new VoltageOut(0);
+            VoltageOut voltageControl = new VoltageOut(0.0);
 
             double[] pidGains = isMoveMotor ? config.movePID : config.turnPID;
             double[] ffGains = isMoveMotor ? config.moveFF : new double[] { 0.0, 0.0 };
 
+            double statorLimit = isMoveMotor ? config.moveStatorLimit : config.turnStatorLimit;
+            double supplyLimit = isMoveMotor ? config.moveSupplyLimit : config.turnSupplyLimit;
+
             var talonConfig = new TalonFXConfiguration();
 
-            double currentLimit = isMoveMotor ? config.moveCurrentLimit : config.turnCurrentLimit;
-            talonConfig.CurrentLimits.StatorCurrentLimit = currentLimit;
-            talonConfig.CurrentLimits.SupplyCurrentLimit = currentLimit;
+            talonConfig.Audio.AllowMusicDurDisable = true;
 
-            talonConfig.MotorOutput.ControlTimesyncFreqHz = 1.0 / config.period;
+            talonConfig.CurrentLimits.StatorCurrentLimit = statorLimit;
+            talonConfig.CurrentLimits.SupplyCurrentLimit = supplyLimit;
+            talonConfig.TorqueCurrent.PeakForwardTorqueCurrent = statorLimit;
+            talonConfig.TorqueCurrent.PeakReverseTorqueCurrent = -statorLimit;
+
             talonConfig.MotorOutput.Inverted = inverted
                 ? InvertedValue.Clockwise_Positive
                 : InvertedValue.CounterClockwise_Positive;
@@ -395,16 +392,16 @@ public final class SwerveMotors {
             talonConfig.Slot0.kS = ffGains[0];
             talonConfig.Slot0.kV = ffGains[1];
 
-            PhoenixUtil.run("Clear Sticky Faults", talonFX, () -> talonFX.clearStickyFaults());
-            PhoenixUtil.run("Apply TalonFXConfiguration", talonFX, () -> talonFX.getConfigurator().apply(talonConfig));
-            PhoenixUtil.run("Set Update Frequency", talonFX, () ->
+            PhoenixUtil.run("Clear Sticky Faults", () -> talonFX.clearStickyFaults());
+            PhoenixUtil.run("Apply TalonFXConfiguration", () -> talonFX.getConfigurator().apply(talonConfig));
+            PhoenixUtil.run("Set Update Frequency", () ->
                 BaseStatusSignal.setUpdateFrequencyForAll(1.0 / config.odometryPeriod, position, velocity)
             );
-            PhoenixUtil.run("Optimize Bus Utilization", talonFX, () ->
-                talonFX.optimizeBusUtilization(1.0 / SwerveBaseHardware.kTelemetryCANPeriod, 0.05)
+            PhoenixUtil.run("Optimize Bus Utilization", () ->
+                talonFX.optimizeBusUtilization(1.0 / config.defaultFramePeriod, 0.05)
             );
 
-            if (isMoveMotor) PhoenixUtil.run("Zero Encoder", talonFX, () -> talonFX.setPosition(0.0));
+            if (isMoveMotor) PhoenixUtil.run("Zero Rotor Encoder", () -> talonFX.setPosition(0.0));
 
             return new SwerveMotor() {
                 @Override
@@ -437,7 +434,7 @@ public final class SwerveMotors {
                     double[] pidGains = isMoveMotor ? config.movePID : config.turnPID;
                     double[] ffGains = isMoveMotor ? config.moveFF : new double[] { 0.0, 0.0 };
 
-                    var slot0Config = new Slot0Configs();
+                    var slot0Config = talonConfig.Slot0;
                     slot0Config.kP = pidGains[0];
                     slot0Config.kI = pidGains[1];
                     slot0Config.kD = pidGains[2];

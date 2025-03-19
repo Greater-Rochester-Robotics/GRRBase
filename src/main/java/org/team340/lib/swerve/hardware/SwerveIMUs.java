@@ -25,7 +25,6 @@ import org.team340.lib.logging.wpilibj.ADIS16470Logger;
 import org.team340.lib.swerve.SwerveAPI;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.hardware.SwerveIMUs.SwerveIMU.IMUSimHook;
-import org.team340.lib.util.Math2;
 import org.team340.lib.util.Mutable;
 import org.team340.lib.util.vendors.PhoenixUtil;
 import org.team340.lib.util.vendors.ReduxUtil;
@@ -70,11 +69,6 @@ public final class SwerveIMUs {
         }
 
         /**
-         * Gets the IMU's multi-turn yaw in radians.
-         */
-        public abstract double getMultiturnYaw();
-
-        /**
          * Gets the IMU's absolute yaw.
          */
         public abstract Rotation2d getYaw();
@@ -110,11 +104,6 @@ public final class SwerveIMUs {
             ADIS16470_IMU adis16470 = new ADIS16470_IMU(yawAxis, pitchAxis, rollAxis, port, calibrationTime);
 
             return new SwerveIMU() {
-                @Override
-                public double getMultiturnYaw() {
-                    return Math.toRadians(adis16470.getAngle(adis16470.getYawAxis()));
-                }
-
                 @Override
                 public Rotation2d getYaw() {
                     return Rotation2d.fromDegrees(adis16470.getAngle(adis16470.getYawAxis()));
@@ -158,27 +147,16 @@ public final class SwerveIMUs {
             Canandgyro canandgyro = new Canandgyro(id);
 
             var settings = new CanandgyroSettings()
-                .setAccelerationFramePeriod(config.period)
-                .setAngularPositionFramePeriod(config.period)
+                .setAccelerationFramePeriod(config.defaultFramePeriod)
+                .setAngularPositionFramePeriod(config.odometryPeriod)
                 .setAngularVelocityFramePeriod(config.odometryPeriod)
-                .setStatusFramePeriod(config.period)
+                .setStatusFramePeriod(config.defaultFramePeriod)
                 .setYawFramePeriod(config.odometryPeriod);
 
             canandgyro.clearStickyFaults();
             ReduxUtil.applySettings(canandgyro, settings);
 
             return new SwerveIMU() {
-                @Override
-                public double getMultiturnYaw() {
-                    return (
-                        ReduxUtil.latencyCompensate(
-                            canandgyro.getMultiturnYawFrame(),
-                            canandgyro.getAngularVelocityYaw()
-                        ) *
-                        Math2.kTwoPi
-                    );
-                }
-
                 @Override
                 public Rotation2d getYaw() {
                     return Rotation2d.fromRotations(
@@ -240,23 +218,23 @@ public final class SwerveIMUs {
             StatusSignal<AngularVelocity> pitchVelocity = pigeon2.getAngularVelocityXWorld();
             StatusSignal<AngularVelocity> rollVelocity = pigeon2.getAngularVelocityYWorld();
 
-            PhoenixUtil.run("Clear Sticky Faults", pigeon2, () -> pigeon2.clearStickyFaults());
-            PhoenixUtil.run("Set Update Frequency", pigeon2, () ->
-                BaseStatusSignal.setUpdateFrequencyForAll(1.0 / config.odometryPeriod, yaw, yawVelocity)
+            PhoenixUtil.run("Clear Sticky Faults", () -> pigeon2.clearStickyFaults());
+            PhoenixUtil.run("Set Update Frequency", () ->
+                BaseStatusSignal.setUpdateFrequencyForAll(
+                    1.0 / config.odometryPeriod,
+                    yaw,
+                    pitch,
+                    roll,
+                    yawVelocity,
+                    pitchVelocity,
+                    rollVelocity
+                )
             );
-            PhoenixUtil.run("Set Update Frequency", pigeon2, () ->
-                BaseStatusSignal.setUpdateFrequencyForAll(1.0 / config.period, pitch, roll, pitchVelocity, rollVelocity)
-            );
-            PhoenixUtil.run("Optimize Bus Utilization", pigeon2, () ->
-                pigeon2.optimizeBusUtilization(1.0 / SwerveBaseHardware.kTelemetryCANPeriod, 0.05)
+            PhoenixUtil.run("Optimize Bus Utilization", () ->
+                pigeon2.optimizeBusUtilization(1.0 / config.defaultFramePeriod, 0.05)
             );
 
             return new SwerveIMU() {
-                @Override
-                public double getMultiturnYaw() {
-                    return Math.toRadians(BaseStatusSignal.getLatencyCompensatedValueAsDouble(yaw, yawVelocity));
-                }
-
                 @Override
                 public Rotation2d getYaw() {
                     return Rotation2d.fromDegrees(
@@ -314,11 +292,6 @@ public final class SwerveIMUs {
         });
 
         return new SwerveIMU() {
-            @Override
-            public double getMultiturnYaw() {
-                return yaw.value;
-            }
-
             @Override
             public Rotation2d getYaw() {
                 return Rotation2d.fromRadians(yaw.value);
