@@ -21,6 +21,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj.Timer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -120,13 +121,9 @@ public class SwerveAPI implements AutoCloseable {
 
             state.pose = poseEstimator.getEstimatedPosition();
 
-            state.imu.yawMeasurements.clear();
-            state.imu.yawMeasurements.addAll(odometryThread.yawMeasurements);
-            odometryThread.yawMeasurements.clear();
-
-            if (!state.imu.yawMeasurements.isEmpty()) {
-                state.imu.yaw = state.imu.yawMeasurements.get(state.imu.yawMeasurements.size() - 1).yaw();
-            }
+            state.poseHistory.clear();
+            state.poseHistory.addAll(odometryThread.poseHistory);
+            odometryThread.poseHistory.clear();
         } finally {
             odometryMutex.unlock();
         }
@@ -136,8 +133,8 @@ public class SwerveAPI implements AutoCloseable {
         state.translation = state.pose.getTranslation();
         state.rotation = state.pose.getRotation();
 
-        state.imu.pitch = imu.getPitch();
-        state.imu.roll = imu.getRoll();
+        state.pitch = imu.getPitch();
+        state.roll = imu.getRoll();
 
         imuSimHook.accept(state.speeds);
     }
@@ -149,14 +146,15 @@ public class SwerveAPI implements AutoCloseable {
     public void addVisionMeasurements(VisionMeasurement... measurements) {
         odometryMutex.lock();
         try {
+            Arrays.sort(measurements);
             for (VisionMeasurement measurement : measurements) {
                 if (measurement.stdDevs == null) {
-                    poseEstimator.addVisionMeasurement(measurement.visionPose, measurement.timestamp);
+                    poseEstimator.addVisionMeasurement(measurement.pose(), measurement.timestamp());
                 } else {
                     poseEstimator.addVisionMeasurement(
-                        measurement.visionPose,
-                        measurement.timestamp,
-                        measurement.stdDevs
+                        measurement.pose(),
+                        measurement.timestamp(),
+                        measurement.stdDevs()
                     );
                 }
             }
@@ -180,7 +178,7 @@ public class SwerveAPI implements AutoCloseable {
         try {
             poseEstimator.resetPosition(odometryThread.lastYaw, state.modules.positions, pose);
             state.pose = poseEstimator.getEstimatedPosition();
-            odometryThread.yawMeasurements.clear();
+            odometryThread.poseHistory.clear();
         } finally {
             odometryMutex.unlock();
         }
@@ -198,9 +196,13 @@ public class SwerveAPI implements AutoCloseable {
 
         odometryMutex.lock();
         try {
+            // Patch for an upstream bug.
+            // TODO PR a proper fix to PoseEstimator.resetRotation()
+            odometry.resetPose(state.pose);
+
             poseEstimator.resetRotation(rotation);
             state.pose = poseEstimator.getEstimatedPosition();
-            odometryThread.yawMeasurements.clear();
+            odometryThread.poseHistory.clear();
         } finally {
             odometryMutex.unlock();
         }
@@ -449,23 +451,44 @@ public class SwerveAPI implements AutoCloseable {
 
     /**
      * Represents a measurement from vision to apply to the pose estimator.
-     * @see {@link SwerveDrivePoseEstimator#addVisionMeasurement(Pose2d, double, Matrix)}.
+     * @see {@link PoseEstimator#addVisionMeasurement(Pose2d, double, Matrix)}.
      */
     @Logged(strategy = Strategy.OPT_IN)
-    public static final record VisionMeasurement(Pose2d visionPose, double timestamp, Matrix<N3, N1> stdDevs) {
+    public static final record VisionMeasurement(Pose2d pose, double timestamp, Matrix<N3, N1> stdDevs)
+        implements Comparable<VisionMeasurement> {
         /**
          * Represents a measurement from vision to apply to the pose estimator.
-         * @see {@link SwerveDrivePoseEstimator#addVisionMeasurement(Pose2d, double)}.
+         * @see {@link PoseEstimator#addVisionMeasurement(Pose2d, double)}.
          */
-        public VisionMeasurement(Pose2d visionPose, double timestamp) {
-            this(visionPose, timestamp, null);
+        public VisionMeasurement(Pose2d pose, double timestamp) {
+            this(pose, timestamp, null);
+        }
+
+        @Override
+        public int compareTo(VisionMeasurement o) {
+            return Double.compare(timestamp, o.timestamp());
+        }
+
+        @Override
+        public String toString() {
+            return String.format("VisionMeasurement(%s, timestamp: %.3f)", pose, timestamp);
         }
     }
 
     /**
-     * Contains a yaw measurement alongside the timestamp of the measurement, in seconds.
+     * Contains a {@link Pose2d} alongside a timestamp in seconds.
      */
-    public static final record TimestampedYaw(Rotation2d yaw, double timestamp) {}
+    public static final record TimestampedPose(Pose2d pose, double timestamp) implements Comparable<TimestampedPose> {
+        @Override
+        public int compareTo(TimestampedPose o) {
+            return Double.compare(timestamp, o.timestamp());
+        }
+
+        @Override
+        public String toString() {
+            return String.format("TimestampedPose(%s, timestamp: %.3f)", pose, timestamp);
+        }
+    }
 
     /**
      * Manages swerve odometry. Will run asynchronously at the configured odometry update
@@ -476,7 +499,7 @@ public class SwerveAPI implements AutoCloseable {
      */
     private final class SwerveOdometryThread implements AutoCloseable {
 
-        public final List<TimestampedYaw> yawMeasurements = new ArrayList<>();
+        public final List<TimestampedPose> poseHistory = new ArrayList<>();
         public Rotation2d lastYaw = Rotation2d.kZero;
         public boolean timesync = false;
         public int successes = 0;
@@ -547,7 +570,8 @@ public class SwerveAPI implements AutoCloseable {
                 }
 
                 poseEstimator.update(lastYaw, positionCache);
-                yawMeasurements.add(new TimestampedYaw(odometry.getPoseMeters().getRotation(), yawTimestamp));
+                poseHistory.add(new TimestampedPose(poseEstimator.getEstimatedPosition(), yawTimestamp));
+
                 successes++;
             } finally {
                 odometryMutex.unlock();
