@@ -22,8 +22,6 @@ A template repository for Java-based robots in the FIRST Robotics Competition.
 2. Above the file list, click *Use this template*.
 3. Select *Create a new repository*.
 
-![Creating a new repository](https://github.com/user-attachments/assets/fe88cfe9-6326-4723-8733-fb116ad809fb)
-
 ### Prerequisites
 
 - [WPILib](https://github.com/wpilibsuite/allwpilib/releases) 2025.x
@@ -137,7 +135,6 @@ First, ensure [wpilib_preferences.json](.wpilib/wpilib_preferences.json) is conf
 
 ```json
 {
-    ...
     "teamNumber": 340
 }
 ```
