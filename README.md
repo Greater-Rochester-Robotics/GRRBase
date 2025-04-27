@@ -22,6 +22,8 @@ A template repository for Java-based robots in the FIRST Robotics Competition.
 2. Above the file list, click *Use this template*.
 3. Select *Create a new repository*.
 
+*See also: [GitHub Docs](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template)*
+
 ### Prerequisites
 
 - [WPILib](https://github.com/wpilibsuite/allwpilib/releases) 2025.x
@@ -32,6 +34,8 @@ Node.js is required to support linting via [Spotless](https://github.com/diffplu
 <details>
 
 <summary>Expand</summary>
+
+<br>
 
 ```diff
 diff --git a/build.gradle b/build.gradle
