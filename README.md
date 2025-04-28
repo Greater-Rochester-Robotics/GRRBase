@@ -151,4 +151,7 @@ def ROBOT_MAIN_CLASS = "com.example.robot.Main"
 
 ## Project Layout
 
-This template adheres to the typical layout of a command-based robot project. The [subsystems](src/main/java/org/team340/robot/subsystems) directory 
+This template resembles the typical layout of a command-based robot project, with a [robot/subsystems](src/main/java/org/team340/robot/subsystems) directory containing user-defined subsystem classes, and a [robot/commands](src/main/java/org/team340/robot/commands) directory containing user-defined commands. An additional [lib](src/main/java/org/team340/lib) folder is included, containing library code that under normal usage should not require modification in-season. We intentionally do not supply this code as a [vendordep](https://docs.wpilib.org/en/stable/docs/software/vscode-overview/3rd-party-libraries.html) in the rare occasion it does need to be modified, with the primary concern being the potential need for at-competition patches.
+
+> [!NOTE]
+> [RobotContainer.java](https://docs.wpilib.org/en/stable/docs/software/commandbased/structuring-command-based-project.html#robotcontainer) is notably omitted, and it is expected for subsystems and command bindings to instead be declared in [Robot.java](src/main/java/org/team340/robot/Robot.java). This is done for several reasons, however the user is still free to reinstate `RobotContainer` at their discretion.
