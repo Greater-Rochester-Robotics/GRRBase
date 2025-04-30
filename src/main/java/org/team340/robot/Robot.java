@@ -65,7 +65,10 @@ public final class Robot extends TimedRobot {
         coDriver.a().onTrue(none());
 
         // Set thread priority
-        Threads.setCurrentThreadPriority(true, 10);
+        waitSeconds(10.0)
+            .until(DriverStation::isEnabled)
+            .andThen(() -> Threads.setCurrentThreadPriority(true, 10))
+            .schedule();
     }
 
     /**
