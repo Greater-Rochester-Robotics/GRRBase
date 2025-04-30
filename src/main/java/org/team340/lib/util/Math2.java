@@ -1,10 +1,12 @@
 package org.team340.lib.util;
 
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import java.util.Optional;
 
 /**
  * Math utilities.
@@ -16,8 +18,6 @@ public final class Math2 {
         throw new AssertionError("This is a utility class!");
     }
 
-    /** Shared maximum accuracy floating point. */
-    public static final double kEpsilon = 1e-6;
     /** {@code PI/6} (30deg) */
     public static final double kSixthPi = Math.PI / 6.0;
     /** {@code PI/4} (45deg) */
@@ -53,53 +53,26 @@ public final class Math2 {
     }
 
     /**
-     * Check if two optional values are equal within the accuracy of the default epsilon.
-     * If one option is empty and the other is present, or both options are present and
-     * unequal, {@code false} is returned. If both options empty, or both options are
-     * present and equal, {@code true} is returned.
-     * @param a The first value to compare.
-     * @param b The second value to compare.
-     * @return {@code true} if the values are equal.
+     * Checks if the distance between two {@link Translation2d}s is within a specified tolerance.
+     * @param expected The expected {@link Translation2d}.
+     * @param actual The actual {@link Translation2d}.
+     * @param tolerance The allowed distance between the actual and the expected translations, in meters.
      */
-    public static boolean epsilonEquals(Optional<Double> a, Optional<Double> b) {
-        return epsilonEquals(a, b, kEpsilon);
+    public static boolean isNear(Translation2d expected, Translation2d actual, double tolerance) {
+        double dx = expected.getX() - actual.getX();
+        double dy = expected.getY() - actual.getY();
+        return dx * dx + dy * dy < tolerance * tolerance;
     }
 
     /**
-     * Check if two optional values are equal within the accuracy of the default epsilon.
-     * If one option is empty and the other is present, or both options are present and
-     * unequal, {@code false} is returned. If both options empty, or both options are
-     * present and equal, {@code true} is returned.
-     * @param a The first value to compare.
-     * @param b The second value to compare.
-     * @param epsilon Epsilon value to compare with.
-     * @return {@code true} if the values are equal.
+     * Checks if the angle between two {@link Rotation2d}s is within a specified tolerance.
+     * @param expected The expected {@link Rotation2d}.
+     * @param actual The actual {@link Rotation2d}.
+     * @param tolerance The allowed difference between the actual and the expected rotations, in radians.
      */
-    public static boolean epsilonEquals(Optional<Double> a, Optional<Double> b, double epsilon) {
-        if (a == b) return true;
-        if (a.isEmpty() || b.isEmpty()) return a.isEmpty() && b.isEmpty();
-        return epsilonEquals(a.get(), b.get(), epsilon);
-    }
-
-    /**
-     * Check if two values are equal within the accuracy of the default epsilon.
-     * @param a The first value to compare.
-     * @param b The second value to compare.
-     * @return {@code true} if the values are equal.
-     */
-    public static boolean epsilonEquals(double a, double b) {
-        return epsilonEquals(a, b, kEpsilon);
-    }
-
-    /**
-     * Check if two values are equal within the accuracy of a provided epsilon.
-     * @param a The first value to compare.
-     * @param b The second value to compare.
-     * @param epsilon Epsilon value to compare with.
-     * @return {@code true} if the values are equal.
-     */
-    public static boolean epsilonEquals(double a, double b, double epsilon) {
-        return (a - epsilon <= b) && (a + epsilon >= b);
+    public static boolean isNear(Rotation2d expected, Rotation2d actual, double tolerance) {
+        double dot = expected.getCos() * actual.getCos() + expected.getSin() * actual.getSin();
+        return Math.acos(MathUtil.clamp(dot, -1.0, 1.0)) < tolerance;
     }
 
     /**

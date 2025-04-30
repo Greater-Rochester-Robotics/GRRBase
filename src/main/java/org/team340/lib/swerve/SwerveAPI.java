@@ -364,7 +364,7 @@ public class SwerveAPI implements AutoCloseable {
             double dtheta = speeds.omegaRadiansPerSecond * config.discretizationPeriod;
 
             double sin = -dtheta / 2.0;
-            double cos = Math2.epsilonEquals(Math.cos(dtheta) - 1.0, 0.0)
+            double cos = Math.abs(Math.cos(dtheta) - 1.0) < 1e-6
                 ? 1.0 - ((1.0 / 12.0) * dtheta * dtheta)
                 : (sin * Math.sin(dtheta)) / (Math.cos(dtheta) - 1.0);
 
