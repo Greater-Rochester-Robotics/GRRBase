@@ -58,6 +58,9 @@ public final class Robot extends TimedRobot {
         // Create triggers
         RobotModeTriggers.autonomous().whileTrue(autos.runSelectedAuto());
 
+        // Set default commands
+        swerve.setDefaultCommand(swerve.drive(this::driverX, this::driverY, this::driverAngular));
+
         // Driver bindings
         driver.povLeft().onTrue(swerve.tareRotation());
 
