@@ -403,7 +403,10 @@ public class SwerveAPI implements AutoCloseable {
      */
     public void applyStop(boolean lock) {
         lastRatelimit = Timer.getFPGATimestamp();
-        Math2.zero(state.targetSpeeds);
+
+        state.targetSpeeds.vxMetersPerSecond = 0.0;
+        state.targetSpeeds.vyMetersPerSecond = 0.0;
+        state.targetSpeeds.omegaRadiansPerSecond = 0.0;
 
         for (int i = 0; i < moduleCount; i++) {
             SwerveModuleState state;

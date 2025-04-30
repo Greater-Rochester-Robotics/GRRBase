@@ -124,28 +124,4 @@ public final class Math2 {
         output.angle = source.angle;
         return output;
     }
-
-    /**
-     * Zeroes a {@link ChassisSpeeds} object in place.
-     * @param speeds The speeds to zero.
-     * @return The provided speeds object.
-     */
-    public static ChassisSpeeds zero(ChassisSpeeds speeds) {
-        speeds.vxMetersPerSecond = 0.0;
-        speeds.vyMetersPerSecond = 0.0;
-        speeds.omegaRadiansPerSecond = 0.0;
-        return speeds;
-    }
-
-    /**
-     * Zeroes a {@link Twist2d} object in place.
-     * @param twist The twist to zero.
-     * @return The provided twist object.
-     */
-    public static Twist2d zero(Twist2d twist) {
-        twist.dx = 0.0;
-        twist.dy = 0.0;
-        twist.dtheta = 0.0;
-        return twist;
-    }
 }
