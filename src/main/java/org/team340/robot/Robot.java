@@ -12,9 +12,7 @@ import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import org.team340.lib.util.DisableWatchdog;
-import org.team340.lib.util.Profiler;
 import org.team340.lib.util.Tunable;
 import org.team340.robot.commands.Autos;
 import org.team340.robot.commands.Routines;
@@ -23,7 +21,7 @@ import org.team340.robot.subsystems.Swerve;
 @Logged
 public final class Robot extends TimedRobot {
 
-    private final CommandScheduler scheduler = CommandScheduler.getInstance();
+    public final CommandScheduler scheduler = CommandScheduler.getInstance();
 
     public final Swerve swerve;
 
@@ -52,11 +50,8 @@ public final class Robot extends TimedRobot {
         autos = new Autos(this);
 
         // Initialize controllers
-        driver = new CommandXboxController(Constants.kDriver);
-        coDriver = new CommandXboxController(Constants.kCoDriver);
-
-        // Create triggers
-        RobotModeTriggers.autonomous().whileTrue(autos.runSelectedAuto());
+        driver = new CommandXboxController(Constants.DRIVER);
+        coDriver = new CommandXboxController(Constants.CO_DRIVER);
 
         // Set default commands
         swerve.setDefaultCommand(swerve.drive(this::driverX, this::driverY, this::driverAngular));
@@ -78,7 +73,7 @@ public final class Robot extends TimedRobot {
      * Returns the current match time in seconds.
      */
     public double matchTime() {
-        return Math.max(DriverStation.getMatchTime(), 0.0);
+        return Math.max(0.0, DriverStation.getMatchTime());
     }
 
     @NotLogged
@@ -98,11 +93,9 @@ public final class Robot extends TimedRobot {
 
     @Override
     public void robotPeriodic() {
-        Profiler.start("robotPeriodic");
-        Profiler.run("scheduler", scheduler::run);
-        Profiler.run("epilogue", () -> Epilogue.update(this));
-        Profiler.run("tunables", Tunable::update);
-        Profiler.end();
+        scheduler.run();
+        Epilogue.update(this);
+        Tunable.update();
     }
 
     @Override

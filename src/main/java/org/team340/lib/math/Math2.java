@@ -1,4 +1,4 @@
-package org.team340.lib.util;
+package org.team340.lib.math;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -18,38 +18,31 @@ public final class Math2 {
         throw new AssertionError("This is a utility class!");
     }
 
-    /** {@code PI/6} (30deg) */
-    public static final double kSixthPi = Math.PI / 6.0;
-    /** {@code PI/4} (45deg) */
-    public static final double kQuarterPi = Math.PI / 4.0;
-    /** {@code PI/3} (60deg) */
-    public static final double kThirdPi = Math.PI / 3.0;
-    /** {@code PI/2} (90deg) */
-    public static final double kHalfPi = Math.PI / 2.0;
-    /** {@code 2PI/3} (120deg) */
-    public static final double kTwoThirdsPi = (2.0 * Math.PI) / 3.0;
-    /** {@code 3PI/4} (135deg) */
-    public static final double kThreeQuartersPi = (3.0 * Math.PI) / 4.0;
-    /** {@code 5PI/6} (150deg) */
-    public static final double kFiveSixthsPi = (5.0 * Math.PI) / 6.0;
-    /** {@code PI*2} (360deg) */
-    public static final double kTwoPi = Math.PI * 2.0;
+    public static final double PI2 = 6.283185307179586;
 
     /**
-     * Returns a random double from {@code 0.0} to {@code max}.
-     * @param max The maximum value to return.
+     * Discretizes a continuous-time chassis speed in place.
+     * @param speeds The continuous speeds.
+     * @param dtSeconds The duration of the timestep the speeds should be applied for.
+     * @return The provided speeds object.
+     * @see {@link ChassisSpeeds#discretize(ChassisSpeeds, double)}
      */
-    public static double random(double max) {
-        return Math.random() * max;
-    }
+    public static ChassisSpeeds discretize(ChassisSpeeds speeds, double dtSeconds) {
+        double dtheta = speeds.omegaRadiansPerSecond * dtSeconds;
 
-    /**
-     * Returns a random double from {@code min} to {@code max}.
-     * @param min The minimum value to return.
-     * @param max The maximum value to return.
-     */
-    public static double random(double min, double max) {
-        return (Math.random() * (max - min)) + min;
+        double sin = -dtheta / 2.0;
+        double cos = Math.abs(Math.cos(dtheta) - 1.0) < 1e-6
+            ? 1.0 - ((1.0 / 12.0) * dtheta * dtheta)
+            : (sin * Math.sin(dtheta)) / (Math.cos(dtheta) - 1.0);
+
+        double dt = dtSeconds;
+        double dx = speeds.vxMetersPerSecond * dt;
+        double dy = speeds.vyMetersPerSecond * dt;
+
+        speeds.vxMetersPerSecond = ((dx * cos) - (dy * sin)) / dt;
+        speeds.vyMetersPerSecond = ((dx * sin) + (dy * cos)) / dt;
+
+        return speeds;
     }
 
     /**
@@ -73,6 +66,23 @@ public final class Math2 {
     public static boolean isNear(Rotation2d expected, Rotation2d actual, double tolerance) {
         double dot = expected.getCos() * actual.getCos() + expected.getSin() * actual.getSin();
         return Math.acos(MathUtil.clamp(dot, -1.0, 1.0)) < tolerance;
+    }
+
+    /**
+     * Returns a random double from {@code 0.0} to {@code max}.
+     * @param max The maximum value to return.
+     */
+    public static double random(double max) {
+        return Math.random() * max;
+    }
+
+    /**
+     * Returns a random double from {@code min} to {@code max}.
+     * @param min The minimum value to return.
+     * @param max The maximum value to return.
+     */
+    public static double random(double min, double max) {
+        return (Math.random() * (max - min)) + min;
     }
 
     /**

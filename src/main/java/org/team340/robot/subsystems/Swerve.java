@@ -1,17 +1,19 @@
 package org.team340.robot.subsystems;
 
-import choreo.auto.AutoFactory;
-import choreo.trajectory.SwerveSample;
 import com.ctre.phoenix6.CANBus;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.NotLogged;
-import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
+import org.team340.lib.math.Math2;
+import org.team340.lib.math.PAPFController;
+import org.team340.lib.math.PAPFController.Obstacle;
 import org.team340.lib.swerve.Perspective;
 import org.team340.lib.swerve.SwerveAPI;
 import org.team340.lib.swerve.SwerveState;
@@ -31,39 +33,37 @@ import org.team340.robot.Constants.RobotMap;
 @Logged
 public final class Swerve extends GRRSubsystem {
 
-    private static final double kMoveRatio = (54.0 / 10.0) * (18.0 / 38.0) * (45.0 / 15.0);
-    private static final double kTurnRatio = (22.0 / 10.0) * (88.0 / 16.0);
-    private static final double kModuleOffset = Units.inchesToMeters(12.5);
+    private static final double OFFSET = Units.inchesToMeters(12.5);
 
-    private static final SwerveModuleConfig kFrontLeft = new SwerveModuleConfig()
+    private final SwerveModuleConfig frontLeft = new SwerveModuleConfig()
         .setName("frontLeft")
-        .setLocation(kModuleOffset, kModuleOffset)
-        .setMoveMotor(SwerveMotors.talonFX(RobotMap.kFlMove, true))
-        .setTurnMotor(SwerveMotors.talonFX(RobotMap.kFlTurn, true))
-        .setEncoder(SwerveEncoders.canCoder(RobotMap.kFlEncoder, 0.0, false));
+        .setLocation(OFFSET, OFFSET)
+        .setMoveMotor(SwerveMotors.talonFX(RobotMap.FL_MOVE, true))
+        .setTurnMotor(SwerveMotors.talonFX(RobotMap.FL_TURN, true))
+        .setEncoder(SwerveEncoders.cancoder(RobotMap.FL_ENCODER, 0.0, false));
 
-    private static final SwerveModuleConfig kFrontRight = new SwerveModuleConfig()
+    private final SwerveModuleConfig frontRight = new SwerveModuleConfig()
         .setName("frontRight")
-        .setLocation(kModuleOffset, -kModuleOffset)
-        .setMoveMotor(SwerveMotors.talonFX(RobotMap.kFrMove, true))
-        .setTurnMotor(SwerveMotors.talonFX(RobotMap.kFrTurn, true))
-        .setEncoder(SwerveEncoders.canCoder(RobotMap.kFrEncoder, 0.0, false));
+        .setLocation(OFFSET, -OFFSET)
+        .setMoveMotor(SwerveMotors.talonFX(RobotMap.FR_MOVE, true))
+        .setTurnMotor(SwerveMotors.talonFX(RobotMap.FR_TURN, true))
+        .setEncoder(SwerveEncoders.cancoder(RobotMap.FR_ENCODER, 0.0, false));
 
-    private static final SwerveModuleConfig kBackLeft = new SwerveModuleConfig()
+    private final SwerveModuleConfig backLeft = new SwerveModuleConfig()
         .setName("backLeft")
-        .setLocation(-kModuleOffset, kModuleOffset)
-        .setMoveMotor(SwerveMotors.talonFX(RobotMap.kBlMove, true))
-        .setTurnMotor(SwerveMotors.talonFX(RobotMap.kBlTurn, true))
-        .setEncoder(SwerveEncoders.canCoder(RobotMap.kBlEncoder, 0.0, false));
+        .setLocation(-OFFSET, OFFSET)
+        .setMoveMotor(SwerveMotors.talonFX(RobotMap.BL_MOVE, true))
+        .setTurnMotor(SwerveMotors.talonFX(RobotMap.BL_TURN, true))
+        .setEncoder(SwerveEncoders.cancoder(RobotMap.BL_ENCODER, 0.0, false));
 
-    private static final SwerveModuleConfig kBackRight = new SwerveModuleConfig()
+    private final SwerveModuleConfig backRight = new SwerveModuleConfig()
         .setName("backRight")
-        .setLocation(-kModuleOffset, -kModuleOffset)
-        .setMoveMotor(SwerveMotors.talonFX(RobotMap.kBrMove, true))
-        .setTurnMotor(SwerveMotors.talonFX(RobotMap.kBrTurn, true))
-        .setEncoder(SwerveEncoders.canCoder(RobotMap.kBrEncoder, 0.0, false));
+        .setLocation(-OFFSET, -OFFSET)
+        .setMoveMotor(SwerveMotors.talonFX(RobotMap.BR_MOVE, true))
+        .setTurnMotor(SwerveMotors.talonFX(RobotMap.BR_TURN, true))
+        .setEncoder(SwerveEncoders.cancoder(RobotMap.BR_ENCODER, 0.0, false));
 
-    private static final SwerveConfig kConfig = new SwerveConfig()
+    private final SwerveConfig config = new SwerveConfig()
         .setTimings(TimedRobot.kDefaultPeriod, 0.004, 0.02, 0.01)
         .setMovePID(0.25, 0.0, 0.0)
         .setMoveFF(0.0, 0.125)
@@ -71,38 +71,30 @@ public final class Swerve extends GRRSubsystem {
         .setBrakeMode(false, true)
         .setLimits(4.5, 0.05, 17.5, 14.0, 30.0)
         .setDriverProfile(4.0, 1.5, 0.15, 4.75, 2.0, 0.05)
-        .setPowerProperties(Constants.kVoltage, 100.0, 80.0, 60.0, 60.0)
-        .setMechanicalProperties(kMoveRatio, kTurnRatio, 0.0, Units.inchesToMeters(4.0))
+        .setPowerProperties(Constants.VOLTAGE, 100.0, 80.0, 60.0, 60.0)
+        .setMechanicalProperties(729.0 / 95.0, 12.1, 0.0, Units.inchesToMeters(4.0))
         .setOdometryStd(0.1, 0.1, 0.1)
-        .setIMU(SwerveIMUs.canandgyro(RobotMap.kCanandgyro))
-        .setPhoenixFeatures(new CANBus(RobotMap.kLowerCANBus), true, true, true)
-        .setModules(kFrontLeft, kFrontRight, kBackLeft, kBackRight);
+        .setIMU(SwerveIMUs.canandgyro(RobotMap.CANANDGYRO))
+        .setPhoenixFeatures(new CANBus(RobotMap.LOWER_CAN), true, true, true)
+        .setModules(frontLeft, frontRight, backLeft, backRight);
 
     private final SwerveAPI api;
     private final SwerveState state;
 
-    private final PIDController autoPIDx;
-    private final PIDController autoPIDy;
-    private final PIDController autoPIDangular;
-
-    @SuppressWarnings("unused")
-    private Pose2d autoLast = null;
-
-    private Pose2d autoNext = null;
+    private final PAPFController apf;
+    private final ProfiledPIDController angularPID;
 
     public Swerve() {
-        api = new SwerveAPI(kConfig);
+        api = new SwerveAPI(config);
         state = api.state;
 
-        autoPIDx = new PIDController(10.0, 0.0, 0.0);
-        autoPIDy = new PIDController(10.0, 0.0, 0.0);
-        autoPIDangular = new PIDController(10.0, 0.0, 0.0);
-        autoPIDangular.enableContinuousInput(-Math.PI, Math.PI);
+        apf = new PAPFController(4.0, 0.5, true, new Obstacle[0]);
+        angularPID = new ProfiledPIDController(10.0, 0.0, 0.0, new Constraints(10.0, 25.0));
+        angularPID.enableContinuousInput(-Math.PI, Math.PI);
 
         api.enableTunables("swerve/api");
-        Tunable.pidController("swerve/autoPID", autoPIDx);
-        Tunable.pidController("swerve/autoPID", autoPIDy);
-        Tunable.pidController("swerve/autoPIDangular", autoPIDangular);
+        apf.enableTunables("swerve/apf");
+        Tunable.pidController("swerve/angularPID", angularPID);
     }
 
     @Override
@@ -124,7 +116,18 @@ public final class Swerve extends GRRSubsystem {
      */
     public Command tareRotation() {
         return commandBuilder("Swerve.tareRotation()")
-            .onInitialize(() -> api.tareRotation(Perspective.kOperator))
+            .onInitialize(() -> api.tareRotation(Perspective.OPERATOR))
+            .isFinished(true)
+            .ignoringDisable(true);
+    }
+
+    /**
+     * Resets the pose of the robot, inherently seeding field-relative movement.
+     * @param pose A supplier that returns the new blue origin relative pose to apply to the pose estimator.
+     */
+    public Command resetPose(Supplier<Pose2d> pose) {
+        return commandBuilder("Swerve.resetPose()")
+            .onInitialize(() -> api.resetPose(pose.get()))
             .isFinished(true)
             .ignoringDisable(true);
     }
@@ -141,11 +144,50 @@ public final class Swerve extends GRRSubsystem {
                 x.getAsDouble(),
                 y.getAsDouble(),
                 angular.getAsDouble(),
-                Perspective.kOperator,
+                Perspective.OPERATOR,
                 true,
                 true
             )
         );
+    }
+
+    /**
+     * Drives the robot to a target position using the P-APF, until the
+     * robot is positioned within a specified tolerance of the target.
+     * @param goal A supplier that returns the target blue-origin relative field location.
+     * @param maxDeceleration A supplier that returns the desired deceleration rate of the robot, in m/s/s.
+     * @param endTolerance The tolerance in meters at which to end the command.
+     */
+    public Command apfDrive(Supplier<Pose2d> goal, DoubleSupplier maxDeceleration, DoubleSupplier endTolerance) {
+        return apfDrive(goal, maxDeceleration)
+            .until(() -> Math2.isNear(goal.get().getTranslation(), state.translation, endTolerance.getAsDouble()))
+            .withName("Swerve.apfDrive()");
+    }
+
+    /**
+     * Drives the robot to a target position using the P-APF. This command does not end.
+     * @param goal A supplier that returns the target blue-origin relative field location.
+     * @param maxDeceleration A supplier that returns the desired deceleration rate of the robot, in m/s/s.
+     */
+    public Command apfDrive(Supplier<Pose2d> goal, DoubleSupplier maxDeceleration) {
+        return commandBuilder("Swerve.apfDrive()")
+            .onInitialize(() -> angularPID.reset(state.rotation.getRadians(), state.speeds.omegaRadiansPerSecond))
+            .onExecute(() -> {
+                Pose2d next = goal.get();
+                var speeds = apf.calculate(
+                    state.pose,
+                    next.getTranslation(),
+                    config.velocity,
+                    maxDeceleration.getAsDouble()
+                );
+
+                speeds.omegaRadiansPerSecond = angularPID.calculate(
+                    state.rotation.getRadians(),
+                    next.getRotation().getRadians()
+                );
+
+                api.applySpeeds(speeds, Perspective.BLUE, true, true);
+            });
     }
 
     /**
@@ -154,40 +196,5 @@ public final class Swerve extends GRRSubsystem {
      */
     public Command stop(boolean lock) {
         return commandBuilder("Swerve.stop(" + lock + ")").onExecute(() -> api.applyStop(lock));
-    }
-
-    /**
-     * Resets the pose of the robot, inherently seeding field-relative movement. This
-     * method is not intended for use outside of creating an {@link AutoFactory}.
-     * @param pose The new blue origin relative pose to apply to the pose estimator.
-     */
-    public void resetPose(Pose2d pose) {
-        api.resetPose(pose);
-
-        autoPIDx.reset();
-        autoPIDy.reset();
-        autoPIDangular.reset();
-    }
-
-    /**
-     * Follows a Choreo trajectory by moving towards the next sample. This method
-     * is not intended for use outside of creating an {@link AutoFactory}.
-     * @param sample The next trajectory sample.
-     */
-    public void followTrajectory(SwerveSample sample) {
-        autoLast = autoNext;
-        autoNext = sample.getPose();
-
-        Pose2d pose = state.pose;
-        api.applySpeeds(
-            new ChassisSpeeds(
-                sample.vx + autoPIDx.calculate(pose.getX(), sample.x),
-                sample.vy + autoPIDy.calculate(pose.getY(), sample.y),
-                sample.omega + autoPIDangular.calculate(pose.getRotation().getRadians(), sample.heading)
-            ),
-            Perspective.kBlue,
-            true,
-            false
-        );
     }
 }

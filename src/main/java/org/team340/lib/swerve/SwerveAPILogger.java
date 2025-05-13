@@ -39,6 +39,7 @@ public class SwerveAPILogger extends ClassSpecificLogger<SwerveAPI> {
         backend.log("pose", state.pose, Pose2d.struct);
         backend.log("pitch", state.pitch, Rotation2d.struct);
         backend.log("roll", state.roll, Rotation2d.struct);
+        backend.log("odometryPose", state.odometryPose, Pose2d.struct);
 
         var modules = backend.getNested("modules");
         modules.log("positions", state.modules.positions, SwerveModulePosition.struct);
