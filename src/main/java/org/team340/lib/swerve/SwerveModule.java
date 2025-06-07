@@ -75,7 +75,7 @@ class SwerveModule implements AutoCloseable {
 
     /**
      * Refreshes the cached position and state of the module.
-     * @return {@code true} on success, {@code false} if a read error ocurred.
+     * @return {@code true} on success, {@code false} if a read error occurred.
      */
     public boolean refresh() {
         double turnPosition = turnMotor.getPosition();
@@ -139,7 +139,7 @@ class SwerveModule implements AutoCloseable {
      * @param state The state to apply to the module.
      */
     public void applyState(SwerveModuleState state) {
-        if (state.speedMetersPerSecond < config.velDeadband) {
+        if (Math.abs(state.speedMetersPerSecond) < config.velDeadband) {
             state.speedMetersPerSecond = 0.0;
             state.angle = nextTarget.angle;
         }
@@ -155,7 +155,7 @@ class SwerveModule implements AutoCloseable {
         }
 
         boolean flipped = false;
-        if (Math.abs(angleDelta.getRadians()) > Math2.kHalfPi) {
+        if (Math.abs(angleDelta.getRadians()) > Math2.HALF_PI) {
             state.speedMetersPerSecond *= -1.0;
             state.angle = state.angle.rotateBy(Rotation2d.kPi);
             flipped = true;

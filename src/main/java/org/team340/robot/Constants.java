@@ -7,10 +7,11 @@ package org.team340.robot;
  */
 public final class Constants {
 
-    public static final double kVoltage = 12.0;
+    public static final double VOLTAGE = 12.0;
 
-    public static final int kDriver = 0;
-    public static final int kCoDriver = 1;
+    // Controller ports
+    public static final int DRIVER = 0;
+    public static final int CO_DRIVER = 1;
 
     /**
      * The RobotMap class defines CAN IDs, CAN bus names, DIO/PWM/PH/PCM channel
@@ -18,22 +19,22 @@ public final class Constants {
      */
     public static final class RobotMap {
 
-        public static final String kLowerCANBus = "LowerCAN";
+        public static final String LOWER_CAN = "LowerCAN";
 
-        public static final int kFlMove = 2;
-        public static final int kFlTurn = 3;
-        public static final int kFrMove = 4;
-        public static final int kFrTurn = 5;
-        public static final int kBlMove = 6;
-        public static final int kBlTurn = 7;
-        public static final int kBrMove = 8;
-        public static final int kBrTurn = 9;
+        public static final int FL_MOVE = 2;
+        public static final int FL_TURN = 3;
+        public static final int FR_MOVE = 4;
+        public static final int FR_TURN = 5;
+        public static final int BL_MOVE = 6;
+        public static final int BL_TURN = 7;
+        public static final int BR_MOVE = 8;
+        public static final int BR_TURN = 9;
 
-        public static final int kFlEncoder = 10;
-        public static final int kFrEncoder = 11;
-        public static final int kBlEncoder = 12;
-        public static final int kBrEncoder = 13;
+        public static final int FL_ENCODER = 10;
+        public static final int FR_ENCODER = 11;
+        public static final int BL_ENCODER = 12;
+        public static final int BR_ENCODER = 13;
 
-        public static final int kCanandgyro = 14;
+        public static final int CANANDGYRO = 14;
     }
 }

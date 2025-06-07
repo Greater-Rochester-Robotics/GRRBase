@@ -1,4 +1,4 @@
-package org.team340.lib.util;
+package org.team340.lib.logging;
 
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.NetworkTable;
@@ -17,8 +17,8 @@ import java.util.function.Supplier;
  * A simple pseudo call-graph profiler that publishes timings to NetworkTables.
  *
  * <p>Data is published to {@code /Profiling}, with CPU time utilized by the garbage
- * collector published at {@code /Profiling/GC}, and time spent publishing values to
- * NT at {@code /Profiling/Overhead}. All timings are recorded in  milliseconds,
+ * collector published at {@code /Profiling/gc}, and time spent publishing values to
+ * NT at {@code /Profiling/overhead}. All timings are recorded in  milliseconds,
  * as the duration of execution. The profiler records the time to execute blocks
  * of code, with support for nesting execution times which are reflected in an
  * expanding NT tree.
@@ -26,15 +26,15 @@ import java.util.function.Supplier;
  * <p>All invocations of {@link Profiler#start(String)} are expected to be
  * followed by a closing {@link Profiler#end()}. Additionally, it is expected
  * that a single {@link Profiler#start(String)}/{@link Profiler#end()} pair is
- * found at the highest level of the robot's code (i.e. {@code robotPeriodic}),
- * with no other "root" pairs. If either of these limitations are left unsatisfied,
- * an error will be printed to the Driver Station. Profiling across threads is also
- * not supported.
+ * found at the highest level of the robot's code, with no other "root" pairs
+ * (this is already done if utilizing {@link LoggedRobot}. If either of these
+ * limitations are left unsatisfied, an error will be printed to the Driver Station
+ * console. Profiling across threads is also not supported.
  */
 public final class Profiler {
 
     private Profiler() {
-        throw new AssertionError("This is a utility class!");
+        throw new UnsupportedOperationException("This is a utility class!");
     }
 
     private static final NetworkTable nt = NetworkTableInstance.getDefault().getTable("Profiling");
@@ -47,7 +47,7 @@ public final class Profiler {
     private static final DoublePublisher gcPub = nt.getDoubleTopic("gc").publish();
 
     private static String root = "";
-    private static long lastGCTime = 0;
+    private static long lastGCTime = 0L;
 
     /**
      * Determines if the profiler is currently running.
@@ -123,7 +123,7 @@ public final class Profiler {
     /**
      * Ends profiling a section of code. This method should be invoked
      * after the user code to be profiled. Trailing calls to this method
-     * will result in an error printed to the Driver Station.
+     * will result in an error printed to the Driver Station console.
      */
     public static void end() {
         CallData call = callGraph.get(String.join("/", stack));
@@ -145,10 +145,10 @@ public final class Profiler {
                     entryCall.pubAndReset(start);
                 }
 
-                long gcSum = 0;
+                long gcSum = 0L;
                 for (var gc : gcList) {
                     long gcTime = gc.getCollectionTime();
-                    if (gcTime != -1) gcSum += gcTime;
+                    if (gcTime != -1L) gcSum += gcTime;
                 }
                 gcPub.set(gcSum - lastGCTime);
                 lastGCTime = gcSum;
@@ -166,7 +166,7 @@ public final class Profiler {
     private static final class CallData implements AutoCloseable {
 
         public final String fullName;
-        public long time = -1;
+        public long time = -1L;
         public boolean done = false;
         public DoublePublisher pub;
 
@@ -196,7 +196,7 @@ public final class Profiler {
         public void pubAndReset(long timestamp) {
             if (pub == null) pub = nt.getDoubleTopic(fullName).publish();
             pub.set(time / 1000.0, timestamp);
-            time = -1;
+            time = -1L;
             done = false;
         }
 

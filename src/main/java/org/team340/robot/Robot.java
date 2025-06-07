@@ -2,28 +2,22 @@ package org.team340.robot;
 
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 
-import com.ctre.phoenix6.SignalLogger;
-import edu.wpi.first.epilogue.Epilogue;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.NotLogged;
-import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Threads;
-import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import org.team340.lib.logging.LoggedRobot;
+import org.team340.lib.logging.Profiler;
 import org.team340.lib.util.DisableWatchdog;
-import org.team340.lib.util.Profiler;
-import org.team340.lib.util.Tunable;
 import org.team340.robot.commands.Autos;
 import org.team340.robot.commands.Routines;
 import org.team340.robot.subsystems.Swerve;
 
 @Logged
-public final class Robot extends TimedRobot {
+public final class Robot extends LoggedRobot {
 
-    private final CommandScheduler scheduler = CommandScheduler.getInstance();
+    public final CommandScheduler scheduler = CommandScheduler.getInstance();
 
     public final Swerve swerve;
 
@@ -34,16 +28,6 @@ public final class Robot extends TimedRobot {
     private final CommandXboxController coDriver;
 
     public Robot() {
-        DriverStation.silenceJoystickConnectionWarning(true);
-        DisableWatchdog.in(scheduler, "m_watchdog");
-        DisableWatchdog.in(this, "m_watchdog");
-
-        // Configure logging
-        DataLogManager.start();
-        DriverStation.startDataLog(DataLogManager.getLog());
-        SignalLogger.enableAutoLogging(false);
-        Epilogue.getConfig().root = "/Telemetry";
-
         // Initialize subsystems
         swerve = new Swerve();
 
@@ -52,23 +36,22 @@ public final class Robot extends TimedRobot {
         autos = new Autos(this);
 
         // Initialize controllers
-        driver = new CommandXboxController(Constants.kDriver);
-        coDriver = new CommandXboxController(Constants.kCoDriver);
+        driver = new CommandXboxController(Constants.DRIVER);
+        coDriver = new CommandXboxController(Constants.CO_DRIVER);
 
-        // Create triggers
-        RobotModeTriggers.autonomous().whileTrue(autos.runSelectedAuto());
+        // Set default commands
+        swerve.setDefaultCommand(swerve.drive(this::driverX, this::driverY, this::driverAngular));
 
         // Driver bindings
+        driver.a().onTrue(none());
         driver.povLeft().onTrue(swerve.tareRotation());
 
         // Co-driver bindings
         coDriver.a().onTrue(none());
 
-        // Set thread priority
-        waitSeconds(10.0)
-            .until(DriverStation::isEnabled)
-            .andThen(() -> Threads.setCurrentThreadPriority(true, 10))
-            .schedule();
+        // Disable loop overrun warnings from the command
+        // scheduler, since we already log loop timings
+        DisableWatchdog.in(scheduler, "m_watchdog");
     }
 
     /**
@@ -95,25 +78,6 @@ public final class Robot extends TimedRobot {
 
     @Override
     public void robotPeriodic() {
-        Profiler.start("robotPeriodic");
         Profiler.run("scheduler", scheduler::run);
-        Profiler.run("epilogue", () -> Epilogue.update(this));
-        Profiler.run("tunables", Tunable::update);
-        Profiler.end();
     }
-
-    @Override
-    public void simulationPeriodic() {}
-
-    @Override
-    public void disabledPeriodic() {}
-
-    @Override
-    public void autonomousPeriodic() {}
-
-    @Override
-    public void teleopPeriodic() {}
-
-    @Override
-    public void testPeriodic() {}
 }

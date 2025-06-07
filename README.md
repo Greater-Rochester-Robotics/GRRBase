@@ -39,19 +39,19 @@ Node.js is required to support linting via [Spotless](https://github.com/diffplu
 
 ```diff
 diff --git a/build.gradle b/build.gradle
-index 155f017..7670ad8 100644
+index 834d562..a2837c8 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -1,7 +1,6 @@
  plugins {
      id "java"
      id "edu.wpi.first.GradleRIO" version "2025.3.2"
--    id "com.diffplug.spotless" version "7.0.2"
+-    id "com.diffplug.spotless" version "7.0.3"
  }
 
  java {
-@@ -83,30 +82,6 @@ dependencies {
-     implementation 'com.google.code.gson:gson:2.11.0'
+@@ -91,30 +90,6 @@ dependencies {
+     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
  }
 
 -// Code formatting via spotless
@@ -81,7 +81,7 @@ index 155f017..7670ad8 100644
  test {
      useJUnitPlatform()
      systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
-@@ -134,5 +109,4 @@ wpi.java.configureTestTasks(test)
+@@ -142,5 +117,4 @@ wpi.java.configureTestTasks(test)
  // Configure string concat to always inline compile
  tasks.withType(JavaCompile) {
      options.compilerArgs.add '-XDstringConcat=inline'

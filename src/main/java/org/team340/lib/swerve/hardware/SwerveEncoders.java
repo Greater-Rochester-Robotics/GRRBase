@@ -17,16 +17,11 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
-import edu.wpi.first.epilogue.logging.EpilogueBackend;
-import edu.wpi.first.epilogue.logging.errors.ErrorHandler;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.RobotBase;
 import java.util.List;
 import java.util.function.BiFunction;
-import org.team340.lib.logging.phoenix.CANcoderLogger;
-import org.team340.lib.logging.reduxlib.CanandmagLogger;
-import org.team340.lib.logging.revlib.SparkAbsoluteEncoderLogger;
 import org.team340.lib.swerve.SwerveAPI;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.hardware.SwerveEncoders.SwerveEncoder.HookStatus;
@@ -41,7 +36,7 @@ import org.team340.lib.util.vendors.RevUtil;
 public final class SwerveEncoders {
 
     private SwerveEncoders() {
-        throw new AssertionError("This is a utility class!");
+        throw new UnsupportedOperationException("This is a utility class!");
     }
 
     /**
@@ -101,7 +96,6 @@ public final class SwerveEncoders {
                 throw new UnsupportedOperationException("Turn motor is not a Spark Max");
             }
 
-            var deviceLogger = new SparkAbsoluteEncoderLogger();
             SparkAbsoluteEncoder encoder = sparkMax.getAbsoluteEncoder();
             HookStatus hookStatus = new HookStatus(false, true);
 
@@ -143,11 +137,6 @@ public final class SwerveEncoders {
                 }
 
                 @Override
-                public void log(EpilogueBackend backend, ErrorHandler errorHandler) {
-                    deviceLogger.tryUpdate(backend, encoder, errorHandler);
-                }
-
-                @Override
                 public void close() {}
             };
         };
@@ -164,7 +153,6 @@ public final class SwerveEncoders {
                 throw new UnsupportedOperationException("Turn motor is not a Spark Flex");
             }
 
-            var deviceLogger = new SparkAbsoluteEncoderLogger();
             SparkAbsoluteEncoder encoder = sparkFlex.getAbsoluteEncoder();
             HookStatus hookStatus = new HookStatus(false, true);
 
@@ -206,11 +194,6 @@ public final class SwerveEncoders {
                 }
 
                 @Override
-                public void log(EpilogueBackend backend, ErrorHandler errorHandler) {
-                    deviceLogger.tryUpdate(backend, encoder, errorHandler);
-                }
-
-                @Override
                 public void close() {}
             };
         };
@@ -224,7 +207,6 @@ public final class SwerveEncoders {
      */
     public static SwerveEncoder.Ctor canandmag(int id, double offset, boolean inverted) {
         return (config, turnMotor) -> {
-            var deviceLogger = new CanandmagLogger();
             Canandmag canandmag = new Canandmag(id);
 
             var settings = new CanandmagSettings()
@@ -250,11 +232,6 @@ public final class SwerveEncoders {
                 }
 
                 @Override
-                public void log(EpilogueBackend backend, ErrorHandler errorHandler) {
-                    deviceLogger.tryUpdate(backend, canandmag, errorHandler);
-                }
-
-                @Override
                 public void close() {
                     canandmag.close();
                 }
@@ -268,28 +245,27 @@ public final class SwerveEncoders {
      * @param offset Offset of the magnet in rotations.
      * @param inverted If the encoder is inverted.
      */
-    public static SwerveEncoder.Ctor canCoder(int id, double offset, boolean inverted) {
+    public static SwerveEncoder.Ctor cancoder(int id, double offset, boolean inverted) {
         return (config, turnMotor) -> {
-            var deviceLogger = new CANcoderLogger();
-            CANcoder canCoder = new CANcoder(id, config.phoenixCanBus);
+            CANcoder cancoder = new CANcoder(id, config.phoenixCanBus);
             HookStatus tempHookStatus = new HookStatus(false, false);
 
-            StatusSignal<Angle> position = canCoder.getPosition().clone();
-            StatusSignal<AngularVelocity> velocity = canCoder.getVelocity().clone();
+            StatusSignal<Angle> position = cancoder.getPosition().clone();
+            StatusSignal<AngularVelocity> velocity = cancoder.getVelocity().clone();
 
-            var canCoderConfig = new CANcoderConfiguration();
-            canCoderConfig.MagnetSensor.MagnetOffset = offset;
-            canCoderConfig.MagnetSensor.SensorDirection = inverted
+            var cancoderConfig = new CANcoderConfiguration();
+            cancoderConfig.MagnetSensor.MagnetOffset = offset;
+            cancoderConfig.MagnetSensor.SensorDirection = inverted
                 ? SensorDirectionValue.Clockwise_Positive
                 : SensorDirectionValue.CounterClockwise_Positive;
 
-            PhoenixUtil.run("Clear Sticky Faults", () -> canCoder.clearStickyFaults());
-            PhoenixUtil.run("Apply CANcoderConfiguration", () -> canCoder.getConfigurator().apply(canCoderConfig));
+            PhoenixUtil.run("Clear Sticky Faults", () -> cancoder.clearStickyFaults());
+            PhoenixUtil.run("Apply CANcoderConfiguration", () -> cancoder.getConfigurator().apply(cancoderConfig));
             PhoenixUtil.run("Set Update Frequency", () ->
                 BaseStatusSignal.setUpdateFrequencyForAll(1.0 / config.odometryPeriod, position, velocity)
             );
             PhoenixUtil.run("Optimize Bus Utilization", () ->
-                canCoder.optimizeBusUtilization(1.0 / config.defaultFramePeriod, 0.05)
+                cancoder.optimizeBusUtilization(1.0 / config.defaultFramePeriod, 0.05)
             );
 
             if (turnMotor.getAPI() instanceof TalonFX talonFX) {
@@ -329,12 +305,7 @@ public final class SwerveEncoders {
 
                 @Override
                 public Object getAPI() {
-                    return canCoder;
-                }
-
-                @Override
-                public void log(EpilogueBackend backend, ErrorHandler errorHandler) {
-                    deviceLogger.tryUpdate(backend, canCoder, errorHandler);
+                    return cancoder;
                 }
 
                 @Override
@@ -344,7 +315,7 @@ public final class SwerveEncoders {
 
                 @Override
                 public void close() {
-                    canCoder.close();
+                    cancoder.close();
                 }
             };
         };
@@ -371,13 +342,6 @@ public final class SwerveEncoders {
             @Override
             public Object getAPI() {
                 return encoder.getAPI();
-            }
-
-            @Override
-            public void log(EpilogueBackend backend, ErrorHandler errorHandler) {
-                encoder.log(backend, errorHandler);
-                var sim = backend.getNested(".sim");
-                sim.log("position", getPosition());
             }
 
             @Override
