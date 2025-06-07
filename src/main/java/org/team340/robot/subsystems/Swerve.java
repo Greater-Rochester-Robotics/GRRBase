@@ -2,7 +2,6 @@ package org.team340.robot.subsystems;
 
 import com.ctre.phoenix6.CANBus;
 import edu.wpi.first.epilogue.Logged;
-import edu.wpi.first.epilogue.NotLogged;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
@@ -11,9 +10,6 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
-import org.team340.lib.math.Math2;
-import org.team340.lib.math.PAPFController;
-import org.team340.lib.math.PAPFController.Obstacle;
 import org.team340.lib.swerve.Perspective;
 import org.team340.lib.swerve.SwerveAPI;
 import org.team340.lib.swerve.SwerveState;
@@ -22,6 +18,9 @@ import org.team340.lib.swerve.config.SwerveModuleConfig;
 import org.team340.lib.swerve.hardware.SwerveEncoders;
 import org.team340.lib.swerve.hardware.SwerveIMUs;
 import org.team340.lib.swerve.hardware.SwerveMotors;
+import org.team340.lib.util.Math2;
+import org.team340.lib.util.PAPFController;
+import org.team340.lib.util.PAPFController.Obstacle;
 import org.team340.lib.util.Tunable;
 import org.team340.lib.util.command.GRRSubsystem;
 import org.team340.robot.Constants;
@@ -88,7 +87,7 @@ public final class Swerve extends GRRSubsystem {
         api = new SwerveAPI(config);
         state = api.state;
 
-        apf = new PAPFController(4.0, 0.5, true, new Obstacle[0]);
+        apf = new PAPFController(4.0, 0.5, 0.01, true, new Obstacle[0]);
         angularPID = new ProfiledPIDController(10.0, 0.0, 0.0, new Constraints(10.0, 25.0));
         angularPID.enableContinuousInput(-Math.PI, Math.PI);
 
@@ -100,14 +99,6 @@ public final class Swerve extends GRRSubsystem {
     @Override
     public void periodic() {
         api.refresh();
-    }
-
-    /**
-     * Returns the current blue origin relative pose of the robot.
-     */
-    @NotLogged
-    public Pose2d getPose() {
-        return state.pose;
     }
 
     /**

@@ -9,8 +9,8 @@ import org.team340.robot.Robot;
 import org.team340.robot.subsystems.Swerve;
 
 /**
- * The Routines class contains command compositions, such as sequences
- * or parallel command groups, that require multiple subsystems.
+ * The Routines class contains command compositions that require
+ * multiple subsystems, such as sequences or parallel command groups.
  */
 @Logged(strategy = Strategy.OPT_IN)
 public final class Routines {
