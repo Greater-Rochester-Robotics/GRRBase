@@ -9,6 +9,7 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
+import com.reduxrobotics.canand.CanandEventLoop;
 import com.reduxrobotics.sensors.canandmag.Canandmag;
 import com.reduxrobotics.sensors.canandmag.CanandmagSettings;
 import com.revrobotics.spark.SparkAbsoluteEncoder;
@@ -220,6 +221,10 @@ public final class SwerveEncoders {
             canandmag.clearStickyFaults();
             ReduxUtil.applySettings(canandmag, settings);
 
+            if (RobotBase.isSimulation()) {
+                CanandEventLoop.getInstance().setDevicePresenceWarnings(canandmag, false);
+            }
+
             return new SwerveEncoder() {
                 @Override
                 public double getPosition() {
@@ -250,8 +255,8 @@ public final class SwerveEncoders {
             CANcoder cancoder = new CANcoder(id, config.phoenixCanBus);
             HookStatus tempHookStatus = new HookStatus(false, false);
 
-            StatusSignal<Angle> position = cancoder.getPosition().clone();
-            StatusSignal<AngularVelocity> velocity = cancoder.getVelocity().clone();
+            StatusSignal<Angle> position = cancoder.getPosition(false).clone();
+            StatusSignal<AngularVelocity> velocity = cancoder.getVelocity(false).clone();
 
             var cancoderConfig = new CANcoderConfiguration();
             cancoderConfig.MagnetSensor.MagnetOffset = offset;
@@ -259,14 +264,12 @@ public final class SwerveEncoders {
                 ? SensorDirectionValue.Clockwise_Positive
                 : SensorDirectionValue.CounterClockwise_Positive;
 
-            PhoenixUtil.run("Clear Sticky Faults", () -> cancoder.clearStickyFaults());
-            PhoenixUtil.run("Apply CANcoderConfiguration", () -> cancoder.getConfigurator().apply(cancoderConfig));
-            PhoenixUtil.run("Set Update Frequency", () ->
+            PhoenixUtil.run(() -> cancoder.clearStickyFaults());
+            PhoenixUtil.run(() -> cancoder.getConfigurator().apply(cancoderConfig));
+            PhoenixUtil.run(() ->
                 BaseStatusSignal.setUpdateFrequencyForAll(1.0 / config.odometryPeriod, position, velocity)
             );
-            PhoenixUtil.run("Optimize Bus Utilization", () ->
-                cancoder.optimizeBusUtilization(1.0 / config.defaultFramePeriod, 0.05)
-            );
+            PhoenixUtil.run(() -> cancoder.optimizeBusUtilization(1.0 / config.defaultFramePeriod, 0.05));
 
             if (turnMotor.getAPI() instanceof TalonFX talonFX) {
                 var feedbackConfig = new FeedbackConfigs();
@@ -282,10 +285,8 @@ public final class SwerveEncoders {
                 talonFX.getConfigurator().refresh(closedLoopConfig);
                 closedLoopConfig.ContinuousWrap = true;
 
-                PhoenixUtil.run("Apply FeedbackConfigs", () -> talonFX.getConfigurator().apply(feedbackConfig));
-                PhoenixUtil.run("Apply ClosedLoopGeneralConfigs", () ->
-                    talonFX.getConfigurator().apply(closedLoopConfig)
-                );
+                PhoenixUtil.run(() -> talonFX.getConfigurator().apply(feedbackConfig));
+                PhoenixUtil.run(() -> talonFX.getConfigurator().apply(closedLoopConfig));
 
                 tempHookStatus = new HookStatus(true, true);
             }
@@ -331,7 +332,7 @@ public final class SwerveEncoders {
         return new SwerveEncoder() {
             @Override
             public double getPosition() {
-                return turnMotor.getPosition() / (hookStatus().readMotor() ? 1.0 : config.turnGearRatio);
+                return (turnMotor.getPosition() / (hookStatus().readMotor() ? 1.0 : config.turnGearRatio));
             }
 
             @Override

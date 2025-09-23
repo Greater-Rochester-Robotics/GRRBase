@@ -2,14 +2,18 @@ package org.team340.robot.subsystems;
 
 import com.ctre.phoenix6.CANBus;
 import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.epilogue.NotLogged;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
+import org.team340.lib.logging.LoggedRobot;
+import org.team340.lib.math.Math2;
+import org.team340.lib.math.PAPFController;
+import org.team340.lib.math.PAPFController.Obstacle;
 import org.team340.lib.swerve.Perspective;
 import org.team340.lib.swerve.SwerveAPI;
 import org.team340.lib.swerve.SwerveState;
@@ -18,10 +22,8 @@ import org.team340.lib.swerve.config.SwerveModuleConfig;
 import org.team340.lib.swerve.hardware.SwerveEncoders;
 import org.team340.lib.swerve.hardware.SwerveIMUs;
 import org.team340.lib.swerve.hardware.SwerveMotors;
-import org.team340.lib.util.Math2;
-import org.team340.lib.util.PAPFController;
-import org.team340.lib.util.PAPFController.Obstacle;
-import org.team340.lib.util.Tunable;
+import org.team340.lib.tunable.TunableTable;
+import org.team340.lib.tunable.Tunables;
 import org.team340.lib.util.command.GRRSubsystem;
 import org.team340.robot.Constants;
 import org.team340.robot.Constants.RobotMap;
@@ -33,6 +35,8 @@ import org.team340.robot.Constants.RobotMap;
 public final class Swerve extends GRRSubsystem {
 
     private static final double OFFSET = Units.inchesToMeters(12.5);
+
+    private static final TunableTable tunables = Tunables.getNested("swerve");
 
     private final SwerveModuleConfig frontLeft = new SwerveModuleConfig()
         .setName("frontLeft")
@@ -63,37 +67,38 @@ public final class Swerve extends GRRSubsystem {
         .setEncoder(SwerveEncoders.cancoder(RobotMap.BR_ENCODER, 0.0, false));
 
     private final SwerveConfig config = new SwerveConfig()
-        .setTimings(TimedRobot.kDefaultPeriod, 0.004, 0.02, 0.01)
+        .setTimings(LoggedRobot.DEFAULT_PERIOD, 0.004, 0.02, 0.02)
         .setMovePID(0.25, 0.0, 0.0)
         .setMoveFF(0.0, 0.125)
         .setTurnPID(100.0, 0.0, 0.2)
-        .setBrakeMode(false, true)
-        .setLimits(4.5, 0.05, 17.5, 14.0, 30.0)
-        .setDriverProfile(4.0, 1.5, 0.15, 4.75, 2.0, 0.05)
+        .setBrakeMode(true, true)
+        .setLimits(5.0, 0.01, 18.0, 15.0, 45.0)
+        .setDriverProfile(5.0, 1.5, 0.1, 5.75, 2.0, 0.05)
         .setPowerProperties(Constants.VOLTAGE, 100.0, 80.0, 60.0, 60.0)
-        .setMechanicalProperties(729.0 / 95.0, 12.1, 0.0, Units.inchesToMeters(4.0))
-        .setOdometryStd(0.1, 0.1, 0.1)
+        .setMechanicalProperties(243.0 / 38.0, 12.1, Units.inchesToMeters(4.0))
+        .setOdometryStd(0.1, 0.1, 0.05)
         .setIMU(SwerveIMUs.canandgyro(RobotMap.CANANDGYRO))
         .setPhoenixFeatures(new CANBus(RobotMap.LOWER_CAN), true, true, true)
         .setModules(frontLeft, frontRight, backLeft, backRight);
 
-    private final SwerveAPI api;
+    @NotLogged
     private final SwerveState state;
 
+    private final SwerveAPI api;
     private final PAPFController apf;
     private final ProfiledPIDController angularPID;
 
     public Swerve() {
         api = new SwerveAPI(config);
-        state = api.state;
-
-        apf = new PAPFController(4.0, 0.5, 0.01, true, new Obstacle[0]);
-        angularPID = new ProfiledPIDController(10.0, 0.0, 0.0, new Constraints(10.0, 25.0));
+        apf = new PAPFController(6.0, 0.25, 0.01, true, new Obstacle[0]);
+        angularPID = new ProfiledPIDController(8.0, 0.0, 0.0, new Constraints(10.0, 26.0));
         angularPID.enableContinuousInput(-Math.PI, Math.PI);
 
-        api.enableTunables("swerve/api");
-        apf.enableTunables("swerve/apf");
-        Tunable.pidController("swerve/angularPID", angularPID);
+        state = api.state;
+
+        tunables.add("api", api);
+        tunables.add("apf", apf);
+        Tunables.add("swerve/angularPID", angularPID);
     }
 
     @Override

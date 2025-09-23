@@ -1,4 +1,4 @@
-package org.team340.lib.util;
+package org.team340.lib.math;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -9,7 +9,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 /**
- * Math utilities.
+ * General math utilities.
  * We reinvented math. It's called Math 2.
  */
 public final class Math2 {

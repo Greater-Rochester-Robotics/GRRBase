@@ -5,6 +5,7 @@ import static edu.wpi.first.wpilibj2.command.Commands.*;
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.NotLogged;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import org.team340.lib.logging.LoggedRobot;
@@ -17,7 +18,7 @@ import org.team340.robot.subsystems.Swerve;
 @Logged
 public final class Robot extends LoggedRobot {
 
-    public final CommandScheduler scheduler = CommandScheduler.getInstance();
+    private final CommandScheduler scheduler = CommandScheduler.getInstance();
 
     public final Swerve swerve;
 
@@ -52,13 +53,16 @@ public final class Robot extends LoggedRobot {
         // Disable loop overrun warnings from the command
         // scheduler, since we already log loop timings
         DisableWatchdog.in(scheduler, "m_watchdog");
+
+        // Configure the brownout threshold to match RIO 1
+        RobotController.setBrownoutVoltage(6.3);
     }
 
     /**
      * Returns the current match time in seconds.
      */
     public double matchTime() {
-        return Math.max(DriverStation.getMatchTime(), 0.0);
+        return Math.max(0.0, DriverStation.getMatchTime());
     }
 
     @NotLogged

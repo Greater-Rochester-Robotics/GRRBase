@@ -10,12 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.team340.lib.math.Math2;
 import org.team340.lib.swerve.config.SwerveConfig;
 import org.team340.lib.swerve.config.SwerveModuleConfig;
 import org.team340.lib.swerve.hardware.SwerveEncoders.SwerveEncoder;
 import org.team340.lib.swerve.hardware.SwerveEncoders.SwerveEncoder.HookStatus;
 import org.team340.lib.swerve.hardware.SwerveMotors.SwerveMotor;
-import org.team340.lib.util.Math2;
 
 /**
  * An encapsulation of all hardware for a swerve module.
@@ -79,11 +79,10 @@ class SwerveModule implements AutoCloseable {
      */
     public boolean refresh() {
         double turnPosition = turnMotor.getPosition();
-        double movePosition = moveMotor.getPosition() - (turnPosition * config.couplingRatio);
         Rotation2d angle = Rotation2d.fromRotations(hookStatus.readMotor() ? turnPosition : encoder.getPosition());
         double moveRotationsPerMeter = config.moveGearRatio / (config.wheelDiameter * Math.PI);
 
-        position.distanceMeters = movePosition / moveRotationsPerMeter;
+        position.distanceMeters = moveMotor.getPosition() / moveRotationsPerMeter;
         position.angle = angle;
 
         state.speedMetersPerSecond = moveMotor.getVelocity() / moveRotationsPerMeter;
