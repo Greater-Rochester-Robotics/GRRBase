@@ -22,6 +22,10 @@ public final class Routines {
      * An example routine.
      */
     public Command example() {
-        return sequence(print("Hello!"), swerve.stop(true).withTimeout(1.0)).withName("Routines.example()");
+        return sequence(
+            swerve.drive(() -> 0.5, () -> 0.0, () -> 0.0).withTimeout(1.0),
+            swerve.stop(false).withTimeout(1.0),
+            print("Done!")
+        ).withName("Routines.example()");
     }
 }

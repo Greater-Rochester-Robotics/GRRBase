@@ -149,6 +149,7 @@ public final class SwerveMotors {
                 .primaryEncoderVelocityPeriodMs((int) (config.odometryPeriod * 1000.0));
 
             RevUtil.config(sparkMax, sparkConfig);
+            sparkMax.setControlFramePeriodMs(0);
 
             if (isMoveMotor) RevUtil.run("Zero Encoder", sparkMax, () -> relativeEncoder.setPosition(0.0));
 
@@ -274,6 +275,7 @@ public final class SwerveMotors {
                 .primaryEncoderVelocityPeriodMs((int) (config.odometryPeriod * 1000.0));
 
             RevUtil.config(sparkFlex, sparkConfig);
+            sparkFlex.setControlFramePeriodMs(0);
 
             if (isMoveMotor) RevUtil.run("Zero Encoder", sparkFlex, () -> relativeEncoder.setPosition(0.0));
 

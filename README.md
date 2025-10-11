@@ -148,3 +148,9 @@ First, ensure [wpilib_preferences.json](.wpilib/wpilib_preferences.json) is conf
 ```groovy
 def ROBOT_MAIN_CLASS = "com.example.robot.Main"
 ```
+
+## Versioning
+
+Due to the nature of GitHub templates, GRRBase is intentionally not versioned. It may be helpful to save the commit hash utilized when creating your repository for future reference. The `main` branch of this repository should be expected to always remain stable.
+
+If you wish to manually sync changes to GRRBase with your project, simply copying the `org.team340.lib` package should suffice, as the `robot` package is only provided as example code. You should always independently check for dependency updates (see [build.gradle](build.gradle) and [vendordeps](vendordeps)), as it is likely for GRRBase to occasionally fall out of date.
