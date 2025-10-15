@@ -40,18 +40,12 @@ public class CANcoderLogger extends ClassSpecificLogger<CANcoder> {
 
         @Override
         public int getSize() {
-            return kSizeDouble * 3 + kSizeInt32;
+            return kSizeDouble * 2;
         }
 
         @Override
         public String getSchema() {
-            return (
-                "double absolutePosition; "
-                + "enum{Magnet_Invalid=0,Magnet_Red=1,Magnet_Orange=2,Magnet_Green=3} "
-                + "int32 magnetHealth; "
-                + "double position; "
-                + "double velocity;"
-            );
+            return "double position; double velocity;";
         }
 
         @Override
@@ -69,17 +63,13 @@ public class CANcoderLogger extends ClassSpecificLogger<CANcoder> {
 
         private static final Map<CANcoder, Consumer<ByteBuffer>> registry = new HashMap<>();
         private static final Function<CANcoder, Consumer<ByteBuffer>> mappingFunction = value -> {
-            var absolutePosition = value.getAbsolutePosition(false);
-            var magnetHealth = value.getMagnetHealth(false);
             var position = value.getPosition(false);
             var velocity = value.getVelocity(false);
 
-            BaseStatusSignal[] signals = { absolutePosition, magnetHealth, position, velocity };
+            BaseStatusSignal[] signals = { position, velocity };
 
             return bb -> {
                 BaseStatusSignal.refreshAll(signals);
-                bb.putDouble(absolutePosition.getValueAsDouble());
-                bb.putInt((int) magnetHealth.getValueAsDouble());
                 bb.putDouble(position.getValueAsDouble());
                 bb.putDouble(velocity.getValueAsDouble());
             };

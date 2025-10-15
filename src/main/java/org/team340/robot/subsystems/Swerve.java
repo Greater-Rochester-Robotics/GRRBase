@@ -73,9 +73,9 @@ public final class Swerve extends GRRSubsystem {
         .setTurnPID(100.0, 0.0, 0.2)
         .setBrakeMode(true, true)
         .setLimits(5.0, 0.01, 18.0, 15.0, 45.0)
-        .setDriverProfile(5.0, 1.5, 0.1, 5.75, 2.0, 0.05)
-        .setPowerProperties(Constants.VOLTAGE, 100.0, 80.0, 60.0, 60.0)
-        .setMechanicalProperties(243.0 / 38.0, 12.1, Units.inchesToMeters(4.0))
+        .setDriverProfile(5.0, 1.5, 0.1, 5.4, 2.0, 0.05)
+        .setPowerProperties(Constants.VOLTAGE, 80.0, 70.0, 60.0, 60.0)
+        .setMechanicalProperties(675.0 / 112.0, 287.0 / 11.0, Units.inchesToMeters(4.0))
         .setOdometryStd(0.1, 0.1, 0.05)
         .setIMU(SwerveIMUs.canandgyro(RobotMap.CANANDGYRO))
         .setPhoenixFeatures(new CANBus(RobotMap.LOWER_CAN), true, true, true)
@@ -98,7 +98,7 @@ public final class Swerve extends GRRSubsystem {
 
         tunables.add("api", api);
         tunables.add("apf", apf);
-        Tunables.add("swerve/angularPID", angularPID);
+        tunables.add("angularPID", angularPID);
     }
 
     @Override

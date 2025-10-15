@@ -40,15 +40,13 @@ public class TalonFXSLogger extends ClassSpecificLogger<TalonFXS> {
 
         @Override
         public int getSize() {
-            return kSizeDouble * 9;
+            return kSizeDouble * 7;
         }
 
         @Override
         public String getSchema() {
             return (
-                "double acceleration; "
-                + "double closedLoopError; "
-                + "double closedLoopReference; "
+                "double closedLoopReference; "
                 + "double deviceTemp; "
                 + "double motorVoltage; "
                 + "double position; "
@@ -73,8 +71,6 @@ public class TalonFXSLogger extends ClassSpecificLogger<TalonFXS> {
 
         private static final Map<TalonFXS, Consumer<ByteBuffer>> registry = new HashMap<>();
         private static final Function<TalonFXS, Consumer<ByteBuffer>> mappingFunction = value -> {
-            var acceleration = value.getAcceleration(false);
-            var closedLoopError = value.getClosedLoopError(false);
             var closedLoopReference = value.getClosedLoopReference(false);
             var deviceTemp = value.getDeviceTemp(false);
             var motorVoltage = value.getMotorVoltage(false);
@@ -84,8 +80,6 @@ public class TalonFXSLogger extends ClassSpecificLogger<TalonFXS> {
             var velocity = value.getVelocity(false);
 
             BaseStatusSignal[] signals = {
-                acceleration,
-                closedLoopError,
                 closedLoopReference,
                 deviceTemp,
                 motorVoltage,
@@ -97,8 +91,6 @@ public class TalonFXSLogger extends ClassSpecificLogger<TalonFXS> {
 
             return bb -> {
                 BaseStatusSignal.refreshAll(signals);
-                bb.putDouble(acceleration.getValueAsDouble());
-                bb.putDouble(closedLoopError.getValueAsDouble());
                 bb.putDouble(closedLoopReference.getValueAsDouble());
                 bb.putDouble(deviceTemp.getValueAsDouble());
                 bb.putDouble(motorVoltage.getValueAsDouble());

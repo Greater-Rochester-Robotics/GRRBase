@@ -4,7 +4,6 @@ import static edu.wpi.first.wpilibj2.command.Commands.*;
 
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.epilogue.NotLogged;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -56,13 +55,6 @@ public final class Robot extends LoggedRobot {
 
         // Configure the brownout threshold to match RIO 1
         RobotController.setBrownoutVoltage(6.3);
-    }
-
-    /**
-     * Returns the current match time in seconds.
-     */
-    public double matchTime() {
-        return Math.max(0.0, DriverStation.getMatchTime());
     }
 
     @NotLogged

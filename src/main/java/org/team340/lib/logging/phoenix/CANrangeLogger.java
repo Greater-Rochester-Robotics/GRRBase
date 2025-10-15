@@ -40,19 +40,12 @@ public class CANrangeLogger extends ClassSpecificLogger<CANrange> {
 
         @Override
         public int getSize() {
-            return kSizeDouble * 3 + kSizeBool + kSizeInt32;
+            return kSizeDouble * 3 + kSizeBool;
         }
 
         @Override
         public String getSchema() {
-            return (
-                "double ambientSignal; "
-                + "double distance; "
-                + "bool isDetected; "
-                + "enum{Good=0,Limited=1,Bad=2} "
-                + "int32 measurementHealth; "
-                + "double signalStrength;"
-            );
+            return "double ambientSignal; double distance; bool isDetected; double signalStrength;";
         }
 
         @Override
@@ -73,17 +66,15 @@ public class CANrangeLogger extends ClassSpecificLogger<CANrange> {
             var ambientSignal = value.getAmbientSignal(false);
             var distance = value.getDistance(false);
             var isDetected = value.getIsDetected(false);
-            var measurementHealth = value.getMeasurementHealth(false);
             var signalStrength = value.getSignalStrength(false);
 
-            BaseStatusSignal[] signals = { ambientSignal, distance, isDetected, measurementHealth, signalStrength };
+            BaseStatusSignal[] signals = { ambientSignal, distance, isDetected, signalStrength };
 
             return bb -> {
                 BaseStatusSignal.refreshAll(signals);
                 bb.putDouble(ambientSignal.getValueAsDouble());
                 bb.putDouble(distance.getValueAsDouble());
                 bb.put((byte) (isDetected.getValue() ? 1 : 0));
-                bb.putInt((int) measurementHealth.getValueAsDouble());
                 bb.putDouble(signalStrength.getValueAsDouble());
             };
         };
