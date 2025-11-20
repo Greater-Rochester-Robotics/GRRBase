@@ -36,7 +36,11 @@ import org.team340.lib.util.Sleep;
 import org.team340.robot.Robot;
 
 /**
- * An implementation of a swerve drivetrain, with support for various hardware.
+ * An implementation of a swerve drivetrain, with support for various hardware configurations.
+ *
+ * <p>Includes features such as high frequency odometry, a custom ratelimiter to improve driver
+ * control while also reducing wheel scrub, and built-in support for tuning the drivetrain's
+ * configuration live via NetworkTables.
  */
 public class SwerveAPI implements Tunable, AutoCloseable {
 
@@ -521,7 +525,7 @@ public class SwerveAPI implements Tunable, AutoCloseable {
                     if (!Robot.isSimulation()) return;
                 }
 
-                poseEstimator.update(lastYaw, positionCache);
+                poseEstimator.updateWithTime(lastTimestamp, lastYaw, positionCache);
                 poseHistory.add(new TimestampedPose(poseEstimator.getEstimatedPosition(), lastTimestamp));
 
                 successes++;
