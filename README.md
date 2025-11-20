@@ -39,18 +39,17 @@ Node.js is required to support linting via [Spotless](https://github.com/diffplu
 
 ```diff
 diff --git a/build.gradle b/build.gradle
-index 834d562..a2837c8 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -1,7 +1,6 @@
  plugins {
      id "java"
      id "edu.wpi.first.GradleRIO" version "2025.3.2"
--    id "com.diffplug.spotless" version "7.0.3"
+-    id "com.diffplug.spotless" version "8.1.0"
  }
 
  java {
-@@ -91,30 +90,6 @@ dependencies {
+@@ -91,32 +90,6 @@ dependencies {
      testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
  }
 
@@ -66,14 +65,16 @@ index 834d562..a2837c8 100644
 -        endWithNewline()
 -        removeUnusedImports()
 -        trimTrailingWhitespace()
--        prettier(['prettier': '3.4.2', 'prettier-plugin-java': '2.6.7'])
+-        prettier(['prettier': '3.6.2', 'prettier-plugin-java': '2.7.7'])
 -            .config([
--                'parser': 'java',
--                'plugins': ['prettier-plugin-java'],
+-                parser: 'java',
+-                plugins: ['prettier-plugin-java'],
+-                arrowParens: 'avoid',
+-                experimentalOperatorPosition: 'start',
 -                printWidth: 120,
 -                tabWidth: 4,
 -                useTabs: false,
--                trailingComma: "none"
+-                trailingComma: 'none'
 -            ])
 -    }
 -}
@@ -81,7 +82,7 @@ index 834d562..a2837c8 100644
  test {
      useJUnitPlatform()
      systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
-@@ -142,5 +117,4 @@ wpi.java.configureTestTasks(test)
+@@ -144,5 +117,4 @@ wpi.java.configureTestTasks(test)
  // Configure string concat to always inline compile
  tasks.withType(JavaCompile) {
      options.compilerArgs.add '-XDstringConcat=inline'
@@ -89,16 +90,15 @@ index 834d562..a2837c8 100644
  }
 ```
 
-*You may also want to modify [robot-code.yml](.github/workflows/robot-code.yml) to remove the formatting check from CI:*
+*You may also want to modify [workflows/main.yml](.github/workflows/main.yml) to remove the formatting check from CI:*
 
 ```diff
-diff --git a/.github/workflows/robot-code.yml b/.github/workflows/robot-code.yml
-index 313b56e..4e26616 100644
---- a/.github/workflows/robot-code.yml
-+++ b/.github/workflows/robot-code.yml
+diff --git a/.github/workflows/main.yml b/.github/workflows/main.yml
+--- a/.github/workflows/main.yml
++++ b/.github/workflows/main.yml
 @@ -5,32 +5,6 @@ env:
-   NODE_VERSION: 20
-
+   NODE_VERSION: 24
+ 
  jobs:
 -  format:
 -    name: Check Format
@@ -107,15 +107,15 @@ index 313b56e..4e26616 100644
 -
 -    steps:
 -      - name: Checkout Repository
--        uses: actions/checkout@v4
+-        uses: actions/checkout@v6
 -        with:
 -          fetch-depth: 0
 -
 -      - name: Add repository to git safe directories
 -        run: git config --global --add safe.directory $GITHUB_WORKSPACE
--
+-      
 -      - name: Setup Node
--        uses: actions/setup-node@v4
+-        uses: actions/setup-node@v6
 -        with:
 -          node-version: ${{ env.NODE_VERSION }}
 -          registry-url: https://registry.npmjs.org/
@@ -129,6 +129,15 @@ index 313b56e..4e26616 100644
    build:
      name: Build
      runs-on: ubuntu-latest
+@@ -54,8 +28,5 @@ jobs:
+       - name: Grant execute permission for gradlew
+         run: chmod +x gradlew
+ 
+-      - name: Ensure spotless will not fail on build
+-        run: ./gradlew spotlessApply
+-
+       - name: Compile and run tests on robot code
+         run: ./gradlew build
 ```
 
 </details>
