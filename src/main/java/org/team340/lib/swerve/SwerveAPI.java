@@ -585,7 +585,7 @@ public class SwerveAPI implements Tunable, AutoCloseable {
     public void initTunable(TunableTable table) {
         // setTimings()
         TunableTable timings = table.getNested("timings");
-        timings.value("discretization", config.discretizationPeriod, v -> config.discretizationPeriod = v);
+        timings.value("discretizationPeriod", config.discretizationPeriod, v -> config.discretizationPeriod = v);
 
         // setMovePID()
         TunableTable movePID = table.getNested("movePID");
@@ -646,6 +646,10 @@ public class SwerveAPI implements Tunable, AutoCloseable {
         driverProfile.value("angularVelDeadband", config.driverAngularVelDeadband, v ->
             config.driverAngularVelDeadband = v
         );
+
+        // setMechanicalProperties()
+        TunableTable mechanicalProperties = table.getNested("mechanicalProperties");
+        mechanicalProperties.value("wheelDiameter", config.wheelDiameter, v -> config.wheelDiameter = v);
     }
 
     @Override

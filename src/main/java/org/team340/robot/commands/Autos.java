@@ -45,9 +45,9 @@ public final class Autos {
         var end = new ExtPose(6.0, 2.5, Rotation2d.kCW_90deg);
 
         return sequence(
-            swerve.resetPose(start::get),
-            swerve.apfDrive(middle::get, deceleration::get, tolerance::get),
-            swerve.apfDrive(end::get, deceleration::get, tolerance::get),
+            swerve.resetPose(start),
+            swerve.apfDrive(middle, deceleration, tolerance),
+            swerve.apfDrive(end, deceleration, tolerance),
             swerve.stop(false)
         );
     }

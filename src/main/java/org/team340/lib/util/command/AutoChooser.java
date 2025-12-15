@@ -35,6 +35,7 @@ public final class AutoChooser {
 
     private String activeName = DEFAULT;
     private Command activeCommand = Commands.none();
+    private boolean enableScheduling = true;
     private boolean newSelection = false;
     private boolean running = false;
 
@@ -43,6 +44,14 @@ public final class AutoChooser {
      */
     public AutoChooser() {
         this("/Autos", true);
+    }
+
+    /**
+     * Creates an auto chooser.
+     * @param name The name for the chooser in NetworkTables.
+     */
+    public AutoChooser(String name) {
+        this(name, true);
     }
 
     /**
@@ -109,20 +118,19 @@ public final class AutoChooser {
     }
 
     /**
+     * Enables automatically scheduling the selected command when the robot
+     * is enabled in autonomous mode. This behavior is enabled by default.
+     * @param enabled {@code true} to enable automatic scheduling.
+     */
+    public void enableScheduling(boolean enabled) {
+        enableScheduling = enabled;
+    }
+
+    /**
      * Updates the auto chooser.
      */
     private void update() {
-        boolean autoEnabled = DriverStation.isAutonomousEnabled();
-        if (!running && autoEnabled) {
-            activeCommand.schedule();
-            running = true;
-        } else if (running && !autoEnabled) {
-            activeCommand.cancel();
-            running = false;
-        }
-
         newSelection = false;
-
         if (!running) {
             String selected = selectedSub.get();
             if (!selected.equals(activeName)) {
@@ -131,6 +139,15 @@ public final class AutoChooser {
                 activePub.set(activeName);
                 newSelection = true;
             }
+        }
+
+        boolean schedule = DriverStation.isAutonomousEnabled() && enableScheduling;
+        if (!running && schedule) {
+            activeCommand.schedule();
+            running = true;
+        } else if (running && !schedule) {
+            activeCommand.cancel();
+            running = false;
         }
     }
 }

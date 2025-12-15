@@ -9,14 +9,19 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringEntry;
 import edu.wpi.first.util.function.BooleanConsumer;
 import edu.wpi.first.util.function.FloatConsumer;
+import edu.wpi.first.util.function.FloatSupplier;
 import edu.wpi.first.wpilibj.DriverStation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
+import java.util.function.DoubleSupplier;
 import java.util.function.IntConsumer;
+import java.util.function.IntSupplier;
+import java.util.function.Supplier;
 import org.team340.lib.logging.LoggedRobot;
 
 /**
@@ -98,8 +103,13 @@ public final class Tunables {
      */
     public static TunableTable getNested(String name) {
         name = normalizeKey(name, true);
-        var existing = tables.get(name);
-        return existing != null ? existing : new TunableTable(name);
+
+        TunableTable existing = tables.get(name);
+        if (existing != null) return existing;
+
+        var table = new TunableTable(name);
+        tables.put(name, table);
+        return table;
     }
 
     /**
@@ -168,7 +178,7 @@ public final class Tunables {
     /**
      * A tunable boolean value. Can be modified via NetworkTables.
      */
-    public static final class TunableBoolean implements TunableValue {
+    public static final class TunableBoolean implements TunableValue, BooleanSupplier, BooleanConsumer {
 
         private final BooleanEntry entry;
         private final List<BooleanConsumer> listeners = new ArrayList<>();
@@ -213,6 +223,16 @@ public final class Tunables {
                 for (var listener : listeners) listener.accept(value);
             }
         }
+
+        @Override
+        public boolean getAsBoolean() {
+            return get();
+        }
+
+        @Override
+        public void accept(boolean value) {
+            set(value);
+        }
     }
 
     /**
@@ -247,7 +267,7 @@ public final class Tunables {
     /**
      * A tunable integer value. Can be modified via NetworkTables.
      */
-    public static final class TunableInteger implements TunableValue {
+    public static final class TunableInteger implements TunableValue, IntSupplier, IntConsumer {
 
         private final IntegerEntry entry;
         private final List<IntConsumer> listeners = new ArrayList<>();
@@ -292,6 +312,16 @@ public final class Tunables {
                 for (var listener : listeners) listener.accept(value);
             }
         }
+
+        @Override
+        public int getAsInt() {
+            return get();
+        }
+
+        @Override
+        public void accept(int value) {
+            set(value);
+        }
     }
 
     /**
@@ -326,7 +356,7 @@ public final class Tunables {
     /**
      * A tunable float value. Can be modified via NetworkTables.
      */
-    public static final class TunableFloat implements TunableValue {
+    public static final class TunableFloat implements TunableValue, FloatSupplier, FloatConsumer {
 
         private final FloatEntry entry;
         private final List<FloatConsumer> listeners = new ArrayList<>();
@@ -371,6 +401,16 @@ public final class Tunables {
                 for (var listener : listeners) listener.accept(value);
             }
         }
+
+        @Override
+        public float getAsFloat() {
+            return get();
+        }
+
+        @Override
+        public void accept(float value) {
+            set(value);
+        }
     }
 
     /**
@@ -405,7 +445,7 @@ public final class Tunables {
     /**
      * A tunable double value. Can be modified via NetworkTables.
      */
-    public static final class TunableDouble implements TunableValue {
+    public static final class TunableDouble implements TunableValue, DoubleSupplier, DoubleConsumer {
 
         private final DoubleEntry entry;
         private final List<DoubleConsumer> listeners = new ArrayList<>();
@@ -450,6 +490,16 @@ public final class Tunables {
                 for (var listener : listeners) listener.accept(value);
             }
         }
+
+        @Override
+        public double getAsDouble() {
+            return get();
+        }
+
+        @Override
+        public void accept(double value) {
+            set(value);
+        }
     }
 
     /**
@@ -484,7 +534,7 @@ public final class Tunables {
     /**
      * A tunable string value. Can be modified via NetworkTables.
      */
-    public static final class TunableString implements TunableValue {
+    public static final class TunableString implements TunableValue, Supplier<String>, Consumer<String> {
 
         private final StringEntry entry;
         private final List<Consumer<String>> listeners = new ArrayList<>();
@@ -500,6 +550,7 @@ public final class Tunables {
         /**
          * Returns the value of the tunable.
          */
+        @Override
         public String get() {
             return value;
         }
@@ -529,6 +580,11 @@ public final class Tunables {
                 for (var listener : listeners) listener.accept(value);
             }
         }
+
+        @Override
+        public void accept(String value) {
+            set(value);
+        }
     }
 
     /**
@@ -539,7 +595,7 @@ public final class Tunables {
      */
     private static String normalizeKey(String key, boolean suffixSlash) {
         key = NetworkTable.normalizeKey(key, false);
-        if (!key.endsWith("/") && suffixSlash) key += "/";
+        if (suffixSlash && !key.endsWith("/")) key += "/";
         return key;
     }
 }

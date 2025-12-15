@@ -27,7 +27,7 @@ A template repository for Java-based robots in the FIRST Robotics Competition.
 ### Prerequisites
 
 - [WPILib](https://github.com/wpilibsuite/allwpilib/releases) 2025.x
-- [Node.js](https://nodejs.org/en/download) (v22 LTS Recommended)
+- [Node.js](https://nodejs.org/en/download) (v24 LTS Recommended)
 
 Node.js is required to support linting via [Spotless](https://github.com/diffplug/spotless), using the [Prettier](https://prettier.io) style guide. You can apply these rules by building, or by running `./gradlew spotlessApply`. Alternatively, if you wish to disable code formatting, you can do so with the following modifications to [build.gradle](build.gradle):
 
@@ -65,7 +65,7 @@ diff --git a/build.gradle b/build.gradle
 -        endWithNewline()
 -        removeUnusedImports()
 -        trimTrailingWhitespace()
--        prettier(['prettier': '3.6.2', 'prettier-plugin-java': '2.7.7'])
+-        prettier(['prettier': '3.7.4', 'prettier-plugin-java': '2.7.7'])
 -            .config([
 -                parser: 'java',
 -                plugins: ['prettier-plugin-java'],
