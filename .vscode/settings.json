@@ -20,6 +20,7 @@
   ],
   "java.configuration.updateBuildConfiguration": "automatic",
   "java.debug.settings.onBuildFailureProceed": true,
+  "java.dependency.enableDependencyCheckup": false,
   "java.import.gradle.annotationProcessing.enabled": false,
   "java.inlayHints.parameterNames.enabled": "literals",
   "java.inlayHints.parameterNames.exclusions": [

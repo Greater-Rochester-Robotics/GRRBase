@@ -437,7 +437,7 @@ public class SwerveAPI implements Tunable, AutoCloseable {
      * Drives the robot using open-loop voltage. Intended for characterization.
      * Plumbing for recording device voltage via their Java API is intentionally
      * unavailable, as GC pressure and CAN latency will result in inaccurate data.
-     * Use Phoenix Signal Logging or URCL instead.
+     * Use Phoenix Signal Logging or REV's StatusLogger instead.
      * @param voltage The voltage to apply to the move motors.
      * @param angle The robot-relative angle to apply to the turn motors.
      */

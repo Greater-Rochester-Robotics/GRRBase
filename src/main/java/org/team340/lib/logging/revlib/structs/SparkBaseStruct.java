@@ -1,6 +1,5 @@
 package org.team340.lib.logging.revlib.structs;
 
-import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase;
 import edu.wpi.first.util.struct.Struct;
 import java.nio.ByteBuffer;
@@ -9,7 +8,7 @@ public abstract class SparkBaseStruct<T extends SparkBase> implements Struct<T> 
 
     @Override
     public int getSize() {
-        return kSizeDouble * 6 + SparkFaultsStruct.struct.getSize() * 2 + SparkWarningsStruct.struct.getSize() * 2;
+        return kSizeDouble * 7 + SparkFaultsStruct.struct.getSize() * 2 + SparkWarningsStruct.struct.getSize() * 2;
     }
 
     @Override
@@ -17,6 +16,7 @@ public abstract class SparkBaseStruct<T extends SparkBase> implements Struct<T> 
         return (
             "double appliedOutput; "
             + "double appliedVoltage; "
+            + "double closedLoopSetpoint; "
             + "double motorTemperature; "
             + "double outputCurrent; "
             + "double position; "
@@ -44,10 +44,12 @@ public abstract class SparkBaseStruct<T extends SparkBase> implements Struct<T> 
     @Override
     public void pack(ByteBuffer bb, T value) {
         double appliedOutput = value.getAppliedOutput();
-        RelativeEncoder encoder = value.getEncoder();
+        var closedLoopController = value.getClosedLoopController();
+        var encoder = value.getEncoder();
 
         bb.putDouble(appliedOutput);
         bb.putDouble(appliedOutput * value.getBusVoltage());
+        bb.putDouble(closedLoopController.getSetpoint());
         bb.putDouble(value.getMotorTemperature());
         bb.putDouble(value.getOutputCurrent());
         bb.putDouble(encoder.getPosition());

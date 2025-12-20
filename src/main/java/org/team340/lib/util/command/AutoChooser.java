@@ -143,7 +143,7 @@ public final class AutoChooser {
 
         boolean schedule = DriverStation.isAutonomousEnabled() && enableScheduling;
         if (!running && schedule) {
-            activeCommand.schedule();
+            CommandScheduler.getInstance().schedule(activeCommand);
             running = true;
         } else if (running && !schedule) {
             activeCommand.cancel();
