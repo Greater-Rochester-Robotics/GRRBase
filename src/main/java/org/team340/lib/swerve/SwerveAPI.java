@@ -351,9 +351,10 @@ public class SwerveAPI implements Tunable, AutoCloseable {
         if (ratelimit) {
             double now = Timer.getFPGATimestamp();
 
-            ChassisSpeeds lastSpeeds = now - lastRatelimit < config.period * 4.0
-                ? perspective.toPerspectiveSpeeds(state.targetSpeeds, lastRobotAngle)
-                : perspective.toPerspectiveSpeeds(state.speeds, state.rotation);
+            ChassisSpeeds lastSpeeds =
+                now - lastRatelimit < config.period * 4.0
+                    ? perspective.toPerspectiveSpeeds(state.targetSpeeds, lastRobotAngle)
+                    : perspective.toPerspectiveSpeeds(state.speeds, state.rotation);
 
             double vx_l = lastSpeeds.vxMetersPerSecond;
             double vy_l = lastSpeeds.vyMetersPerSecond;

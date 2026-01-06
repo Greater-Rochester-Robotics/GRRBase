@@ -270,12 +270,10 @@ public final class PAPFController implements Tunable {
             obstacle.applyForce(currentPose.getX(), currentPose.getY(), sample);
         }
 
-        double repulsion_x = sample.x * input.vxMetersPerSecond < 0.0
-            ? sample.x * Math.abs(input.vxMetersPerSecond)
-            : 0.0;
-        double repulsion_y = sample.y * input.vyMetersPerSecond < 0.0
-            ? sample.y * Math.abs(input.vyMetersPerSecond)
-            : 0.0;
+        double repulsion_x =
+            sample.x * input.vxMetersPerSecond < 0.0 ? sample.x * Math.abs(input.vxMetersPerSecond) : 0.0;
+        double repulsion_y =
+            sample.y * input.vyMetersPerSecond < 0.0 ? sample.y * Math.abs(input.vyMetersPerSecond) : 0.0;
 
         return new ChassisSpeeds(
             input.vxMetersPerSecond + repulsion_x,
