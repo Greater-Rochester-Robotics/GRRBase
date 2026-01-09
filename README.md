@@ -49,7 +49,7 @@ diff --git a/build.gradle b/build.gradle
  }
 
  java {
-@@ -91,32 +90,6 @@ dependencies {
+@@ -92,32 +91,6 @@ dependencies {
      testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
  }
 
@@ -82,7 +82,7 @@ diff --git a/build.gradle b/build.gradle
  test {
      useJUnitPlatform()
      systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
-@@ -144,5 +117,4 @@ wpi.java.configureTestTasks(test)
+@@ -147,5 +120,4 @@ wpi.java.configureTestTasks(test)
  // Configure string concat to always inline compile
  tasks.withType(JavaCompile) {
      options.compilerArgs.add '-XDstringConcat=inline'
@@ -98,7 +98,7 @@ diff --git a/.github/workflows/main.yml b/.github/workflows/main.yml
 +++ b/.github/workflows/main.yml
 @@ -5,32 +5,6 @@ env:
    NODE_VERSION: 24
- 
+
  jobs:
 -  format:
 -    name: Check Format
@@ -113,7 +113,7 @@ diff --git a/.github/workflows/main.yml b/.github/workflows/main.yml
 -
 -      - name: Add repository to git safe directories
 -        run: git config --global --add safe.directory $GITHUB_WORKSPACE
--      
+-
 -      - name: Setup Node
 -        uses: actions/setup-node@v6
 -        with:
@@ -132,7 +132,7 @@ diff --git a/.github/workflows/main.yml b/.github/workflows/main.yml
 @@ -54,8 +28,5 @@ jobs:
        - name: Grant execute permission for gradlew
          run: chmod +x gradlew
- 
+
 -      - name: Ensure spotless will not fail on build
 -        run: ./gradlew spotlessApply
 -
