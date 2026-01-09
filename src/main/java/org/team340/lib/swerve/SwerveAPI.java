@@ -209,10 +209,6 @@ public class SwerveAPI implements Tunable, AutoCloseable {
 
         odometryMutex.lock();
         try {
-            // Patch for an upstream bug.
-            // TODO Fixed by https://github.com/wpilibsuite/allwpilib/pull/8285
-            odometry.resetPose(state.pose);
-
             poseEstimator.resetRotation(rotation);
             state.pose = poseEstimator.getEstimatedPosition();
             odometryThread.poseHistory.clear();
