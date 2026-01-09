@@ -1,6 +1,6 @@
 plugins {
     id "java"
-    id "edu.wpi.first.GradleRIO" version "2025.3.2"
+    id "edu.wpi.first.GradleRIO" version "2026.1.1"
     id "com.diffplug.spotless" version "8.1.0"
 }
 
@@ -60,7 +60,8 @@ deploy {
 
 def deployArtifact = deploy.targets.roborio.artifacts.frcJava
 
-// Set to true to use debug for JNI.
+// Set to true to use debug for all targets including
+// JNI, which will drastically impact performance.
 wpi.java.debugJni = false
 
 // Set this to true to enable desktop support.
@@ -103,7 +104,7 @@ spotless {
         endWithNewline()
         removeUnusedImports()
         trimTrailingWhitespace()
-        prettier(['prettier': '3.7.4', 'prettier-plugin-java': '2.7.7'])
+        prettier(['prettier': '3.7.4', 'prettier-plugin-java': '2.8.1'])
             .config([
                 parser: 'java',
                 plugins: ['prettier-plugin-java'],
@@ -131,7 +132,9 @@ wpi.sim.addDriverstation()
 // knows where to look for our Robot Class.
 jar {
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
-    from sourceSets.main.allSource
+    from('src') { into 'backup/src' }
+    from('vendordeps') { into 'backup/vendordeps' }
+    from('build.gradle') { into 'backup' }
     manifest edu.wpi.first.gradlerio.GradleRIOPlugin.javaManifest(ROBOT_MAIN_CLASS)
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }

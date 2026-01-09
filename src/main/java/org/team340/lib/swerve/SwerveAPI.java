@@ -209,10 +209,6 @@ public class SwerveAPI implements Tunable, AutoCloseable {
 
         odometryMutex.lock();
         try {
-            // Patch for an upstream bug.
-            // TODO Fixed by https://github.com/wpilibsuite/allwpilib/pull/8285
-            odometry.resetPose(state.pose);
-
             poseEstimator.resetRotation(rotation);
             state.pose = poseEstimator.getEstimatedPosition();
             odometryThread.poseHistory.clear();
@@ -351,9 +347,10 @@ public class SwerveAPI implements Tunable, AutoCloseable {
         if (ratelimit) {
             double now = Timer.getFPGATimestamp();
 
-            ChassisSpeeds lastSpeeds = now - lastRatelimit < config.period * 4.0
-                ? perspective.toPerspectiveSpeeds(state.targetSpeeds, lastRobotAngle)
-                : perspective.toPerspectiveSpeeds(state.speeds, state.rotation);
+            ChassisSpeeds lastSpeeds =
+                now - lastRatelimit < config.period * 4.0
+                    ? perspective.toPerspectiveSpeeds(state.targetSpeeds, lastRobotAngle)
+                    : perspective.toPerspectiveSpeeds(state.speeds, state.rotation);
 
             double vx_l = lastSpeeds.vxMetersPerSecond;
             double vy_l = lastSpeeds.vyMetersPerSecond;
@@ -437,7 +434,7 @@ public class SwerveAPI implements Tunable, AutoCloseable {
      * Drives the robot using open-loop voltage. Intended for characterization.
      * Plumbing for recording device voltage via their Java API is intentionally
      * unavailable, as GC pressure and CAN latency will result in inaccurate data.
-     * Use Phoenix Signal Logging or URCL instead.
+     * Use Phoenix Signal Logging or REV's StatusLogger instead.
      * @param voltage The voltage to apply to the move motors.
      * @param angle The robot-relative angle to apply to the turn motors.
      */

@@ -11,14 +11,12 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.spark.ClosedLoopSlot;
+import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
-import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -118,7 +116,6 @@ public final class SwerveMotors {
             SparkMax sparkMax = new SparkMax(id, MotorType.kBrushless);
             RelativeEncoder relativeEncoder = sparkMax.getEncoder();
             SparkClosedLoopController pid = sparkMax.getClosedLoopController();
-            ClosedLoopSlot pidSlot = ClosedLoopSlot.kSlot0;
 
             double[] pidGains = isMoveMotor ? config.movePID : config.turnPID;
             double[] ffGains = isMoveMotor ? config.moveFF : new double[] { 0.0, 0.0 };
@@ -135,7 +132,9 @@ public final class SwerveMotors {
 
             sparkConfig.closedLoop
                 .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                .pid(pidGains[0], pidGains[1], pidGains[2], pidSlot);
+                .pid(pidGains[0], pidGains[1], pidGains[2])
+                .feedForward.kS(ffGains[0])
+                .kV(ffGains[1]);
 
             sparkConfig.encoder
                 .positionConversionFactor(1.0)
@@ -165,7 +164,7 @@ public final class SwerveMotors {
 
                 @Override
                 public void setPosition(double position) {
-                    pid.setReference(position, ControlType.kPosition, pidSlot, 0.0, ArbFFUnits.kVoltage);
+                    pid.setSetpoint(position, ControlType.kPosition);
                 }
 
                 @Override
@@ -175,13 +174,7 @@ public final class SwerveMotors {
 
                 @Override
                 public void setVelocity(double velocity) {
-                    pid.setReference(
-                        velocity,
-                        ControlType.kVelocity,
-                        pidSlot,
-                        ffGains[0] * Math.signum(velocity) + ffGains[1] * velocity,
-                        ArbFFUnits.kVoltage
-                    );
+                    pid.setSetpoint(velocity, ControlType.kVelocity);
                 }
 
                 @Override
@@ -191,15 +184,14 @@ public final class SwerveMotors {
 
                 @Override
                 public void reapplyGains() {
-                    if (isMoveMotor) {
-                        ffGains[0] = config.moveFF[0];
-                        ffGains[1] = config.moveFF[1];
-                    }
-
                     double[] pidGains = isMoveMotor ? config.movePID : config.turnPID;
+                    double[] ffGains = isMoveMotor ? config.moveFF : new double[] { 0.0, 0.0 };
 
                     var newConfig = new SparkMaxConfig();
-                    newConfig.closedLoop.pid(pidGains[0], pidGains[1], pidGains[2], pidSlot);
+                    newConfig.closedLoop
+                        .pid(pidGains[0], pidGains[1], pidGains[2])
+                        .feedForward.kS(ffGains[0])
+                        .kV(ffGains[1]);
 
                     RevUtil.configEphemeral(sparkMax, newConfig);
                 }
@@ -244,7 +236,6 @@ public final class SwerveMotors {
             SparkFlex sparkFlex = new SparkFlex(id, MotorType.kBrushless);
             RelativeEncoder relativeEncoder = sparkFlex.getEncoder();
             SparkClosedLoopController pid = sparkFlex.getClosedLoopController();
-            ClosedLoopSlot pidSlot = ClosedLoopSlot.kSlot0;
 
             double[] pidGains = isMoveMotor ? config.movePID : config.turnPID;
             double[] ffGains = isMoveMotor ? config.moveFF : new double[] { 0.0, 0.0 };
@@ -261,7 +252,9 @@ public final class SwerveMotors {
 
             sparkConfig.closedLoop
                 .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                .pid(pidGains[0], pidGains[1], pidGains[2], pidSlot);
+                .pid(pidGains[0], pidGains[1], pidGains[2])
+                .feedForward.kS(ffGains[0])
+                .kV(ffGains[1]);
 
             sparkConfig.encoder
                 .positionConversionFactor(1.0)
@@ -291,7 +284,7 @@ public final class SwerveMotors {
 
                 @Override
                 public void setPosition(double position) {
-                    pid.setReference(position, ControlType.kPosition, pidSlot, 0.0, ArbFFUnits.kVoltage);
+                    pid.setSetpoint(position, ControlType.kPosition);
                 }
 
                 @Override
@@ -301,13 +294,7 @@ public final class SwerveMotors {
 
                 @Override
                 public void setVelocity(double velocity) {
-                    pid.setReference(
-                        velocity,
-                        ControlType.kVelocity,
-                        pidSlot,
-                        ffGains[0] * Math.signum(velocity) + ffGains[1] * velocity,
-                        ArbFFUnits.kVoltage
-                    );
+                    pid.setSetpoint(velocity, ControlType.kVelocity);
                 }
 
                 @Override
@@ -317,15 +304,14 @@ public final class SwerveMotors {
 
                 @Override
                 public void reapplyGains() {
-                    if (isMoveMotor) {
-                        ffGains[0] = config.moveFF[0];
-                        ffGains[1] = config.moveFF[1];
-                    }
-
                     double[] pidGains = isMoveMotor ? config.movePID : config.turnPID;
+                    double[] ffGains = isMoveMotor ? config.moveFF : new double[] { 0.0, 0.0 };
 
                     var newConfig = new SparkFlexConfig();
-                    newConfig.closedLoop.pid(pidGains[0], pidGains[1], pidGains[2], pidSlot);
+                    newConfig.closedLoop
+                        .pid(pidGains[0], pidGains[1], pidGains[2])
+                        .feedForward.kS(ffGains[0])
+                        .kV(ffGains[1]);
 
                     RevUtil.configEphemeral(sparkFlex, newConfig);
                 }

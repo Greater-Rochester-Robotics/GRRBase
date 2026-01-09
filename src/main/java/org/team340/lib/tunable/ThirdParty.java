@@ -78,6 +78,7 @@ final class ThirdParty {
     private static void sparkMax() {
         Tunables.registerHandler(SparkMax.class, (table, spark) -> {
             var pidConfig = spark.configAccessor.closedLoop;
+            var ffConfig = pidConfig.feedForward;
             var slot = ClosedLoopSlot.kSlot0;
 
             table.value("kP", pidConfig.getP(slot), v -> {
@@ -95,9 +96,29 @@ final class ThirdParty {
                 newConfig.closedLoop.d(v, slot);
                 RevUtil.configEphemeral(spark, newConfig);
             });
-            table.value("kV", pidConfig.getFF(slot), v -> {
+            table.value("kS", ffConfig.getkS(slot), v -> {
                 var newConfig = new SparkMaxConfig();
-                newConfig.closedLoop.velocityFF(v, slot);
+                newConfig.closedLoop.feedForward.kS(v, slot);
+                RevUtil.configEphemeral(spark, newConfig);
+            });
+            table.value("kV", ffConfig.getkV(slot), v -> {
+                var newConfig = new SparkMaxConfig();
+                newConfig.closedLoop.feedForward.kV(v, slot);
+                RevUtil.configEphemeral(spark, newConfig);
+            });
+            table.value("kA", ffConfig.getkA(slot), v -> {
+                var newConfig = new SparkMaxConfig();
+                newConfig.closedLoop.feedForward.kA(v, slot);
+                RevUtil.configEphemeral(spark, newConfig);
+            });
+            table.value("kG", ffConfig.getkG(slot), v -> {
+                var newConfig = new SparkMaxConfig();
+                newConfig.closedLoop.feedForward.kG(v, slot);
+                RevUtil.configEphemeral(spark, newConfig);
+            });
+            table.value("kCos", ffConfig.getkCos(slot), v -> {
+                var newConfig = new SparkMaxConfig();
+                newConfig.closedLoop.feedForward.kCos(v, slot);
                 RevUtil.configEphemeral(spark, newConfig);
             });
             table.value("iZone", pidConfig.getIZone(slot), v -> {
@@ -124,9 +145,9 @@ final class ThirdParty {
             var motionConfig = spark.configAccessor.closedLoop.maxMotion;
             TunableTable motionTable = table.getNested("motion");
 
-            motionTable.value("velocity", motionConfig.getMaxVelocity(slot), v -> {
+            motionTable.value("velocity", motionConfig.getCruiseVelocity(slot), v -> {
                 var newConfig = new SparkMaxConfig();
-                newConfig.closedLoop.maxMotion.maxVelocity(v, slot);
+                newConfig.closedLoop.maxMotion.cruiseVelocity(v, slot);
                 RevUtil.configEphemeral(spark, newConfig);
             });
             motionTable.value("acceleration", motionConfig.getMaxAcceleration(slot), v -> {
@@ -134,9 +155,9 @@ final class ThirdParty {
                 newConfig.closedLoop.maxMotion.maxAcceleration(v, slot);
                 RevUtil.configEphemeral(spark, newConfig);
             });
-            motionTable.value("allowedClosedLoopError", motionConfig.getAllowedClosedLoopError(slot), v -> {
+            motionTable.value("allowedProfileError", motionConfig.getAllowedProfileError(slot), v -> {
                 var newConfig = new SparkMaxConfig();
-                newConfig.closedLoop.maxMotion.allowedClosedLoopError(v, slot);
+                newConfig.closedLoop.maxMotion.allowedProfileError(v, slot);
                 RevUtil.configEphemeral(spark, newConfig);
             });
         });
@@ -146,6 +167,7 @@ final class ThirdParty {
     private static void sparkFlex() {
         Tunables.registerHandler(SparkFlex.class, (table, spark) -> {
             var pidConfig = spark.configAccessor.closedLoop;
+            var ffConfig = pidConfig.feedForward;
             var slot = ClosedLoopSlot.kSlot0;
 
             table.value("kP", pidConfig.getP(slot), v -> {
@@ -163,9 +185,29 @@ final class ThirdParty {
                 newConfig.closedLoop.d(v, slot);
                 RevUtil.configEphemeral(spark, newConfig);
             });
-            table.value("kV", pidConfig.getFF(slot), v -> {
+            table.value("kS", ffConfig.getkS(slot), v -> {
                 var newConfig = new SparkFlexConfig();
-                newConfig.closedLoop.velocityFF(v, slot);
+                newConfig.closedLoop.feedForward.kS(v, slot);
+                RevUtil.configEphemeral(spark, newConfig);
+            });
+            table.value("kV", ffConfig.getkV(slot), v -> {
+                var newConfig = new SparkFlexConfig();
+                newConfig.closedLoop.feedForward.kV(v, slot);
+                RevUtil.configEphemeral(spark, newConfig);
+            });
+            table.value("kA", ffConfig.getkA(slot), v -> {
+                var newConfig = new SparkFlexConfig();
+                newConfig.closedLoop.feedForward.kA(v, slot);
+                RevUtil.configEphemeral(spark, newConfig);
+            });
+            table.value("kG", ffConfig.getkG(slot), v -> {
+                var newConfig = new SparkFlexConfig();
+                newConfig.closedLoop.feedForward.kG(v, slot);
+                RevUtil.configEphemeral(spark, newConfig);
+            });
+            table.value("kCos", ffConfig.getkCos(slot), v -> {
+                var newConfig = new SparkFlexConfig();
+                newConfig.closedLoop.feedForward.kCos(v, slot);
                 RevUtil.configEphemeral(spark, newConfig);
             });
             table.value("iZone", pidConfig.getIZone(slot), v -> {
@@ -192,9 +234,9 @@ final class ThirdParty {
             var motionConfig = spark.configAccessor.closedLoop.maxMotion;
             TunableTable motionTable = table.getNested("motion");
 
-            motionTable.value("velocity", motionConfig.getMaxVelocity(slot), v -> {
+            motionTable.value("velocity", motionConfig.getCruiseVelocity(slot), v -> {
                 var newConfig = new SparkFlexConfig();
-                newConfig.closedLoop.maxMotion.maxVelocity(v, slot);
+                newConfig.closedLoop.maxMotion.cruiseVelocity(v, slot);
                 RevUtil.configEphemeral(spark, newConfig);
             });
             motionTable.value("acceleration", motionConfig.getMaxAcceleration(slot), v -> {
@@ -202,9 +244,9 @@ final class ThirdParty {
                 newConfig.closedLoop.maxMotion.maxAcceleration(v, slot);
                 RevUtil.configEphemeral(spark, newConfig);
             });
-            motionTable.value("allowedClosedLoopError", motionConfig.getAllowedClosedLoopError(slot), v -> {
+            motionTable.value("allowedProfileError", motionConfig.getAllowedProfileError(slot), v -> {
                 var newConfig = new SparkFlexConfig();
-                newConfig.closedLoop.maxMotion.allowedClosedLoopError(v, slot);
+                newConfig.closedLoop.maxMotion.allowedProfileError(v, slot);
                 RevUtil.configEphemeral(spark, newConfig);
             });
         });

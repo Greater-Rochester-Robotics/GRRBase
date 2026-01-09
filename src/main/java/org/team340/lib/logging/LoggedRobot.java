@@ -3,14 +3,12 @@ package org.team340.lib.logging;
 import edu.wpi.first.epilogue.logging.EpilogueBackend;
 import edu.wpi.first.hal.DriverStationJNI;
 import edu.wpi.first.hal.NotifierJNI;
-import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Threads;
 import java.util.function.Consumer;
-import org.team340.lib.logging.shim.NTEpilogueBackend;
 import org.team340.lib.tunable.Tunables;
 import org.team340.lib.tunable.Tunables.Tunable;
 import org.team340.lib.util.DisableWatchdog;
@@ -58,9 +56,6 @@ public class LoggedRobot extends IterativeRobotBase {
         DataLogManager.start();
         DriverStation.startDataLog(DataLogManager.getLog());
         DriverStation.silenceJoystickConnectionWarning(true);
-
-        // TODO Remove for 2026
-        EpilogueProxy.getConfig().backend = new NTEpilogueBackend(NetworkTableInstance.getDefault());
 
         EpilogueProxy.getConfig().root = "/Telemetry";
         logger = EpilogueProxy.getLogger(this);

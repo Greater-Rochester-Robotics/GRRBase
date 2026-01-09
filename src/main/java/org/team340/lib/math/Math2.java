@@ -46,9 +46,10 @@ public final class Math2 {
         double dtheta = speeds.omegaRadiansPerSecond * dtSeconds;
 
         double sin = -dtheta / 2.0;
-        double cos = Math.abs(Math.cos(dtheta) - 1.0) < 1e-6
-            ? 1.0 - ((1.0 / 12.0) * dtheta * dtheta)
-            : (sin * Math.sin(dtheta)) / (Math.cos(dtheta) - 1.0);
+        double cos =
+            Math.abs(Math.cos(dtheta) - 1.0) < 1e-6
+                ? 1.0 - ((1.0 / 12.0) * dtheta * dtheta)
+                : (sin * Math.sin(dtheta)) / (Math.cos(dtheta) - 1.0);
 
         double dt = dtSeconds;
         double dx = speeds.vxMetersPerSecond * dt;
