@@ -1,8 +1,8 @@
 package org.team340.lib.util.vendors;
 
+import com.revrobotics.PersistMode;
 import com.revrobotics.REVLibError;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.SparkMax;
