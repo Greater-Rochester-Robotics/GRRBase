@@ -65,7 +65,7 @@ diff --git a/build.gradle b/build.gradle
 -        endWithNewline()
 -        removeUnusedImports()
 -        trimTrailingWhitespace()
--        prettier(['prettier': '3.7.4', 'prettier-plugin-java': '2.8.1'])
+-        prettier(['prettier': '3.8.0', 'prettier-plugin-java': '2.8.1'])
 -            .config([
 -                parser: 'java',
 -                plugins: ['prettier-plugin-java'],
