@@ -44,7 +44,7 @@ diff --git a/build.gradle b/build.gradle
 @@ -1,7 +1,6 @@
  plugins {
      id "java"
-     id "edu.wpi.first.GradleRIO" version "2026.1.1"
+     id "edu.wpi.first.GradleRIO" version "2026.2.1"
 -    id "com.diffplug.spotless" version "8.1.0"
  }
 

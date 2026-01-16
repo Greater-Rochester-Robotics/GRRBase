@@ -41,6 +41,8 @@ public final class FieldInfo {
         try {
             layout = AprilTagFieldLayout.loadField(field);
             symmetryType = switch (field) {
+                case k2026RebuiltWelded -> SymmetryType.ROTATE;
+                case k2026RebuiltAndymark -> SymmetryType.ROTATE;
                 case k2025ReefscapeWelded -> SymmetryType.ROTATE;
                 case k2025ReefscapeAndyMark -> SymmetryType.ROTATE;
                 case k2024Crescendo -> SymmetryType.MIRROR;
