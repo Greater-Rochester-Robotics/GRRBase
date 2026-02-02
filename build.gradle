@@ -99,9 +99,9 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-def npmExec = "npm"
-if (!System.properties['os.name'].toLowerCase().contains('windows')) {
-    npmExec = "/bin/npm"
+def npmExec = "bin/npm"
+if (System.properties['os.name'].toLowerCase().contains('windows')) {
+    npmExec = "npm.cmd"
 }
 
 // Code formatting via spotless
@@ -117,7 +117,7 @@ spotless {
         removeUnusedImports()
         trimTrailingWhitespace()
         prettier(['prettier': '3.8.0', 'prettier-plugin-java': '2.8.1'])
-            .npmExecutable("${tasks.named('npmSetup').get().npmDir.get()}/${npmExec}")
+            .npmExecutable("${tasks.named('npmSetup').get().npmDir.get()}${File.separator}${npmExec}")
             .config([
                 parser: 'java',
                 plugins: ['prettier-plugin-java'],
