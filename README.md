@@ -45,7 +45,7 @@ diff --git a/build.gradle b/build.gradle
  plugins {
      id "java"
      id "edu.wpi.first.GradleRIO" version "2026.2.1"
--    id "com.diffplug.spotless" version "8.1.0"
+-    id "com.diffplug.spotless" version "8.2.1"
  }
 
  java {
@@ -65,7 +65,7 @@ diff --git a/build.gradle b/build.gradle
 -        endWithNewline()
 -        removeUnusedImports()
 -        trimTrailingWhitespace()
--        prettier(['prettier': '3.8.0', 'prettier-plugin-java': '2.8.1'])
+-        prettier(['prettier': '3.8.1', 'prettier-plugin-java': '2.8.1'])
 -            .config([
 -                parser: 'java',
 -                plugins: ['prettier-plugin-java'],
