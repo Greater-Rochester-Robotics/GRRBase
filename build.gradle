@@ -163,6 +163,6 @@ tasks.withType(JavaCompile) {
     dependsOn 'spotlessApply'
 }
 
-tasks.named('spotlessJavaApply') {
+tasks.matching { it.name.startsWith("spotless")}.all {
     dependsOn 'nodeSetup', 'npmSetup'
 }
