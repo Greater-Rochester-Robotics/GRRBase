@@ -41,18 +41,37 @@ Node.js is required to support linting via [Spotless](https://github.com/diffplu
 diff --git a/build.gradle b/build.gradle
 --- a/build.gradle
 +++ b/build.gradle
-@@ -1,7 +1,6 @@
+@@ -1,8 +1,6 @@
  plugins {
      id "java"
      id "edu.wpi.first.GradleRIO" version "2026.2.1"
 -    id "com.diffplug.spotless" version "8.2.1"
+-    id 'com.github.node-gradle.node' version '7.1.0'
  }
 
  java {
-@@ -92,32 +91,6 @@ dependencies {
+@@ -10,12 +8,6 @@ java {
+     targetCompatibility = JavaVersion.VERSION_17
+ }
+
+-node {
+-    download = true
+-    version = '24.13.0'
+-    workDir = file("${buildDir}/nodejs")
+-}
+-
+ def ROBOT_MAIN_CLASS = "org.team340.robot.Main"
+
+ // Define my targets (RoboRIO) and artifacts (deployable files)
+@@ -99,38 +91,6 @@ dependencies {
      testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
  }
 
+-def npmExec = "bin/npm"
+-if (System.properties['os.name'].toLowerCase().contains('windows')) {
+-    npmExec = "npm.cmd"
+-}
+-
 -// Code formatting via spotless
 -spotless {
 -    java {
@@ -66,6 +85,7 @@ diff --git a/build.gradle b/build.gradle
 -        removeUnusedImports()
 -        trimTrailingWhitespace()
 -        prettier(['prettier': '3.8.1', 'prettier-plugin-java': '2.8.1'])
+-            .npmExecutable("${tasks.named('npmSetup').get().npmDir.get()}${File.separator}${npmExec}")
 -            .config([
 -                parser: 'java',
 -                plugins: ['prettier-plugin-java'],
@@ -82,11 +102,15 @@ diff --git a/build.gradle b/build.gradle
  test {
      useJUnitPlatform()
      systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
-@@ -147,5 +120,4 @@ wpi.java.configureTestTasks(test)
+@@ -160,9 +120,4 @@ wpi.java.configureTestTasks(test)
  // Configure string concat to always inline compile
  tasks.withType(JavaCompile) {
      options.compilerArgs.add '-XDstringConcat=inline'
 -    dependsOn 'spotlessApply'
+-}
+-
+-tasks.matching { it.name.startsWith("spotless")}.all {
+-    dependsOn 'nodeSetup', 'npmSetup'
  }
 ```
 

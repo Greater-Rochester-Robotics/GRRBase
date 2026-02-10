@@ -116,7 +116,7 @@ spotless {
         endWithNewline()
         removeUnusedImports()
         trimTrailingWhitespace()
-        prettier(['prettier': '3.8.0', 'prettier-plugin-java': '2.8.1'])
+        prettier(['prettier': '3.8.1', 'prettier-plugin-java': '2.8.1'])
             .npmExecutable("${tasks.named('npmSetup').get().npmDir.get()}${File.separator}${npmExec}")
             .config([
                 parser: 'java',
