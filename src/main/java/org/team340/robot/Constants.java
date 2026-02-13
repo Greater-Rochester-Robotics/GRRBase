@@ -35,6 +35,10 @@ public final class Constants {
         public static final int BL_ENCODER = 12;
         public static final int BR_ENCODER = 13;
 
-        public static final int CANANDGYRO = 14;
+        // IntakeShooter
+        public static final int INTAKE_SHOOTER_MOTOR = 20;
+
+        // Hopper
+        public static final int HOPPER_MOTOR = 30;
     }
 }
