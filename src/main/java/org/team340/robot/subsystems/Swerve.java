@@ -45,28 +45,28 @@ public final class Swerve extends GRRSubsystem {
         .setLocation(OFFSET, OFFSET)
         .setMoveMotor(SwerveMotors.sparkMax(RobotMap.FL_MOVE, true))
         .setTurnMotor(SwerveMotors.sparkMax(RobotMap.FL_TURN, true))
-        .setEncoder(SwerveEncoders.cancoder(RobotMap.FL_ENCODER, -0.09, false));
+        .setEncoder(SwerveEncoders.cancoder(RobotMap.FL_ENCODER, 0.41, false));
 
     private final SwerveModuleConfig frontRight = new SwerveModuleConfig()
         .setName("frontRight")
         .setLocation(OFFSET, -OFFSET)
         .setMoveMotor(SwerveMotors.sparkMax(RobotMap.FR_MOVE, true))
         .setTurnMotor(SwerveMotors.sparkMax(RobotMap.FR_TURN, true))
-        .setEncoder(SwerveEncoders.cancoder(RobotMap.FR_ENCODER, 0.273, false));
+        .setEncoder(SwerveEncoders.cancoder(RobotMap.FR_ENCODER, -0.227, false));
 
     private final SwerveModuleConfig backLeft = new SwerveModuleConfig()
         .setName("backLeft")
         .setLocation(-OFFSET, OFFSET)
         .setMoveMotor(SwerveMotors.sparkMax(RobotMap.BL_MOVE, true))
         .setTurnMotor(SwerveMotors.sparkMax(RobotMap.BL_TURN, true))
-        .setEncoder(SwerveEncoders.cancoder(RobotMap.BL_ENCODER, -0.017, false));
+        .setEncoder(SwerveEncoders.cancoder(RobotMap.BL_ENCODER, 0.483, false));
 
     private final SwerveModuleConfig backRight = new SwerveModuleConfig()
         .setName("backRight")
         .setLocation(-OFFSET, -OFFSET)
         .setMoveMotor(SwerveMotors.sparkMax(RobotMap.BR_MOVE, true))
         .setTurnMotor(SwerveMotors.sparkMax(RobotMap.BR_TURN, true))
-        .setEncoder(SwerveEncoders.cancoder(RobotMap.BR_ENCODER, 0.515, false));
+        .setEncoder(SwerveEncoders.cancoder(RobotMap.BR_ENCODER, 0.015, false));
 
     private final SwerveConfig config = new SwerveConfig()
         .setTimings(LoggedRobot.DEFAULT_PERIOD)
