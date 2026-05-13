@@ -27,9 +27,8 @@ A template repository for Java-based robots in the FIRST Robotics Competition.
 ### Prerequisites
 
 - [WPILib](https://github.com/wpilibsuite/allwpilib/releases) 2026.x
-- [Node.js](https://nodejs.org/en/download) (v24 LTS Recommended)
 
-Node.js is required to support linting via [Spotless](https://github.com/diffplug/spotless), using the [Prettier](https://prettier.io) style guide. You can apply these rules by building, or by running `./gradlew spotlessApply`. Alternatively, if you wish to disable code formatting, you can do so with the following modifications to [build.gradle](build.gradle):
+Linting is automatically performed via [Spotless](https://github.com/diffplug/spotless), using the [Prettier](https://prettier.io) style guide. You can apply these rules by building, or by running `./gradlew spotlessApply`. Alternatively, if you wish to disable code formatting, you can do so with the following modifications to [build.gradle](build.gradle):
 
 <details>
 
@@ -45,7 +44,7 @@ diff --git a/build.gradle b/build.gradle
  plugins {
      id "java"
      id "edu.wpi.first.GradleRIO" version "2026.2.1"
--    id "com.diffplug.spotless" version "8.2.1"
+-    id "com.diffplug.spotless" version "8.4.0"
 -    id 'com.github.node-gradle.node' version '7.1.0'
  }
 
@@ -56,7 +55,7 @@ diff --git a/build.gradle b/build.gradle
 
 -node {
 -    download = true
--    version = '24.13.0'
+-    version = '24.15.0'
 -    workDir = file("${buildDir}/nodejs")
 -}
 -
@@ -84,7 +83,7 @@ diff --git a/build.gradle b/build.gradle
 -        endWithNewline()
 -        removeUnusedImports()
 -        trimTrailingWhitespace()
--        prettier(['prettier': '3.8.1', 'prettier-plugin-java': '2.8.1'])
+-        prettier(['prettier': '3.8.3', 'prettier-plugin-java': '2.8.1'])
 -            .npmExecutable("${tasks.named('npmSetup').get().npmDir.get()}${File.separator}${npmExec}")
 -            .config([
 -                parser: 'java',
